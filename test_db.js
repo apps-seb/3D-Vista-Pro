@@ -1,19 +1,37 @@
-const { createClient } = require('@supabase/supabase-js');
+const { chromium } = require('playwright');
+const assert = require('assert');
 
-const supabaseUrl = 'https://mungbffwwjobinfcympd.supabase.co';
-const supabaseKey = 'sb_publishable_yW5gsHp1w8ElbWRTeoMJYw_ZC-u0j9e';
-const supabase = createClient(supabaseUrl, supabaseKey);
+(async () => {
+    const browser = await chromium.launch({ headless: true });
+    const page = await browser.newPage();
+    await page.goto('file://' + __dirname + '/admin.html');
 
-async function test() {
-  console.log("Testing config fetch...");
-  const { data, error } = await supabase.from('configuracion').select('*').eq('id', 1).maybeSingle();
-  console.log("Fetch:", { data, error });
+    const columnsConfig = await page.evaluate(async () => {
+        const { data, error } = await supabaseClient.from('configuracion').select('*').limit(1);
+        return { data: data ? Object.keys(data[0] || {}) : null, error };
+    });
+    console.log("Config columns:", columnsConfig);
 
-  console.log("Testing file upload...");
-  const { error: uploadError } = await supabase.storage.from('imagenes_360').upload('test.txt', 'hello world', {
-    contentType: 'text/plain'
-  });
-  console.log("Upload:", { error: uploadError });
-}
+    const columnsPois = await page.evaluate(async () => {
+        // Just try inserting a dummy POI to see what column fails
+        const { error } = await supabaseClient.from('pois').insert([{ id: 'test', content: 'test', yaw: 0, pitch: 0 }]);
+        if (error) {
+           return error;
+        }
+        await supabaseClient.from('pois').delete().eq('id', 'test');
+        return "SUCCESS";
+    });
+    console.log("Pois insert result:", columnsPois);
 
-test();
+    const columnsPoisAll = await page.evaluate(async () => {
+        const { error } = await supabaseClient.from('pois').insert([{ id: 'test2', visualType: 'texto', content: 'test', yaw: 0, pitch: 0 }]);
+        if (error) {
+           return error;
+        }
+        await supabaseClient.from('pois').delete().eq('id', 'test2');
+        return "SUCCESS_WITH_VISUALTYPE";
+    });
+    console.log("Pois insert with visualType result:", columnsPoisAll);
+
+    await browser.close();
+})();
