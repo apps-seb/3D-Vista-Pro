@@ -12,7 +12,6 @@
         body { margin: 0; font-family: 'Montserrat', sans-serif; background-color: #000; overflow: hidden; }
         #viewer { width: 100vw; height: 100vh; transition: filter 0.3s ease; }
 
-        /* Cabecera Premium */
         .header-premium {
             position: absolute; top: 0; left: 0; width: 100%;
             padding: 20px 35px; background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
@@ -24,7 +23,6 @@
         .header-title { font-size: 1.4rem; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: #D4AF37; }
         .header-subtitle { font-size: 0.9rem; font-weight: 300; color: #e5e7eb; letter-spacing: 1px; margin-top: 4px; }
 
-        /* Inventario Bottom Bar */
         .inventory-bar {
             position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
             display: flex; gap: 15px; background: rgba(20, 20, 20, 0.8);
@@ -49,7 +47,6 @@
         .dot-vend { background: #e74c3c; box-shadow: 0 0 8px rgba(231, 76, 60, 0.6); }
         .inv-count { color: #fff; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 12px; }
 
-        /* Punto Animado (Para poner dentro del polígono dibujado en Photoshop) */
         .lote-marker {
             width: 24px; height: 24px; background: rgba(212, 175, 55, 0.9);
             border: 2px solid #fff; border-radius: 50%; box-shadow: 0 0 15px rgba(212, 175, 55, 0.6);
@@ -61,14 +58,12 @@
             100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); }
         }
 
-        /* --- ESTILOS DE PUNTOS DE INTERÉS --- */
         .poi-container { display: flex; flex-direction: column; align-items: center; pointer-events: none; }
         .poi-content-text { color: #fff; font-weight: 600; font-size: 14px; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); padding: 4px 12px; white-space: nowrap; border-bottom: 2px solid #fff; font-family: 'Montserrat', sans-serif; }
         .poi-content-img { max-width: 80px; max-height: 80px; object-fit: contain; background: rgba(255,255,255,0.9); border-radius: 6px; padding: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
         .poi-line-v { width: 2px; height: 50px; background: #fff; box-shadow: 0 0 5px rgba(0,0,0,0.3); }
         .poi-dot { width: 14px; height: 14px; background: #D4AF37; border: 2px solid #fff; border-radius: 50%; pointer-events: auto; cursor: pointer; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
 
-        /* --- MODAL PREMIUM (GLASSMORPHISM) --- */
         .modal-overlay {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(0, 0, 0, 0.4); z-index: 50;
@@ -125,7 +120,6 @@
             <div class="header-title">Rincón de Baviera</div>
             <div class="header-subtitle">Masterplan Interactivo</div>
         </div>
-
     </div>
 
     <div class="inventory-bar">
@@ -160,19 +154,18 @@
     <script src="https://cdn.jsdelivr.net/npm/three/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin/index.min.js"></script>
-    <!-- 1. Importar Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
-        // 2. Configuración de Supabase (REEMPLAZA CON TUS CREDENCIALES)
-        const supabaseUrl = 'TU_URL_DE_SUPABASE';
-        const supabaseKey = 'TU_ANON_KEY_DE_SUPABASE';
+        // CONFIGURACIÓN DE SUPABASE
+        const supabaseUrl = 'https://mungbffwwjobinfcympd.supabase.co';
+        const supabaseKey = 'sb_publishable_FdwVZx53pGAy_3Zf24-z6w_BJAPi0eD';
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
         const viewer = new PhotoSphereViewer.Viewer({
             container: document.querySelector('#viewer'),
-            panorama: 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg',
-            touchmoveTwoFingers: false, // Use one finger to orbit
+            panorama: 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg', 
+            touchmoveTwoFingers: false,
             mousewheelCtrlKey: false,
             moveSpeed: 1.5,
             zoomSpeed: 2,
@@ -185,42 +178,37 @@
         const modal = document.getElementById('premium-modal');
         const viewerDiv = document.getElementById('viewer');
 
-        // Función para cargar datos desde Supabase
         async function cargarDatosDesdeBD() {
             try {
-                // Obtener configuración (título)
                 const { data: configData } = await supabase.from('configuracion').select('*').single();
-
-                // Obtener lotes
                 const { data: lotesData } = await supabase.from('lotes').select('*');
-
-                // Obtener Puntos de Interés (POIs)
                 const { data: poisData } = await supabase.from('pois').select('*');
 
-                // 1. Actualizar título si se recibe
-                if (configData && configData.titulo) {
-                    document.querySelector('.header-title').innerText = configData.titulo;
-                    document.title = configData.titulo + " - 360 Premium";
+                if (configData) {
+                    if (configData.titulo) {
+                        document.querySelector('.header-title').innerText = configData.titulo;
+                        document.title = configData.titulo + " - 360 Premium";
+                    }
+                    if (configData.imagen_url) {
+                        viewer.setPanorama(configData.imagen_url); 
+                    }
                 }
 
-                let dispCount = 0;
-                let resCount = 0;
-                let vendCount = 0;
+                let dispCount = 0; let resCount = 0; let vendCount = 0;
 
-                // 2. Cargar Lotes
                 if (lotesData) {
                     lotesData.forEach(lote => {
                         let markerStyle = '';
-                    if (lote.estado === 'Vendido') {
-                        markerStyle = 'background: rgba(231, 76, 60, 0.9); border-color:#fff; box-shadow: 0 0 10px rgba(231, 76, 60, 0.6); animation: none;';
-                        vendCount++;
-                    } else if (lote.estado === 'Reservado') {
-                        markerStyle = 'background: rgba(243, 156, 18, 0.9); border-color:#fff; box-shadow: 0 0 15px rgba(243, 156, 18, 0.6); animation: pulse-res 2s infinite;';
-                        resCount++;
-                    } else { // Disponible
-                        markerStyle = 'background: rgba(46, 204, 113, 0.9); border-color:#fff; box-shadow: 0 0 15px rgba(46, 204, 113, 0.6); animation: pulse-disp 2s infinite;';
-                        dispCount++;
-                    }
+                        if (lote.estado === 'Vendido') {
+                            markerStyle = 'background: rgba(231, 76, 60, 0.9); border-color:#fff; box-shadow: 0 0 10px rgba(231, 76, 60, 0.6); animation: none;';
+                            vendCount++;
+                        } else if (lote.estado === 'Reservado') {
+                            markerStyle = 'background: rgba(243, 156, 18, 0.9); border-color:#fff; box-shadow: 0 0 15px rgba(243, 156, 18, 0.6); animation: pulse-res 2s infinite;';
+                            resCount++;
+                        } else {
+                            markerStyle = 'background: rgba(46, 204, 113, 0.9); border-color:#fff; box-shadow: 0 0 15px rgba(46, 204, 113, 0.6); animation: pulse-disp 2s infinite;';
+                            dispCount++;
+                        }
 
                         markersPlugin.addMarker({
                             id: lote.id,
@@ -231,15 +219,9 @@
                                     @keyframes pulse-res { 0% { box-shadow: 0 0 0 0 rgba(243, 156, 18, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(243, 156, 18, 0); } 100% { box-shadow: 0 0 0 0 rgba(243, 156, 18, 0); } }
                                 </style>
                                </div>`,
-                        size: { width: 24, height: 24 },
-                        anchor: 'center center',
-                        data: {
-                                type: 'lote',
-                                nombre: lote.nombre,
-                                area: lote.area + ' m²',
-                                precio: lote.precio,
-                                estado: lote.estado
-                            }
+                            size: { width: 24, height: 24 },
+                            anchor: 'center center',
+                            data: { type: 'lote', nombre: lote.nombre, area: lote.area + ' m²', precio: lote.precio, estado: lote.estado }
                         });
                     });
                 }
@@ -248,55 +230,30 @@
                 document.getElementById('count-res').innerText = resCount;
                 document.getElementById('count-vend').innerText = vendCount;
 
-                // 3. Cargar Puntos de Interés
                 if (poisData) {
                     poisData.forEach(poi => {
                         let contenidoHTML = '';
                         if (poi.visualType === 'texto') {
-                            contenidoHTML = `
-                            <div class="poi-container">
-                                <div class="poi-content-text">${poi.content}</div>
-                                <div class="poi-line-v"></div>
-                                <div class="poi-dot"></div>
-                            </div>
-                        `;
+                            contenidoHTML = `<div class="poi-container"><div class="poi-content-text">${poi.content}</div><div class="poi-line-v"></div><div class="poi-dot"></div></div>`;
                         } else {
-                            contenidoHTML = `
-                                <div class="poi-container">
-                                    <img class="poi-content-img" src="${poi.content}" />
-                                    <div class="poi-line-v"></div>
-                                    <div class="poi-dot"></div>
-                                </div>
-                            `;
+                            contenidoHTML = `<div class="poi-container"><img class="poi-content-img" src="${poi.content}" /><div class="poi-line-v"></div><div class="poi-dot"></div></div>`;
                         }
-
                         markersPlugin.addMarker({
-                            id: poi.id,
-                            position: { yaw: poi.yaw, pitch: poi.pitch },
-                            html: contenidoHTML,
-                            size: { width: 100, height: 120 },
-                            anchor: 'bottom center',
-                            data: {
-                                type: 'poi'
-                            }
+                            id: poi.id, position: { yaw: poi.yaw, pitch: poi.pitch },
+                            html: contenidoHTML, size: { width: 100, height: 120 },
+                            anchor: 'bottom center', data: { type: 'poi' }
                         });
                     });
                 }
             } catch (error) {
-                console.error("Error cargando datos de Supabase:", error);
+                console.error("Error cargando datos:", error);
             }
         }
 
-        // Llamar a la carga de datos (Se ejecutaría cuando la página/visor carguen)
-        viewer.addEventListener('ready', () => {
-            cargarDatosDesdeBD();
-        });
+        viewer.addEventListener('ready', () => { cargarDatosDesdeBD(); });
 
-
-        // Función para abrir modal y cargar los datos
         markersPlugin.addEventListener('select-marker', ({ marker }) => {
             if (marker.config.data && marker.config.data.type === 'lote') {
-                // Inyectamos los datos del marcador en el modal
                 document.getElementById('m-titulo').innerText = marker.config.data.nombre || marker.config.id;
                 document.getElementById('m-area').innerText = marker.config.data.area;
                 document.getElementById('m-precio').innerText = marker.config.data.precio;
@@ -304,43 +261,28 @@
                 const estadoEl = document.getElementById('m-estado');
                 estadoEl.innerText = marker.config.data.estado;
 
-                // Cambiar color por estado
                 if(marker.config.data.estado === 'Vendido') {
-                    estadoEl.style.background = 'rgba(231, 76, 60, 0.2)';
-                    estadoEl.style.color = '#e74c3c';
-                    estadoEl.style.borderColor = 'rgba(231, 76, 60, 0.5)';
+                    estadoEl.style.background = 'rgba(231, 76, 60, 0.2)'; estadoEl.style.color = '#e74c3c'; estadoEl.style.borderColor = 'rgba(231, 76, 60, 0.5)';
                 } else if(marker.config.data.estado === 'Reservado') {
-                    estadoEl.style.background = 'rgba(243, 156, 18, 0.2)';
-                    estadoEl.style.color = '#f39c12';
-                    estadoEl.style.borderColor = 'rgba(243, 156, 18, 0.5)';
+                    estadoEl.style.background = 'rgba(243, 156, 18, 0.2)'; estadoEl.style.color = '#f39c12'; estadoEl.style.borderColor = 'rgba(243, 156, 18, 0.5)';
                 } else {
-                    estadoEl.style.background = 'rgba(46, 204, 113, 0.2)';
-                    estadoEl.style.color = '#2ecc71';
-                    estadoEl.style.borderColor = 'rgba(46, 204, 113, 0.5)';
+                    estadoEl.style.background = 'rgba(46, 204, 113, 0.2)'; estadoEl.style.color = '#2ecc71'; estadoEl.style.borderColor = 'rgba(46, 204, 113, 0.5)';
                 }
 
-                // Configurar WhatsApp (Cambia el número de teléfono aquí)
-                const numeroTel = "573000000000";
+                const numeroTel = "573000000000"; // EDITA TU NÚMERO DE WHATSAPP AQUÍ
                 const mensaje = `Hola, me interesa obtener más información sobre el ${marker.config.data.nombre || marker.config.id} de ${document.querySelector('.header-title').innerText}.`;
                 document.getElementById('m-whatsapp').href = `https://wa.me/${numeroTel}?text=${encodeURIComponent(mensaje)}`;
 
-                // Mostrar el modal y desenfocar el fondo
                 modal.classList.add('active');
                 viewerDiv.style.filter = 'blur(5px)';
             }
-            // Si es type 'poi', no hacemos nada (es solo visual)
         });
 
-        // Función para cerrar el modal
         function cerrarModal() {
             modal.classList.remove('active');
             viewerDiv.style.filter = 'none';
         }
-
-        // Cerrar si hacen clic fuera del contenido del modal
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) cerrarModal();
-        });
+        modal.addEventListener('click', (e) => { if (e.target === modal) cerrarModal(); });
     </script>
 </body>
 </html>
