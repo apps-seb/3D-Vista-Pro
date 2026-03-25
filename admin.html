@@ -49,6 +49,13 @@
         
         @keyframes pulse-green { 0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(46, 204, 113, 0); } 100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); } }
 
+        /* --- ESTILOS DE PUNTOS DE INTERÉS --- */
+        .poi-container { display: flex; flex-direction: column; align-items: center; pointer-events: none; }
+        .poi-content-text { color: #fff; font-weight: 600; font-size: 14px; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); padding: 4px 12px; white-space: nowrap; border-bottom: 2px solid #fff; font-family: 'Montserrat', sans-serif; }
+        .poi-content-img { max-width: 80px; max-height: 80px; object-fit: contain; background: rgba(255,255,255,0.9); border-radius: 6px; padding: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .poi-line-v { width: 2px; height: 50px; background: #fff; box-shadow: 0 0 5px rgba(0,0,0,0.3); }
+        .poi-dot { width: 14px; height: 14px; background: #D4AF37; border: 2px solid #fff; border-radius: 50%; pointer-events: auto; cursor: pointer; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+
         /* --- MODAL PARA AGREGAR DATOS DEL LOTE --- */
         .modal-overlay { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 100; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
         .modal-overlay.active { display: flex; }
@@ -81,14 +88,26 @@
 
         <div class="control-group">
             <span class="control-label">Gestor de Lotes</span>
-            <button id="btn-add-mode" class="btn btn-action" onclick="toggleAddMode()">+ Activar Modo Agregar Lote</button>
+            <button id="btn-add-mode" class="btn btn-action" onclick="toggleAddMode('lote')">+ Activar Modo Agregar Lote</button>
             <p style="font-size: 0.75rem; color: #888; text-align: center; margin-top: 5px;" id="add-helper">Haz clic para añadir puntos sobre la foto</p>
+        </div>
+
+        <div class="control-group">
+            <span class="control-label">Gestor de Puntos de Interés (POI)</span>
+            <button id="btn-add-poi-mode" class="btn btn-action" onclick="toggleAddMode('poi')">+ Activar Modo Agregar POI</button>
         </div>
 
         <div class="control-group">
             <span class="control-label">Inventario Creado</span>
             <div id="inventory-list" class="inventory-list">
                 <p style="font-size: 0.8rem; color: #666; text-align: center;">No hay lotes creados aún.</p>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <span class="control-label">Puntos de Interés Creados</span>
+            <div id="poi-list" class="inventory-list">
+                <p style="font-size: 0.8rem; color: #666; text-align: center;">No hay POIs creados aún.</p>
             </div>
         </div>
     </div>
@@ -127,6 +146,36 @@
         </div>
     </div>
 
+    <div id="add-poi-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Punto de Interés</h3>
+            <div class="control-group">
+                <span class="control-label">Tipo de Visualización</span>
+                <select id="poi-tipo" class="input-select" onchange="togglePoiInputs()">
+                    <option value="texto">Texto (Línea + Texto)</option>
+                    <option value="imagen">Imagen (Línea + Logo/Imagen)</option>
+                </select>
+            </div>
+
+            <div class="control-group" id="poi-text-group">
+                <span class="control-label">Texto a mostrar</span>
+                <input type="text" id="poi-texto" class="input-text" placeholder="Ej: Casa Club">
+            </div>
+
+            <div class="control-group" id="poi-img-group" style="display: none;">
+                <span class="control-label">Subir Logo/Imagen</span>
+                <label class="btn btn-upload">
+                    Seleccionar Imagen
+                    <input type="file" id="poi-imagen-upload" accept="image/*" onchange="previewPoiImage(event)">
+                </label>
+                <img id="poi-img-preview" src="" alt="Preview" style="max-width: 100%; margin-top: 10px; display: none; border-radius: 4px;">
+            </div>
+
+            <button class="btn btn-action" onclick="guardarPOI()">Guardar POI</button>
+            <button class="btn btn-upload" onclick="cerrarModalPOI()">Cancelar</button>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/three/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin/index.min.js"></script>
@@ -134,8 +183,11 @@
     <script>
         // Variables globales
         let isAddMode = false;
+        let currentModeType = ''; // 'lote' or 'poi'
         let tempCoords = { yaw: 0, pitch: 0 };
         let inventarioLotes = [];
+        let inventarioPOIs = [];
+        let tempPoiImageDataUrl = '';
 
         // 1. INICIALIZAR EL VISOR
         const viewer = new PhotoSphereViewer.Viewer({
@@ -167,22 +219,46 @@
         }
 
         // 3. LÓGICA DEL MODO CREACIÓN
-        function toggleAddMode() {
+        function toggleAddMode(type) {
+            // Si ya estamos en modo agregar y es de un tipo diferente, desactivamos el anterior primero
+            if (isAddMode && currentModeType !== type) {
+                resetAddModes();
+            }
+
             isAddMode = !isAddMode;
-            const btn = document.getElementById('btn-add-mode');
+            currentModeType = isAddMode ? type : '';
+
+            const btnLote = document.getElementById('btn-add-mode');
+            const btnPoi = document.getElementById('btn-add-poi-mode');
             const helper = document.getElementById('add-helper');
             
+            resetAddModes();
+
             if (isAddMode) {
-                btn.innerText = "¡MIRA LA FOTO Y HAZ CLIC!";
-                btn.classList.add('active');
+                if (type === 'lote') {
+                    btnLote.innerText = "¡MIRA LA FOTO Y HAZ CLIC!";
+                    btnLote.classList.add('active');
+                } else if (type === 'poi') {
+                    btnPoi.innerText = "¡MIRA LA FOTO Y HAZ CLIC!";
+                    btnPoi.classList.add('active');
+                }
                 helper.innerText = "Haz clic en la foto para fijar la ubicación";
                 document.querySelector('.viewer-wrapper').style.cursor = 'crosshair';
             } else {
-                btn.innerText = "+ Activar Modo Agregar Lote";
-                btn.classList.remove('active');
                 helper.innerText = "Haz clic para añadir puntos sobre la foto";
                 document.querySelector('.viewer-wrapper').style.cursor = 'default';
             }
+        }
+
+        function resetAddModes() {
+            const btnLote = document.getElementById('btn-add-mode');
+            const btnPoi = document.getElementById('btn-add-poi-mode');
+
+            btnLote.innerText = "+ Activar Modo Agregar Lote";
+            btnLote.classList.remove('active');
+
+            btnPoi.innerText = "+ Activar Modo Agregar POI";
+            btnPoi.classList.remove('active');
         }
 
         // Evento al hacer clic en el visor
@@ -192,23 +268,64 @@
                 tempCoords.yaw = data.yaw;
                 tempCoords.pitch = data.pitch;
                 
-                // Abrir formulario
-                document.getElementById('add-modal').classList.add('active');
-                
-                // Limpiar inputs
-                document.getElementById('lote-nombre').value = '';
-                document.getElementById('lote-area').value = '';
-                document.getElementById('lote-precio').value = '';
-                document.getElementById('lote-estado').value = 'Disponible';
+                if (currentModeType === 'lote') {
+                    // Abrir formulario
+                    document.getElementById('add-modal').classList.add('active');
+
+                    // Limpiar inputs
+                    document.getElementById('lote-nombre').value = '';
+                    document.getElementById('lote-area').value = '';
+                    document.getElementById('lote-precio').value = '';
+                    document.getElementById('lote-estado').value = 'Disponible';
+                } else if (currentModeType === 'poi') {
+                    document.getElementById('add-poi-modal').classList.add('active');
+                    document.getElementById('poi-texto').value = '';
+                    document.getElementById('poi-tipo').value = 'texto';
+                    togglePoiInputs();
+                    document.getElementById('poi-img-preview').src = '';
+                    document.getElementById('poi-img-preview').style.display = 'none';
+                    tempPoiImageDataUrl = '';
+                }
                 
                 // Desactivar el modo visualmente
-                toggleAddMode(); 
+                const currentTypeCache = currentModeType; // Guardamos el tipo antes de llamar a toggleAddMode que lo resetea
+                toggleAddMode(currentTypeCache);
             }
         });
 
         function cerrarModal() {
             document.getElementById('add-modal').classList.remove('active');
         }
+
+        function cerrarModalPOI() {
+            document.getElementById('add-poi-modal').classList.remove('active');
+        }
+
+        function togglePoiInputs() {
+            const type = document.getElementById('poi-tipo').value;
+            if (type === 'texto') {
+                document.getElementById('poi-text-group').style.display = 'block';
+                document.getElementById('poi-img-group').style.display = 'none';
+            } else {
+                document.getElementById('poi-text-group').style.display = 'none';
+                document.getElementById('poi-img-group').style.display = 'block';
+            }
+        }
+
+        function previewPoiImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    tempPoiImageDataUrl = e.target.result;
+                    const preview = document.getElementById('poi-img-preview');
+                    preview.src = tempPoiImageDataUrl;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
 
         // 4. GUARDAR EL LOTE Y DIBUJARLO
         function guardarLote() {
@@ -255,11 +372,97 @@
             lista.innerHTML += htmlItem;
 
             // Guardar en nuestra base de datos simulada (Array)
-            inventarioLotes.push({ id: idUnico, nombre, area, precio, estado, coords: tempCoords });
+            inventarioLotes.push({ id: idUnico, nombre, area, precio, estado, coords: tempCoords, type: 'lote' });
 
             // Cerrar modal
             cerrarModal();
         }
+
+        // 5. GUARDAR EL POI Y DIBUJARLO
+        function guardarPOI() {
+            const tipo = document.getElementById('poi-tipo').value;
+            const idUnico = 'poi-' + Date.now();
+
+            let contenidoHTML = '';
+            let contentData = '';
+
+            if (tipo === 'texto') {
+                const texto = document.getElementById('poi-texto').value || 'Punto de Interés';
+                contentData = texto;
+                contenidoHTML = `
+                    <div class="poi-container">
+                        <div class="poi-content-text">${texto}</div>
+                        <div class="poi-line-v"></div>
+                        <div class="poi-dot"></div>
+                    </div>
+                `;
+            } else {
+                if (!tempPoiImageDataUrl) {
+                    alert('Por favor selecciona una imagen primero.');
+                    return;
+                }
+                contentData = tempPoiImageDataUrl;
+                contenidoHTML = `
+                    <div class="poi-container">
+                        <img class="poi-content-img" src="${tempPoiImageDataUrl}" />
+                        <div class="poi-line-v"></div>
+                        <div class="poi-dot"></div>
+                    </div>
+                `;
+            }
+
+            // Añadir marcador en el visor
+            markersPlugin.addMarker({
+                id: idUnico,
+                position: { yaw: tempCoords.yaw, pitch: tempCoords.pitch },
+                html: contenidoHTML,
+                size: { width: 100, height: 120 }, // Ajustar tamaño contenedor para evitar cortes
+                anchor: 'bottom center'
+            });
+
+            // Añadir al panel lateral
+            const lista = document.getElementById('poi-list');
+            if(inventarioPOIs.length === 0) lista.innerHTML = '';
+
+            const label = tipo === 'texto' ? contentData : 'Imagen POI';
+            const htmlItem = `
+                <div class="lot-item">
+                    <div>
+                        <span class="lot-status" style="background:#D4AF37"></span>
+                        <strong>${label}</strong>
+                    </div>
+                    <span style="color:#888;font-size:0.75rem">${tipo}</span>
+                </div>
+            `;
+            lista.innerHTML += htmlItem;
+
+            // Guardar en nuestra base de datos simulada (Array)
+            inventarioPOIs.push({ id: idUnico, type: 'poi', visualType: tipo, content: contentData, coords: tempCoords });
+
+            cerrarModalPOI();
+        }
+
+        // Función para simular guardar en DB y que index.html pueda leer
+        function exportarBaseDatos() {
+            const dbSimulada = {
+                titulo: document.getElementById('input-title').value,
+                lotes: inventarioLotes,
+                pois: inventarioPOIs
+            };
+            console.log("Base de datos exportada:", JSON.stringify(dbSimulada));
+            // En un caso real se haría un fetch/POST aquí a tu servidor
+            alert("Datos guardados en consola (Simulación DB)");
+            return dbSimulada;
+        }
+
+        // Añadir botón exportar al final del panel lateral
+        const sidebar = document.querySelector('.sidebar');
+        const exportBtn = document.createElement('button');
+        exportBtn.className = 'btn btn-action';
+        exportBtn.style.marginTop = 'auto';
+        exportBtn.innerText = 'Guardar / Exportar Datos';
+        exportBtn.onclick = exportarBaseDatos;
+        sidebar.appendChild(exportBtn);
 
         // Acción al hacer clic en un lote ya creado (solo para probar)
         markersPlugin.addEventListener('select-marker', ({ marker }) => {

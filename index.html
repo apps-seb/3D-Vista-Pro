@@ -34,6 +34,13 @@
             100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); }
         }
 
+        /* --- ESTILOS DE PUNTOS DE INTERÉS --- */
+        .poi-container { display: flex; flex-direction: column; align-items: center; pointer-events: none; }
+        .poi-content-text { color: #fff; font-weight: 600; font-size: 14px; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); padding: 4px 12px; white-space: nowrap; border-bottom: 2px solid #fff; font-family: 'Montserrat', sans-serif; }
+        .poi-content-img { max-width: 80px; max-height: 80px; object-fit: contain; background: rgba(255,255,255,0.9); border-radius: 6px; padding: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .poi-line-v { width: 2px; height: 50px; background: #fff; box-shadow: 0 0 5px rgba(0,0,0,0.3); }
+        .poi-dot { width: 14px; height: 14px; background: #D4AF37; border: 2px solid #fff; border-radius: 50%; pointer-events: auto; cursor: pointer; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+
         /* --- MODAL PREMIUM (GLASSMORPHISM) --- */
         .modal-overlay {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -127,74 +134,130 @@
             touchmoveTwoFingers: false, mousewheelCtrlKey: false,
             defaultYaw: '130deg', defaultPitch: '-15deg', defaultZoomLvl: 30,
             navbar: ['zoom', 'fullscreen'],
-            
-            plugins: [
-                [PhotoSphereViewer.MarkersPlugin, {
-                    markers: [
-                        {
-                            // Datos invisibles del Lote 1 que usaremos en el Modal
-                            id: 'Lote 01',
-                            position: { yaw: '135deg', pitch: '-20deg' },
-                            html: '<div class="lote-marker"></div>',
-                            size: { width: 24, height: 24 },
-                            anchor: 'center center',
-                            data: {
-                                area: '1,200 m²',
-                                precio: '$150.000.000 COP',
-                                estado: 'Disponible'
-                            }
-                        },
-                        {
-                            // Otro lote de ejemplo para que veas cómo cambia la info
-                            id: 'Lote 02',
-                            position: { yaw: '150deg', pitch: '-10deg' },
-                            html: '<div class="lote-marker" style="background: rgba(200,200,200,0.8); border-color:#ccc; box-shadow: none; animation:none;"></div>',
-                            size: { width: 20, height: 20 },
-                            anchor: 'center center',
-                            data: {
-                                area: '980 m²',
-                                precio: 'Vendido',
-                                estado: 'Vendido'
-                            }
-                        }
-                    ]
-                }]
-            ]
+            plugins: [ [PhotoSphereViewer.MarkersPlugin, { markers: [] }] ]
         });
 
         const markersPlugin = viewer.getPlugin(PhotoSphereViewer.MarkersPlugin);
         const modal = document.getElementById('premium-modal');
         const viewerDiv = document.getElementById('viewer');
 
-        // Función para abrir modal y cargar los datos
-        markersPlugin.addEventListener('select-marker', ({ marker }) => {
-            // Inyectamos los datos del marcador en el modal
-            document.getElementById('m-titulo').innerText = marker.config.id;
-            document.getElementById('m-area').innerText = marker.config.data.area;
-            document.getElementById('m-precio').innerText = marker.config.data.precio;
-            
-            const estadoEl = document.getElementById('m-estado');
-            estadoEl.innerText = marker.config.data.estado;
-            
-            // Cambiar color si está vendido
-            if(marker.config.data.estado === 'Vendido') {
-                estadoEl.style.background = 'rgba(231, 76, 60, 0.2)';
-                estadoEl.style.color = '#e74c3c';
-                estadoEl.style.borderColor = 'rgba(231, 76, 60, 0.5)';
-            } else {
-                estadoEl.style.background = 'rgba(46, 204, 113, 0.2)';
-                estadoEl.style.color = '#2ecc71';
-                estadoEl.style.borderColor = 'rgba(46, 204, 113, 0.5)';
+        // Función para cargar datos desde la base de datos simulada
+        function cargarDatosDesdeBD() {
+            // SIMULACIÓN: En un entorno real, aquí se hace fetch() a un endpoint (ej. GET /api/lotes)
+            const dbData = {
+                titulo: "Rincón de Baviera",
+                lotes: [
+                    { id: 'Lote 01', nombre: 'Lote 01', coords: { yaw: '135deg', pitch: '-20deg' }, area: '1200', precio: '$150.000.000 COP', estado: 'Disponible' },
+                    { id: 'Lote 02', nombre: 'Lote 02', coords: { yaw: '150deg', pitch: '-10deg' }, area: '980', precio: 'Vendido', estado: 'Vendido' }
+                ],
+                pois: [
+                    { id: 'poi-1', type: 'poi', visualType: 'texto', content: 'Casa Club', coords: { yaw: '140deg', pitch: '-5deg' } }
+                ]
+            };
+
+            // 1. Actualizar título si se recibe
+            if (dbData.titulo) {
+                document.querySelector('.header-title').innerText = dbData.titulo;
+                document.title = dbData.titulo + " - 360 Premium";
             }
 
-            // Configurar WhatsApp (Cambia el número de teléfono aquí)
-            const numeroTel = "573000000000"; 
-            const mensaje = `Hola, me interesa obtener más información sobre el ${marker.config.id} de Rincón de Baviera.`;
-            document.getElementById('m-whatsapp').href = `https://wa.me/${numeroTel}?text=${encodeURIComponent(mensaje)}`;
+            // 2. Cargar Lotes
+            if (dbData.lotes) {
+                dbData.lotes.forEach(lote => {
+                    const isVendido = lote.estado === 'Vendido';
+                    const markerStyle = isVendido ? 'background: rgba(200,200,200,0.8); border-color:#ccc; box-shadow: none; animation:none;' : '';
 
-            // Mostrar el modal y desenfocar el fondo
-            modal.classList.add('active');
-            viewerDiv.style.filter = 'blur(5px)';
+                    markersPlugin.addMarker({
+                        id: lote.id,
+                        position: lote.coords,
+                        html: `<div class="lote-marker" style="${markerStyle}"></div>`,
+                        size: { width: 24, height: 24 },
+                        anchor: 'center center',
+                        data: {
+                            type: 'lote',
+                            nombre: lote.nombre,
+                            area: lote.area + ' m²',
+                            precio: lote.precio,
+                            estado: lote.estado
+                        }
+                    });
+                });
+            }
+
+            // 3. Cargar Puntos de Interés
+            if (dbData.pois) {
+                dbData.pois.forEach(poi => {
+                    let contenidoHTML = '';
+                    if (poi.visualType === 'texto') {
+                        contenidoHTML = `
+                            <div class="poi-container">
+                                <div class="poi-content-text">${poi.content}</div>
+                                <div class="poi-line-v"></div>
+                                <div class="poi-dot"></div>
+                            </div>
+                        `;
+                    } else {
+                        contenidoHTML = `
+                            <div class="poi-container">
+                                <img class="poi-content-img" src="${poi.content}" />
+                                <div class="poi-line-v"></div>
+                                <div class="poi-dot"></div>
+                            </div>
+                        `;
+                    }
+
+                    markersPlugin.addMarker({
+                        id: poi.id,
+                        position: poi.coords,
+                        html: contenidoHTML,
+                        size: { width: 100, height: 120 },
+                        anchor: 'bottom center',
+                        data: {
+                            type: 'poi'
+                        }
+                    });
+                });
+            }
+        }
+
+        // Llamar a la carga de datos (Se ejecutaría cuando la página/visor carguen)
+        viewer.addEventListener('ready', () => {
+            cargarDatosDesdeBD();
+        });
+
+
+        // Función para abrir modal y cargar los datos
+        markersPlugin.addEventListener('select-marker', ({ marker }) => {
+            if (marker.config.data && marker.config.data.type === 'lote') {
+                // Inyectamos los datos del marcador en el modal
+                document.getElementById('m-titulo').innerText = marker.config.data.nombre || marker.config.id;
+                document.getElementById('m-area').innerText = marker.config.data.area;
+                document.getElementById('m-precio').innerText = marker.config.data.precio;
+
+                const estadoEl = document.getElementById('m-estado');
+                estadoEl.innerText = marker.config.data.estado;
+
+                // Cambiar color si está vendido
+                if(marker.config.data.estado === 'Vendido') {
+                    estadoEl.style.background = 'rgba(231, 76, 60, 0.2)';
+                    estadoEl.style.color = '#e74c3c';
+                    estadoEl.style.borderColor = 'rgba(231, 76, 60, 0.5)';
+                } else {
+                    estadoEl.style.background = 'rgba(46, 204, 113, 0.2)';
+                    estadoEl.style.color = '#2ecc71';
+                    estadoEl.style.borderColor = 'rgba(46, 204, 113, 0.5)';
+                }
+
+                // Configurar WhatsApp (Cambia el número de teléfono aquí)
+                const numeroTel = "573000000000";
+                const mensaje = `Hola, me interesa obtener más información sobre el ${marker.config.data.nombre || marker.config.id} de ${document.querySelector('.header-title').innerText}.`;
+                document.getElementById('m-whatsapp').href = `https://wa.me/${numeroTel}?text=${encodeURIComponent(mensaje)}`;
+
+                // Mostrar el modal y desenfocar el fondo
+                modal.classList.add('active');
+                viewerDiv.style.filter = 'blur(5px)';
+            }
+            // Si es type 'poi', no hacemos nada (es solo visual)
         });
 
         // Función para cerrar el modal
