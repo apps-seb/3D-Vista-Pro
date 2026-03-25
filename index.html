@@ -15,12 +15,28 @@
         /* Cabecera Premium */
         .header-premium {
             position: absolute; top: 0; left: 0; width: 100%;
-            padding: 25px 35px; background: linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%);
+            padding: 20px 35px; background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
             color: white; z-index: 10; pointer-events: none;
-            box-sizing: border-box; display: flex; justify-content: space-between; align-items: center;
+            box-sizing: border-box; display: flex; justify-content: space-between; align-items: flex-start;
+            flex-wrap: wrap; gap: 15px;
         }
+        .header-left { display: flex; flex-direction: column; }
         .header-title { font-size: 1.4rem; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: #D4AF37; }
         .header-subtitle { font-size: 0.9rem; font-weight: 300; color: #e5e7eb; letter-spacing: 1px; margin-top: 4px; }
+
+        /* Inventario Top Bar */
+        .inventory-bar {
+            display: flex; gap: 15px; background: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            padding: 10px 20px; border-radius: 30px; border: 1px solid rgba(212, 175, 55, 0.3);
+            pointer-events: auto; flex-wrap: wrap; justify-content: center;
+        }
+        .inv-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+        .inv-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid #fff; }
+        .dot-disp { background: #2ecc71; box-shadow: 0 0 8px rgba(46, 204, 113, 0.6); }
+        .dot-res { background: #f39c12; box-shadow: 0 0 8px rgba(243, 156, 18, 0.6); }
+        .dot-vend { background: #e74c3c; box-shadow: 0 0 8px rgba(231, 76, 60, 0.6); }
+        .inv-count { color: #fff; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 12px; }
 
         /* Punto Animado (Para poner dentro del polígono dibujado en Photoshop) */
         .lote-marker {
@@ -94,9 +110,15 @@
 <body>
 
     <div class="header-premium">
-        <div>
+        <div class="header-left">
             <div class="header-title">Rincón de Baviera</div>
             <div class="header-subtitle">Masterplan Interactivo</div>
+        </div>
+
+        <div class="inventory-bar">
+            <div class="inv-item"><span class="inv-dot dot-disp"></span> Disponibles: <span class="inv-count" id="count-disp">0</span></div>
+            <div class="inv-item"><span class="inv-dot dot-res"></span> Reservados: <span class="inv-count" id="count-res">0</span></div>
+            <div class="inv-item"><span class="inv-dot dot-vend"></span> Vendidos: <span class="inv-count" id="count-vend">0</span></div>
         </div>
     </div>
 
@@ -131,7 +153,10 @@
         const viewer = new PhotoSphereViewer.Viewer({
             container: document.querySelector('#viewer'),
             panorama: 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg',
-            touchmoveTwoFingers: false, mousewheelCtrlKey: false,
+            touchmoveTwoFingers: true, // Use two fingers to zoom, one to orbit
+            mousewheelCtrlKey: false,
+            moveSpeed: 1.5,
+            zoomSpeed: 2,
             defaultYaw: '130deg', defaultPitch: '-15deg', defaultZoomLvl: 30,
             navbar: ['zoom', 'fullscreen'],
             plugins: [ [PhotoSphereViewer.MarkersPlugin, { markers: [] }] ]
@@ -148,7 +173,8 @@
                 titulo: "Rincón de Baviera",
                 lotes: [
                     { id: 'Lote 01', nombre: 'Lote 01', coords: { yaw: '135deg', pitch: '-20deg' }, area: '1200', precio: '$150.000.000 COP', estado: 'Disponible' },
-                    { id: 'Lote 02', nombre: 'Lote 02', coords: { yaw: '150deg', pitch: '-10deg' }, area: '980', precio: 'Vendido', estado: 'Vendido' }
+                    { id: 'Lote 02', nombre: 'Lote 02', coords: { yaw: '150deg', pitch: '-10deg' }, area: '980', precio: 'Vendido', estado: 'Vendido' },
+                    { id: 'Lote 03', nombre: 'Lote 03', coords: { yaw: '160deg', pitch: '-5deg' }, area: '1050', precio: '$130.000.000 COP', estado: 'Reservado' }
                 ],
                 pois: [
                     { id: 'poi-1', type: 'poi', visualType: 'texto', content: 'Casa Club', coords: { yaw: '140deg', pitch: '-5deg' } }
@@ -161,16 +187,34 @@
                 document.title = dbData.titulo + " - 360 Premium";
             }
 
+            let dispCount = 0;
+            let resCount = 0;
+            let vendCount = 0;
+
             // 2. Cargar Lotes
             if (dbData.lotes) {
                 dbData.lotes.forEach(lote => {
-                    const isVendido = lote.estado === 'Vendido';
-                    const markerStyle = isVendido ? 'background: rgba(200,200,200,0.8); border-color:#ccc; box-shadow: none; animation:none;' : '';
+                    let markerStyle = '';
+                    if (lote.estado === 'Vendido') {
+                        markerStyle = 'background: rgba(231, 76, 60, 0.9); border-color:#fff; box-shadow: 0 0 10px rgba(231, 76, 60, 0.6); animation: none;';
+                        vendCount++;
+                    } else if (lote.estado === 'Reservado') {
+                        markerStyle = 'background: rgba(243, 156, 18, 0.9); border-color:#fff; box-shadow: 0 0 15px rgba(243, 156, 18, 0.6); animation: pulse-res 2s infinite;';
+                        resCount++;
+                    } else { // Disponible
+                        markerStyle = 'background: rgba(46, 204, 113, 0.9); border-color:#fff; box-shadow: 0 0 15px rgba(46, 204, 113, 0.6); animation: pulse-disp 2s infinite;';
+                        dispCount++;
+                    }
 
                     markersPlugin.addMarker({
                         id: lote.id,
                         position: lote.coords,
-                        html: `<div class="lote-marker" style="${markerStyle}"></div>`,
+                        html: `<div class="lote-marker" style="${markerStyle}">
+                                <style>
+                                    @keyframes pulse-disp { 0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(46, 204, 113, 0); } 100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); } }
+                                    @keyframes pulse-res { 0% { box-shadow: 0 0 0 0 rgba(243, 156, 18, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(243, 156, 18, 0); } 100% { box-shadow: 0 0 0 0 rgba(243, 156, 18, 0); } }
+                                </style>
+                               </div>`,
                         size: { width: 24, height: 24 },
                         anchor: 'center center',
                         data: {
@@ -183,6 +227,10 @@
                     });
                 });
             }
+
+            document.getElementById('count-disp').innerText = dispCount;
+            document.getElementById('count-res').innerText = resCount;
+            document.getElementById('count-vend').innerText = vendCount;
 
             // 3. Cargar Puntos de Interés
             if (dbData.pois) {
@@ -237,11 +285,15 @@
                 const estadoEl = document.getElementById('m-estado');
                 estadoEl.innerText = marker.config.data.estado;
 
-                // Cambiar color si está vendido
+                // Cambiar color por estado
                 if(marker.config.data.estado === 'Vendido') {
                     estadoEl.style.background = 'rgba(231, 76, 60, 0.2)';
                     estadoEl.style.color = '#e74c3c';
                     estadoEl.style.borderColor = 'rgba(231, 76, 60, 0.5)';
+                } else if(marker.config.data.estado === 'Reservado') {
+                    estadoEl.style.background = 'rgba(243, 156, 18, 0.2)';
+                    estadoEl.style.color = '#f39c12';
+                    estadoEl.style.borderColor = 'rgba(243, 156, 18, 0.5)';
                 } else {
                     estadoEl.style.background = 'rgba(46, 204, 113, 0.2)';
                     estadoEl.style.color = '#2ecc71';

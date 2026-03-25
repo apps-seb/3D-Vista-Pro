@@ -11,9 +11,18 @@
     <style>
         body { margin: 0; font-family: 'Montserrat', sans-serif; background-color: #0f0f0f; color: #fff; display: flex; height: 100vh; overflow: hidden; }
         
+        /* --- BOTON TOGGLE SIDEBAR MOBILE --- */
+        .menu-toggle {
+            display: none; position: absolute; top: 15px; left: 15px; z-index: 30;
+            background: #D4AF37; color: #000; border: none; padding: 10px 15px;
+            font-size: 1.2rem; border-radius: 6px; cursor: pointer; font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+
         /* --- PANEL LATERAL (DASHBOARD) --- */
-        .sidebar { width: 320px; background: #1a1a1a; border-right: 1px solid #333; padding: 20px; display: flex; flex-direction: column; overflow-y: auto; z-index: 20; box-shadow: 5px 0 15px rgba(0,0,0,0.5); }
-        .sidebar-title { font-size: 1.2rem; font-weight: 600; color: #D4AF37; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .sidebar { width: 320px; background: #1a1a1a; border-right: 1px solid #333; padding: 20px; display: flex; flex-direction: column; overflow-y: auto; z-index: 20; box-shadow: 5px 0 15px rgba(0,0,0,0.5); transition: transform 0.3s ease; }
+        .sidebar-title { font-size: 1.2rem; font-weight: 600; color: #D4AF37; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #333; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .close-sidebar { display: none; background: transparent; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
         
         .control-group { margin-bottom: 20px; }
         .control-label { display: block; font-size: 0.8rem; color: #aaa; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
@@ -45,9 +54,11 @@
         /* --- ESTILOS DE LOS PUNTOS --- */
         .lote-marker { width: 24px; height: 24px; border: 2px solid #fff; border-radius: 50%; cursor: pointer; }
         .marker-disponible { background: rgba(46, 204, 113, 0.9); box-shadow: 0 0 15px rgba(46, 204, 113, 0.6); animation: pulse-green 2s infinite; }
+        .marker-reservado { background: rgba(243, 156, 18, 0.9); box-shadow: 0 0 15px rgba(243, 156, 18, 0.6); animation: pulse-orange 2s infinite; }
         .marker-vendido { background: rgba(231, 76, 60, 0.9); box-shadow: 0 0 15px rgba(231, 76, 60, 0.6); }
         
         @keyframes pulse-green { 0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(46, 204, 113, 0); } 100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); } }
+        @keyframes pulse-orange { 0% { box-shadow: 0 0 0 0 rgba(243, 156, 18, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(243, 156, 18, 0); } 100% { box-shadow: 0 0 0 0 rgba(243, 156, 18, 0); } }
 
         /* --- ESTILOS DE PUNTOS DE INTERÉS --- */
         .poi-container { display: flex; flex-direction: column; align-items: center; pointer-events: none; }
@@ -64,12 +75,30 @@
         
         /* Input file oculto */
         input[type="file"] { display: none; }
+
+        /* --- RESPONSIVE MOBILE --- */
+        @media (max-width: 768px) {
+            body { position: relative; }
+            .sidebar { position: absolute; height: 100%; top: 0; left: 0; transform: translateX(-100%); width: 100%; max-width: 350px; }
+            .sidebar.active { transform: translateX(0); }
+            .menu-toggle { display: block; }
+            .close-sidebar { display: block; }
+
+            .header-premium { padding: 15px 15px 15px 65px; /* Dejar espacio para el boton menu */ }
+            .header-title { font-size: 1rem; }
+            .header-subtitle { font-size: 0.75rem; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
-        <div class="sidebar-title">Admin Dashboard</div>
+    <button class="menu-toggle" onclick="toggleSidebar()">☰ Menú</button>
+
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-title">
+            Admin Dashboard
+            <button class="close-sidebar" onclick="toggleSidebar()">&times;</button>
+        </div>
         
         <div class="control-group">
             <span class="control-label">Título del Proyecto</span>
@@ -138,6 +167,7 @@
                 <span class="control-label">Estado</span>
                 <select id="lote-estado" class="input-select">
                     <option value="Disponible">Disponible</option>
+                    <option value="Reservado">Reservado</option>
                     <option value="Vendido">Vendido</option>
                 </select>
             </div>
@@ -194,11 +224,18 @@
             container: document.querySelector('#viewer'),
             // Imagen por defecto (se puede cambiar subiendo una)
             panorama: 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg',
-            touchmoveTwoFingers: false, mousewheelCtrlKey: false,
+            touchmoveTwoFingers: true, // Use two fingers to zoom, one to orbit
+            mousewheelCtrlKey: false,
+            moveSpeed: 1.5,
+            zoomSpeed: 2,
             defaultYaw: '130deg', defaultPitch: '-15deg', defaultZoomLvl: 30,
             navbar: ['zoom', 'fullscreen'],
             plugins: [ [PhotoSphereViewer.MarkersPlugin, { markers: [] }] ]
         });
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+        }
 
         const markersPlugin = viewer.getPlugin(PhotoSphereViewer.MarkersPlugin);
 
@@ -336,8 +373,16 @@
             const idUnico = 'lote-' + Date.now(); // ID único interno
             
             // Definir color del punto según estado
-            const claseMarker = estado === 'Vendido' ? 'marker-vendido' : 'marker-disponible';
-            const colorStatus = estado === 'Vendido' ? '#e74c3c' : '#2ecc71';
+            let claseMarker = 'marker-disponible';
+            let colorStatus = '#2ecc71';
+
+            if (estado === 'Vendido') {
+                claseMarker = 'marker-vendido';
+                colorStatus = '#e74c3c';
+            } else if (estado === 'Reservado') {
+                claseMarker = 'marker-reservado';
+                colorStatus = '#f39c12';
+            }
 
             // Añadir al visor (MarkersPlugin)
             markersPlugin.addMarker({
