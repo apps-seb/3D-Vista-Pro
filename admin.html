@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin/index.min.css" />
     
     <style>
-        body { margin: 0; font-family: 'Montserrat', sans-serif; background-color: #0f0f0f; color: #fff; display: flex; height: 100vh; overflow: hidden; }
+        body { margin: 0; font-family: 'Montserrat', sans-serif; background-color: #0f0f0f; color: #fff; display: flex; flex-direction: column-reverse; height: 100vh; overflow: hidden; }
         
         /* --- BOTON TOGGLE SIDEBAR MOBILE --- */
         .menu-toggle {
@@ -19,12 +19,20 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
 
-        /* --- PANEL LATERAL (DASHBOARD) --- */
-        .sidebar { width: 320px; background: #1a1a1a; border-right: 1px solid #333; padding: 20px; display: flex; flex-direction: column; overflow-y: auto; z-index: 20; box-shadow: 5px 0 15px rgba(0,0,0,0.5); transition: transform 0.3s ease; }
-        .sidebar-title { font-size: 1.2rem; font-weight: 600; color: #D4AF37; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #333; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        /* --- PANEL INFERIOR (DASHBOARD) --- */
+        body { flex-direction: column; }
+        .sidebar { width: 100%; height: auto; max-height: 40vh; background: #1a1a1a; border-top: 1px solid #333; padding: 15px 20px; display: flex; flex-direction: row; overflow-x: auto; overflow-y: hidden; z-index: 20; box-shadow: 0 -5px 15px rgba(0,0,0,0.5); transition: transform 0.3s ease; gap: 20px; box-sizing: border-box; align-items: stretch; }
+        .sidebar-title { display: none; /* Ocultar título en la barra inferior para ahorrar espacio */ }
         .close-sidebar { display: none; background: transparent; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
         
-        .control-group { margin-bottom: 20px; }
+        .control-group { margin-bottom: 0; min-width: 220px; flex: 0 0 auto; display: flex; flex-direction: column; border-right: 1px solid #333; padding-right: 20px; }
+        .control-group:last-child { border-right: none; padding-right: 0; }
+        .inventory-list { margin-top: 10px; overflow-y: auto; max-height: 20vh; flex: 1; padding-right: 5px; }
+        /* Scrollbar styles for dark theme */
+        .sidebar::-webkit-scrollbar, .inventory-list::-webkit-scrollbar { height: 8px; width: 8px; }
+        .sidebar::-webkit-scrollbar-track, .inventory-list::-webkit-scrollbar-track { background: #1a1a1a; }
+        .sidebar::-webkit-scrollbar-thumb, .inventory-list::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+        .sidebar::-webkit-scrollbar-thumb:hover, .inventory-list::-webkit-scrollbar-thumb:hover { background: #D4AF37; }
         .control-label { display: block; font-size: 0.8rem; color: #aaa; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
         .input-text, .input-select { width: 100%; padding: 10px; background: #000; border: 1px solid #444; color: #fff; border-radius: 6px; font-family: 'Montserrat', sans-serif; box-sizing: border-box; }
         .input-text:focus, .input-select:focus { outline: none; border-color: #D4AF37; }
@@ -79,10 +87,15 @@
         /* --- RESPONSIVE MOBILE --- */
         @media (max-width: 768px) {
             body { position: relative; }
-            .sidebar { position: absolute; height: 100%; top: 0; left: 0; transform: translateX(-100%); width: 100%; max-width: 350px; }
-            .sidebar.active { transform: translateX(0); }
+            .sidebar { position: absolute; height: auto; max-height: 60vh; bottom: 0; top: auto; left: 0; transform: translateY(100%); width: 100%; flex-direction: column; overflow-y: auto; overflow-x: hidden; padding: 15px; }
+            .sidebar.active { transform: translateY(0); }
             .menu-toggle { display: block; }
-            .close-sidebar { display: block; }
+            .close-sidebar { display: block; position: absolute; top: 10px; right: 15px; }
+            .sidebar-title { display: flex; margin-bottom: 15px; }
+
+            .control-group { border-right: none; border-bottom: 1px solid #333; padding-right: 0; padding-bottom: 15px; margin-bottom: 15px; width: 100%; min-width: auto; }
+            .control-group:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+            .inventory-list { max-height: none; }
 
             .header-premium { padding: 15px 15px 15px 65px; /* Dejar espacio para el boton menu */ }
             .header-title { font-size: 1rem; }
@@ -112,8 +125,6 @@
                 <input type="file" id="upload-360" accept="image/*" onchange="cambiarImagen(event)">
             </label>
         </div>
-
-        <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
 
         <div class="control-group">
             <span class="control-label">Gestor de Lotes</span>
@@ -224,7 +235,7 @@
             container: document.querySelector('#viewer'),
             // Imagen por defecto (se puede cambiar subiendo una)
             panorama: 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg',
-            touchmoveTwoFingers: true, // Use two fingers to zoom, one to orbit
+            touchmoveTwoFingers: false, // Use one finger to orbit
             mousewheelCtrlKey: false,
             moveSpeed: 1.5,
             zoomSpeed: 2,
@@ -502,12 +513,16 @@
 
         // Añadir botón exportar al final del panel lateral
         const sidebar = document.querySelector('.sidebar');
+        const exportBtnGroup = document.createElement('div');
+        exportBtnGroup.className = 'control-group';
+        exportBtnGroup.style.borderRight = 'none';
+        exportBtnGroup.style.justifyContent = 'center';
         const exportBtn = document.createElement('button');
         exportBtn.className = 'btn btn-action';
-        exportBtn.style.marginTop = 'auto';
         exportBtn.innerText = 'Guardar / Exportar Datos';
         exportBtn.onclick = exportarBaseDatos;
-        sidebar.appendChild(exportBtn);
+        exportBtnGroup.appendChild(exportBtn);
+        sidebar.appendChild(exportBtnGroup);
 
         // Acción al hacer clic en un lote ya creado (solo para probar)
         markersPlugin.addEventListener('select-marker', ({ marker }) => {
