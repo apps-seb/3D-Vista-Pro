@@ -24,12 +24,23 @@
         .header-title { font-size: 1.4rem; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: #D4AF37; }
         .header-subtitle { font-size: 0.9rem; font-weight: 300; color: #e5e7eb; letter-spacing: 1px; margin-top: 4px; }
 
-        /* Inventario Top Bar */
+        /* Inventario Bottom Bar */
         .inventory-bar {
-            display: flex; gap: 15px; background: rgba(20, 20, 20, 0.6);
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 15px; background: rgba(20, 20, 20, 0.8);
             backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
             padding: 10px 20px; border-radius: 30px; border: 1px solid rgba(212, 175, 55, 0.3);
-            pointer-events: auto; flex-wrap: wrap; justify-content: center;
+            pointer-events: auto; flex-wrap: nowrap; justify-content: center; z-index: 10;
+            white-space: nowrap; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        @media (max-width: 600px) {
+            .inventory-bar {
+                width: 90%; max-width: 400px; padding: 10px; gap: 10px;
+                border-radius: 15px; flex-wrap: nowrap; overflow-x: auto;
+                justify-content: flex-start;
+            }
+            .inv-item { font-size: 0.75rem; }
         }
         .inv-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
         .inv-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid #fff; }
@@ -115,11 +126,12 @@
             <div class="header-subtitle">Masterplan Interactivo</div>
         </div>
 
-        <div class="inventory-bar">
-            <div class="inv-item"><span class="inv-dot dot-disp"></span> Disponibles: <span class="inv-count" id="count-disp">0</span></div>
-            <div class="inv-item"><span class="inv-dot dot-res"></span> Reservados: <span class="inv-count" id="count-res">0</span></div>
-            <div class="inv-item"><span class="inv-dot dot-vend"></span> Vendidos: <span class="inv-count" id="count-vend">0</span></div>
-        </div>
+    </div>
+
+    <div class="inventory-bar">
+        <div class="inv-item"><span class="inv-dot dot-disp"></span> Disponibles: <span class="inv-count" id="count-disp">0</span></div>
+        <div class="inv-item"><span class="inv-dot dot-res"></span> Reservados: <span class="inv-count" id="count-res">0</span></div>
+        <div class="inv-item"><span class="inv-dot dot-vend"></span> Vendidos: <span class="inv-count" id="count-vend">0</span></div>
     </div>
 
     <div id="viewer"></div>
@@ -153,7 +165,7 @@
         const viewer = new PhotoSphereViewer.Viewer({
             container: document.querySelector('#viewer'),
             panorama: 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg',
-            touchmoveTwoFingers: true, // Use two fingers to zoom, one to orbit
+            touchmoveTwoFingers: false, // Use one finger to orbit
             mousewheelCtrlKey: false,
             moveSpeed: 1.5,
             zoomSpeed: 2,
