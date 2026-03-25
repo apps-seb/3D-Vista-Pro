@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rincón de Baviera - 360 Premium</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core/index.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin/index.min.css" />
+    
+    <style>
+        body { margin: 0; font-family: 'Montserrat', sans-serif; background-color: #000; overflow: hidden; }
+        #viewer { width: 100vw; height: 100vh; transition: filter 0.3s ease; }
+
+        /* Cabecera Premium */
+        .header-premium {
+            position: absolute; top: 0; left: 0; width: 100%;
+            padding: 25px 35px; background: linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%);
+            color: white; z-index: 10; pointer-events: none;
+            box-sizing: border-box; display: flex; justify-content: space-between; align-items: center;
+        }
+        .header-title { font-size: 1.4rem; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: #D4AF37; }
+        .header-subtitle { font-size: 0.9rem; font-weight: 300; color: #e5e7eb; letter-spacing: 1px; margin-top: 4px; }
+
+        /* Punto Animado (Para poner dentro del polígono dibujado en Photoshop) */
+        .lote-marker {
+            width: 24px; height: 24px; background: rgba(212, 175, 55, 0.9);
+            border: 2px solid #fff; border-radius: 50%; box-shadow: 0 0 15px rgba(212, 175, 55, 0.6);
+            cursor: pointer; animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(212, 175, 55, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); }
+        }
+
+        /* --- MODAL PREMIUM (GLASSMORPHISM) --- */
+        .modal-overlay {
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.4); z-index: 50;
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        
+        .modal-content {
+            background: rgba(20, 20, 20, 0.75);
+            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(212, 175, 55, 0.4); border-radius: 16px;
+            padding: 30px; width: 90%; max-width: 400px;
+            color: white; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            transform: translateY(20px); transition: transform 0.4s ease;
+            position: relative;
+        }
+        .modal-overlay.active .modal-content { transform: translateY(0); }
+
+        .btn-close {
+            position: absolute; top: 15px; right: 15px; background: none; border: none;
+            color: #ccc; font-size: 1.5rem; cursor: pointer; transition: color 0.2s;
+        }
+        .btn-close:hover { color: #fff; }
+
+        .modal-title { font-size: 1.6rem; font-weight: 600; color: #D4AF37; margin: 0 0 10px 0; }
+        .modal-badge {
+            display: inline-block; background: rgba(46, 204, 113, 0.2); color: #2ecc71;
+            padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;
+            border: 1px solid rgba(46, 204, 113, 0.5); margin-bottom: 20px;
+        }
+        
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; text-align: left; }
+        .info-box { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); }
+        .info-label { font-size: 0.75rem; color: #aaa; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+        .info-value { font-size: 1.1rem; font-weight: 600; }
+
+        .btn-whatsapp {
+            display: block; width: 100%; padding: 15px;
+            background: linear-gradient(135deg, #25D366, #128C7E); color: white;
+            text-decoration: none; font-weight: 600; border-radius: 8px;
+            font-size: 1rem; transition: transform 0.2s, box-shadow 0.2s;
+            box-sizing: border-box;
+        }
+        .btn-whatsapp:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(37, 211, 102, 0.4); }
+
+        .psv-navbar { background: rgba(0,0,0,0.6) !important; backdrop-filter: blur(5px); }
+    </style>
+</head>
+<body>
+
+    <div class="header-premium">
+        <div>
+            <div class="header-title">Rincón de Baviera</div>
+            <div class="header-subtitle">Masterplan Interactivo</div>
+        </div>
+    </div>
+
+    <div id="viewer"></div>
+
+    <div id="premium-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="btn-close" onclick="cerrarModal()">&times;</button>
+            <h2 class="modal-title" id="m-titulo">Lote 00</h2>
+            <div class="modal-badge" id="m-estado">Disponible</div>
+            
+            <div class="info-grid">
+                <div class="info-box">
+                    <div class="info-label">Área Total</div>
+                    <div class="info-value" id="m-area">0 m²</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-label">Precio</div>
+                    <div class="info-value" id="m-precio">$0</div>
+                </div>
+            </div>
+
+            <a href="#" target="_blank" class="btn-whatsapp" id="m-whatsapp">Contactar por WhatsApp</a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/three/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin/index.min.js"></script>
+
+    <script>
+        const viewer = new PhotoSphereViewer.Viewer({
+            container: document.querySelector('#viewer'),
+            panorama: 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg',
+            touchmoveTwoFingers: false, mousewheelCtrlKey: false,
+            defaultYaw: '130deg', defaultPitch: '-15deg', defaultZoomLvl: 30,
+            navbar: ['zoom', 'fullscreen'],
+            
+            plugins: [
+                [PhotoSphereViewer.MarkersPlugin, {
+                    markers: [
+                        {
+                            // Datos invisibles del Lote 1 que usaremos en el Modal
+                            id: 'Lote 01',
+                            position: { yaw: '135deg', pitch: '-20deg' },
+                            html: '<div class="lote-marker"></div>',
+                            size: { width: 24, height: 24 },
+                            anchor: 'center center',
+                            data: {
+                                area: '1,200 m²',
+                                precio: '$150.000.000 COP',
+                                estado: 'Disponible'
+                            }
+                        },
+                        {
+                            // Otro lote de ejemplo para que veas cómo cambia la info
+                            id: 'Lote 02',
+                            position: { yaw: '150deg', pitch: '-10deg' },
+                            html: '<div class="lote-marker" style="background: rgba(200,200,200,0.8); border-color:#ccc; box-shadow: none; animation:none;"></div>',
+                            size: { width: 20, height: 20 },
+                            anchor: 'center center',
+                            data: {
+                                area: '980 m²',
+                                precio: 'Vendido',
+                                estado: 'Vendido'
+                            }
+                        }
+                    ]
+                }]
+            ]
+        });
+
+        const markersPlugin = viewer.getPlugin(PhotoSphereViewer.MarkersPlugin);
+        const modal = document.getElementById('premium-modal');
+        const viewerDiv = document.getElementById('viewer');
+
+        // Función para abrir modal y cargar los datos
+        markersPlugin.addEventListener('select-marker', ({ marker }) => {
+            // Inyectamos los datos del marcador en el modal
+            document.getElementById('m-titulo').innerText = marker.config.id;
+            document.getElementById('m-area').innerText = marker.config.data.area;
+            document.getElementById('m-precio').innerText = marker.config.data.precio;
+            
+            const estadoEl = document.getElementById('m-estado');
+            estadoEl.innerText = marker.config.data.estado;
+            
+            // Cambiar color si está vendido
+            if(marker.config.data.estado === 'Vendido') {
+                estadoEl.style.background = 'rgba(231, 76, 60, 0.2)';
+                estadoEl.style.color = '#e74c3c';
+                estadoEl.style.borderColor = 'rgba(231, 76, 60, 0.5)';
+            } else {
+                estadoEl.style.background = 'rgba(46, 204, 113, 0.2)';
+                estadoEl.style.color = '#2ecc71';
+                estadoEl.style.borderColor = 'rgba(46, 204, 113, 0.5)';
+            }
+
+            // Configurar WhatsApp (Cambia el número de teléfono aquí)
+            const numeroTel = "573000000000"; 
+            const mensaje = `Hola, me interesa obtener más información sobre el ${marker.config.id} de Rincón de Baviera.`;
+            document.getElementById('m-whatsapp').href = `https://wa.me/${numeroTel}?text=${encodeURIComponent(mensaje)}`;
+
+            // Mostrar el modal y desenfocar el fondo
+            modal.classList.add('active');
+            viewerDiv.style.filter = 'blur(5px)';
+        });
+
+        // Función para cerrar el modal
+        function cerrarModal() {
+            modal.classList.remove('active');
+            viewerDiv.style.filter = 'none';
+        }
+
+        // Cerrar si hacen clic fuera del contenido del modal
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) cerrarModal();
+        });
+    </script>
+</body>
+</html>
