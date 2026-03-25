@@ -9,111 +9,109 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin/index.min.css" />
     
     <style>
-        body { margin: 0; font-family: 'Montserrat', sans-serif; background-color: #0f0f0f; color: #fff; display: flex; flex-direction: column-reverse; height: 100vh; overflow: hidden; }
-        .menu-toggle { display: none; position: absolute; top: 15px; left: 15px; z-index: 30; background: #D4AF37; color: #000; border: none; padding: 10px 15px; font-size: 1.2rem; border-radius: 6px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        .sidebar { width: 100%; height: auto; max-height: 40vh; background: #1a1a1a; border-top: 1px solid #333; padding: 15px 20px; display: flex; flex-direction: row; overflow-x: auto; overflow-y: hidden; z-index: 20; box-shadow: 0 -5px 15px rgba(0,0,0,0.5); transition: transform 0.3s ease; gap: 20px; box-sizing: border-box; align-items: stretch; }
-        .sidebar-title { display: none; }
-        .close-sidebar { display: none; background: transparent; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
-        .control-group { margin-bottom: 0; min-width: 220px; flex: 0 0 auto; display: flex; flex-direction: column; border-right: 1px solid #333; padding-right: 20px; }
+        /* NUEVO DISEÑO BASE: Layout vertical estricto */
+        body { margin: 0; font-family: 'Montserrat', sans-serif; background-color: #0f0f0f; color: #fff; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        
+        /* 1. Visor en la parte superior ocupando el espacio restante */
+        .viewer-wrapper { flex: 1; position: relative; width: 100%; min-height: 50vh; }
+        #viewer { width: 100%; height: 100%; }
+        
+        .header-premium { position: absolute; top: 0; left: 0; width: 100%; padding: 25px 35px; background: linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%); color: white; z-index: 10; pointer-events: none; }
+        .header-title { font-size: 1.4rem; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: #D4AF37; }
+        
+        /* 2. Panel Administrador anclado al fondo */
+        .sidebar { height: 260px; min-height: 260px; background: #1a1a1a; border-top: 3px solid #D4AF37; display: flex; flex-direction: row; overflow-x: auto; overflow-y: hidden; padding: 20px; box-sizing: border-box; align-items: flex-start; gap: 20px; z-index: 20; box-shadow: 0 -5px 20px rgba(0,0,0,0.8); }
+        .sidebar::-webkit-scrollbar { height: 10px; }
+        .sidebar::-webkit-scrollbar-track { background: #111; }
+        .sidebar::-webkit-scrollbar-thumb { background: #D4AF37; border-radius: 5px; }
+
+        /* Cajas de control dentro del panel inferior */
+        .control-group { flex: 0 0 auto; min-width: 250px; display: flex; flex-direction: column; border-right: 1px solid #333; padding-right: 20px; height: 100%; }
         .control-group:last-child { border-right: none; padding-right: 0; }
-        .inventory-list { margin-top: 10px; overflow-y: auto; max-height: 20vh; flex: 1; padding-right: 5px; }
-        .sidebar::-webkit-scrollbar, .inventory-list::-webkit-scrollbar { height: 8px; width: 8px; }
-        .sidebar::-webkit-scrollbar-track, .inventory-list::-webkit-scrollbar-track { background: #1a1a1a; }
-        .sidebar::-webkit-scrollbar-thumb, .inventory-list::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
-        .sidebar::-webkit-scrollbar-thumb:hover, .inventory-list::-webkit-scrollbar-thumb:hover { background: #D4AF37; }
-        .control-label { display: block; font-size: 0.8rem; color: #aaa; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
-        .input-text, .input-select { width: 100%; padding: 10px; background: #000; border: 1px solid #444; color: #fff; border-radius: 6px; font-family: 'Montserrat', sans-serif; box-sizing: border-box; }
+        
+        .control-label { display: block; font-size: 0.8rem; color: #aaa; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+        .input-text, .input-select { width: 100%; padding: 10px; background: #000; border: 1px solid #444; color: #fff; border-radius: 6px; font-family: 'Montserrat', sans-serif; box-sizing: border-box; margin-bottom: 10px; }
         .input-text:focus, .input-select:focus { outline: none; border-color: #D4AF37; }
+        
         .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; font-family: 'Montserrat', sans-serif; font-weight: 600; cursor: pointer; transition: all 0.2s; box-sizing: border-box; margin-bottom: 10px; }
         .btn-upload { background: #333; color: #fff; border: 1px dashed #D4AF37; }
         .btn-upload:hover { background: #444; }
         .btn-action { background: #D4AF37; color: #000; }
         .btn-action:hover { background: #f1c40f; transform: translateY(-2px); }
         .btn-action.active { background: #e74c3c; color: white; animation: pulse-btn 1.5s infinite; }
-        @keyframes pulse-btn { 0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); } 100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); } }
-        .inventory-list { margin-top: 10px; }
+        
+        .inventory-list { overflow-y: auto; flex: 1; padding-right: 5px; }
+        .inventory-list::-webkit-scrollbar { width: 6px; }
+        .inventory-list::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
         .lot-item { background: #222; border: 1px solid #444; padding: 10px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; }
         .lot-status { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 8px; }
-        .viewer-wrapper { flex: 1; position: relative; }
-        #viewer { width: 100%; height: 100%; }
-        .header-premium { position: absolute; top: 0; left: 0; width: 100%; padding: 25px 35px; background: linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%); color: white; z-index: 10; pointer-events: none; }
-        .header-title { font-size: 1.4rem; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: #D4AF37; }
+
+        /* Estilos visuales del visor 360 */
         .lote-marker { width: 24px; height: 24px; border: 2px solid #fff; border-radius: 50%; cursor: pointer; }
         .marker-disponible { background: rgba(46, 204, 113, 0.9); box-shadow: 0 0 15px rgba(46, 204, 113, 0.6); animation: pulse-green 2s infinite; }
         .marker-reservado { background: rgba(243, 156, 18, 0.9); box-shadow: 0 0 15px rgba(243, 156, 18, 0.6); animation: pulse-orange 2s infinite; }
         .marker-vendido { background: rgba(231, 76, 60, 0.9); box-shadow: 0 0 15px rgba(231, 76, 60, 0.6); }
+        
         @keyframes pulse-green { 0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(46, 204, 113, 0); } 100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); } }
         @keyframes pulse-orange { 0% { box-shadow: 0 0 0 0 rgba(243, 156, 18, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(243, 156, 18, 0); } 100% { box-shadow: 0 0 0 0 rgba(243, 156, 18, 0); } }
+        @keyframes pulse-btn { 0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); } 100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); } }
+
         .poi-container { display: flex; flex-direction: column; align-items: center; pointer-events: none; }
         .poi-content-text { color: #fff; font-weight: 600; font-size: 14px; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); padding: 4px 12px; white-space: nowrap; border-bottom: 2px solid #fff; font-family: 'Montserrat', sans-serif; }
         .poi-content-img { max-width: 80px; max-height: 80px; object-fit: contain; background: rgba(255,255,255,0.9); border-radius: 6px; padding: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
         .poi-line-v { width: 2px; height: 50px; background: #fff; box-shadow: 0 0 5px rgba(0,0,0,0.3); }
         .poi-dot { width: 14px; height: 14px; background: #D4AF37; border: 2px solid #fff; border-radius: 50%; pointer-events: auto; cursor: pointer; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
-        .modal-overlay { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 100; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+
+        .modal-overlay { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); z-index: 100; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
         .modal-overlay.active { display: flex; }
-        .modal-content { background: #1a1a1a; padding: 25px; border-radius: 12px; border: 1px solid #D4AF37; width: 300px; }
+        .modal-content { background: #1a1a1a; padding: 25px; border-radius: 12px; border: 1px solid #D4AF37; width: 300px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
         .modal-content h3 { margin-top: 0; color: #D4AF37; text-align: center; }
         input[type="file"] { display: none; }
-        @media (max-width: 768px) {
-            body { position: relative; }
-            .sidebar { position: absolute; height: auto; max-height: 60vh; bottom: 0; top: auto; left: 0; transform: translateY(100%); width: 100%; flex-direction: column; overflow-y: auto; overflow-x: hidden; padding: 15px; }
-            .sidebar.active { transform: translateY(0); }
-            .menu-toggle { display: block; }
-            .close-sidebar { display: block; position: absolute; top: 10px; right: 15px; }
-            .sidebar-title { display: flex; margin-bottom: 15px; }
-            .control-group { border-right: none; border-bottom: 1px solid #333; padding-right: 0; padding-bottom: 15px; margin-bottom: 15px; width: 100%; min-width: auto; }
-            .control-group:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-            .inventory-list { max-height: none; }
-            .header-premium { padding: 15px 15px 15px 65px; }
-            .header-title { font-size: 1rem; }
-        }
     </style>
 </head>
 <body>
 
-    <button class="menu-toggle" onclick="toggleSidebar()">☰ Menú</button>
+    <div class="viewer-wrapper">
+        <div class="header-premium"><div class="header-title" id="display-title">Rincón de Baviera</div></div>
+        <div id="viewer"></div>
+    </div>
 
     <div class="sidebar" id="sidebar">
-        <div class="sidebar-title">Admin Dashboard<button class="close-sidebar" onclick="toggleSidebar()">&times;</button></div>
-        
         <div class="control-group">
-            <span class="control-label">Título del Proyecto</span>
-            <input type="text" id="input-title" class="input-text" value="Rincón de Baviera" onkeyup="actualizarTitulo()">
+            <span class="control-label">1. Configuración General</span>
+            <input type="text" id="input-title" class="input-text" placeholder="Nombre del proyecto" value="Rincón de Baviera">
+            <button class="btn btn-action" onclick="guardarTitulo()">Guardar Título</button>
         </div>
 
         <div class="control-group">
-            <span class="control-label">Imagen 360 del Terreno</span>
+            <span class="control-label">2. Imagen 360 Principal</span>
             <label class="btn btn-upload" id="btn-upload-lbl">
                 Subir Imagen JPG
                 <input type="file" id="upload-360" accept="image/*" onchange="cambiarImagen(event)">
             </label>
+            <p style="font-size: 0.7rem; color: #888; text-align: center;">Formatos: JPG / Max 10MB</p>
         </div>
 
         <div class="control-group">
-            <span class="control-label">Gestor de Lotes</span>
-            <button id="btn-add-mode" class="btn btn-action" onclick="toggleAddMode('lote')">+ Activar Modo Agregar Lote</button>
-            <p style="font-size: 0.75rem; color: #888; text-align: center; margin-top: 5px;" id="add-helper">Haz clic para añadir puntos sobre la foto</p>
+            <span class="control-label">3. Gestor de Lotes</span>
+            <button id="btn-add-mode" class="btn btn-action" onclick="toggleAddMode('lote')">+ Agregar Lote</button>
+            <p style="font-size: 0.75rem; color: #aaa; text-align: center;" id="add-helper">Haz clic en el botón y luego toca la foto</p>
         </div>
 
         <div class="control-group">
-            <span class="control-label">Gestor de POI</span>
-            <button id="btn-add-poi-mode" class="btn btn-action" onclick="toggleAddMode('poi')">+ Activar Modo Agregar POI</button>
+            <span class="control-label">4. Gestor de POI</span>
+            <button id="btn-add-poi-mode" class="btn btn-action" onclick="toggleAddMode('poi')">+ Agregar POI</button>
         </div>
 
-        <div class="control-group">
-            <span class="control-label">Inventario Creado</span>
+        <div class="control-group" style="min-width: 320px;">
+            <span class="control-label">Inventario Lotes</span>
             <div id="inventory-list" class="inventory-list"><p style="font-size: 0.8rem; color: #666; text-align: center;">No hay lotes creados.</p></div>
         </div>
 
         <div class="control-group">
-            <span class="control-label">Puntos de Interés</span>
+            <span class="control-label">Lista POI</span>
             <div id="poi-list" class="inventory-list"><p style="font-size: 0.8rem; color: #666; text-align: center;">No hay POIs creados.</p></div>
         </div>
-    </div>
-
-    <div class="viewer-wrapper">
-        <div class="header-premium"><div class="header-title" id="display-title">Rincón de Baviera</div></div>
-        <div id="viewer"></div>
     </div>
 
     <div id="add-modal" class="modal-overlay">
@@ -162,7 +160,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
-        // CONFIGURACIÓN DE SUPABASE
+        // CONFIGURACIÓN DE SUPABASE DIRECTA
         const supabaseUrl = 'https://mungbffwwjobinfcympd.supabase.co';
         const supabaseKey = 'sb_publishable_FdwVZx53pGAy_3Zf24-z6w_BJAPi0eD';
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
@@ -179,17 +177,40 @@
             plugins: [ [PhotoSphereViewer.MarkersPlugin, { markers: [] }] ]
         });
 
-        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); }
         const markersPlugin = viewer.getPlugin(PhotoSphereViewer.MarkersPlugin);
 
-        viewer.addEventListener('ready', async () => { await cargarDatosDesdeBD(); });
-
-        async function cargarDatosDesdeBD() {
+        // --- FUNCIÓN A PRUEBA DE FALLOS PARA GUARDAR CONFIGURACIÓN ---
+        async function guardarRegistroConfig(campo, valor) {
             try {
-                const { data: configData } = await supabase.from('configuracion').select('*').single();
+                // Primero verificamos si la fila id=1 existe
+                const { data } = await supabase.from('configuracion').select('id').eq('id', 1).single();
+                
+                if (!data) {
+                    // Si no existe, creamos la fila nueva
+                    const nuevoReg = { id: 1 };
+                    nuevoReg[campo] = valor;
+                    await supabase.from('configuracion').insert([nuevoReg]);
+                } else {
+                    // Si existe, solo actualizamos el campo específico (imagen o titulo)
+                    const actualizacion = {};
+                    actualizacion[campo] = valor;
+                    await supabase.from('configuracion').update(actualizacion).eq('id', 1);
+                }
+                return true;
+            } catch (err) {
+                console.error("Error guardando config:", err);
+                return false;
+            }
+        }
+
+        // --- CARGAR DATOS AL INICIAR ---
+        viewer.addEventListener('ready', async () => { 
+            try {
+                const { data: configData } = await supabase.from('configuracion').select('*').eq('id', 1).single();
                 if (configData) {
                     if (configData.titulo) {
-                        document.getElementById('input-title').value = configData.titulo; actualizarTitulo();
+                        document.getElementById('input-title').value = configData.titulo; 
+                        document.getElementById('display-title').innerText = configData.titulo;
                     }
                     if (configData.imagen_url) {
                         viewer.setPanorama(configData.imagen_url);
@@ -211,25 +232,35 @@
                         renderPOI(poi.id, poi.visualType, poi.content, false);
                     });
                 }
-            } catch (error) { console.error("Error cargando datos:", error); }
+            } catch (error) { console.log("Aún no hay datos iniciales."); }
+        });
+
+        // --- GUARDAR TÍTULO EN TIEMPO REAL ---
+        async function guardarTitulo() {
+            const titulo = document.getElementById('input-title').value;
+            document.getElementById('display-title').innerText = titulo; // Actualizar visual
+            
+            const exito = await guardarRegistroConfig('titulo', titulo);
+            if(exito) {
+                alert("¡Título guardado en la base de datos!");
+            } else {
+                alert("Hubo un error al guardar el título.");
+            }
         }
 
-        function actualizarTitulo() { document.getElementById('display-title').innerText = document.getElementById('input-title').value; }
-
+        // --- SUBIR IMAGEN 360 EN TIEMPO REAL ---
         async function cambiarImagen(event) {
             const file = event.target.files[0];
             if (!file) return;
 
-            const reader = new FileReader();
-            reader.onload = function(e) { viewer.setPanorama(e.target.result); };
-            reader.readAsDataURL(file);
-
-            const fileExt = file.name.split('.').pop();
-            const fileName = `panorama_${Date.now()}.${fileExt}`;
             const btnUpload = document.getElementById('btn-upload-lbl');
             const originalText = btnUpload.innerHTML;
             btnUpload.innerText = "Subiendo a la nube... ⏳";
             
+            const fileExt = file.name.split('.').pop();
+            const fileName = `panorama_${Date.now()}.${fileExt}`;
+            
+            // Subir a Storage
             const { error } = await supabase.storage.from('imagenes_360').upload(fileName, file);
                 
             if (error) {
@@ -238,13 +269,23 @@
                 return;
             }
 
+            // Obtener URL y guardar en BD
             const { data: publicData } = supabase.storage.from('imagenes_360').getPublicUrl(fileName);
-            await supabase.from('configuracion').upsert({ id: 1, imagen_url: publicData.publicUrl });
+            const imageUrl = publicData.publicUrl;
+            
+            await guardarRegistroConfig('imagen_url', imageUrl);
+            
+            // Actualizar visualizador en tiempo real
+            viewer.setPanorama(imageUrl);
             
             btnUpload.innerText = "¡Imagen guardada! ✅";
             alert("¡Imagen 360 actualizada exitosamente!");
+            
+            // Restaurar botón después de 3 segundos
+            setTimeout(() => { btnUpload.innerHTML = originalText; }, 3000);
         }
 
+        // --- LÓGICA DE AGREGAR PUNTOS ---
         function toggleAddMode(type) {
             if (isAddMode && currentModeType !== type) resetAddModes();
             isAddMode = !isAddMode; currentModeType = isAddMode ? type : '';
@@ -252,15 +293,15 @@
             resetAddModes();
 
             if (isAddMode) {
-                if (type === 'lote') { btnLote.innerText = "¡MIRA LA FOTO Y HAZ CLIC!"; btnLote.classList.add('active'); } 
-                else { btnPoi.innerText = "¡MIRA LA FOTO Y HAZ CLIC!"; btnPoi.classList.add('active'); }
+                if (type === 'lote') { btnLote.innerText = "¡TOCA LA FOTO!"; btnLote.classList.add('active'); } 
+                else { btnPoi.innerText = "¡TOCA LA FOTO!"; btnPoi.classList.add('active'); }
                 document.querySelector('.viewer-wrapper').style.cursor = 'crosshair';
             } else { document.querySelector('.viewer-wrapper').style.cursor = 'default'; }
         }
 
         function resetAddModes() {
-            document.getElementById('btn-add-mode').innerText = "+ Activar Modo Agregar Lote"; document.getElementById('btn-add-mode').classList.remove('active');
-            document.getElementById('btn-add-poi-mode').innerText = "+ Activar Modo Agregar POI"; document.getElementById('btn-add-poi-mode').classList.remove('active');
+            document.getElementById('btn-add-mode').innerText = "+ Agregar Lote"; document.getElementById('btn-add-mode').classList.remove('active');
+            document.getElementById('btn-add-poi-mode').innerText = "+ Agregar POI"; document.getElementById('btn-add-poi-mode').classList.remove('active');
         }
 
         viewer.addEventListener('click', ({ data }) => {
@@ -370,17 +411,6 @@
             lista.innerHTML += `<div class="lot-item"><div><span class="lot-status" style="background:#D4AF37"></span><strong>${tipo === 'texto' ? contentData : 'Imagen POI'}</strong></div><span style="color:#888;font-size:0.75rem">${tipo}</span></div>`;
             if (saveLocal) inventarioPOIs.push({ id: idUnico, type: 'poi' });
         }
-
-        async function exportarBaseDatos() {
-            const titulo = document.getElementById('input-title').value;
-            const { error } = await supabase.from('configuracion').upsert({ id: 1, titulo: titulo });
-            if (error) alert("Error al guardar título."); else alert("Título guardado correctamente.");
-        }
-
-        const sidebar = document.querySelector('.sidebar');
-        const exportBtnGroup = document.createElement('div'); exportBtnGroup.className = 'control-group'; exportBtnGroup.style.borderRight = 'none'; exportBtnGroup.style.justifyContent = 'center';
-        const exportBtn = document.createElement('button'); exportBtn.className = 'btn btn-action'; exportBtn.innerText = 'Guardar Título en Servidor'; exportBtn.onclick = exportarBaseDatos;
-        exportBtnGroup.appendChild(exportBtn); sidebar.appendChild(exportBtnGroup);
     </script>
 </body>
 </html>
