@@ -6,8 +6,8 @@
     <title>Admin - Rincón de Baviera</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="https://unpkg.com/@photo-sphere-viewer/core@5.1.4/index.min.css" />
-    <link rel="stylesheet" href="https://unpkg.com/@photo-sphere-viewer/markers-plugin@5.1.4/index.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core@5.1.4/index.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin@5.1.4/index.min.css" />
     
     <style>
         body { margin: 0; padding: 0; font-family: 'Montserrat', sans-serif; background-color: #050505; color: #fff; overflow: hidden; }
@@ -94,10 +94,10 @@
         </div>
     </div>
 
-    <script src="https://unpkg.com/three@0.149.0/build/three.min.js"></script>
-    <script src="https://unpkg.com/@photo-sphere-viewer/core@5.1.4/index.min.js"></script>
-    <script src="https://unpkg.com/@photo-sphere-viewer/markers-plugin@5.1.4/index.min.js"></script>
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core@5.1.4/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin@5.1.4/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
         window.mostrarError = function(contexto, err) {
@@ -121,28 +121,32 @@
         });
 
         const supabaseUrl = 'https://mungbffwwjobinfcympd.supabase.co';
-        const supabaseKey = 'EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im11bmdiZmZ3d2pvYmluZmN5bXBkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0NDIzNzcsImV4cCI6MjA5MDAxODM3N30.nkMo-QRJfZ1Z1gzuaZNvnw2kgChc_BGVHqpy0uPTVyY'; 
+        const supabaseKey = 'sb_publishable_yW5gsHp1w8ElbWRTeoMJYw_ZC-u0j9e';
         
-        let supabase, viewer, markersPlugin;
+        let supabaseClient, viewer, markersPlugin;
         let isAddMode = false; let currentMode = ''; let tempCoords = { yaw: 0, pitch: 0 };
         const fallbackImage = 'https://upload.wikimedia.org/wikipedia/commons/e/e0/Equirectangular_projection_SW.jpg';
 
         async function initApp() {
+            let panoUrl = fallbackImage;
+            let titulo = "Rincón de Baviera";
+
             try {
                 if (!window.supabase) throw new Error("No cargó Supabase");
                 if (!window.PhotoSphereViewer) throw new Error("No cargó el Visor");
 
-                supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+                supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-                const { data: config, error: configError } = await supabase.from('configuracion').select('*').eq('id', 1).maybeSingle();
-                if (configError) throw new Error(configError.message);
-                
-                let panoUrl = fallbackImage;
-                let titulo = "Rincón de Baviera";
-
-                if (config) {
-                    if (config.imagen_url) panoUrl = config.imagen_url;
-                    if (config.titulo) titulo = config.titulo;
+                try {
+                    const { data: config, error: configError } = await supabaseClient.from('configuracion').select('*').eq('id', 1).maybeSingle();
+                    if (configError) throw new Error(configError.message);
+                    if (config) {
+                        if (config.imagen_url) panoUrl = config.imagen_url;
+                        if (config.titulo) titulo = config.titulo;
+                    }
+                } catch (dbError) {
+                    console.warn("No se pudo cargar la configuración de Supabase. Usando valores por defecto.", dbError);
+                    window.mostrarError("Conexión BD", dbError);
                 }
 
                 document.getElementById('display-title').innerText = titulo;
@@ -168,36 +172,36 @@
             }
         }
 
-        async function cargarInventario() {
+        window.cargarInventario = async function() {
             try {
-                if (!supabase) return;
+                if (!supabaseClient) return;
                 const lista = document.getElementById('inventory-list');
                 lista.innerHTML = '';
-                const { data: lotes, error: lotesError } = await supabase.from('lotes').select('*');
+                const { data: lotes, error: lotesError } = await supabaseClient.from('lotes').select('*');
                 if (lotesError) throw lotesError;
-                if (lotes && lotes.length > 0) lotes.forEach(l => renderLote(l.id, l.nombre, l.area, l.precio, l.estado, l.yaw, l.pitch));
-                const { data: pois, error: poisError } = await supabase.from('pois').select('*');
+                if (lotes && lotes.length > 0) lotes.forEach(l => window.renderLote(l.id, l.nombre, l.area, l.precio, l.estado, l.yaw, l.pitch));
+                const { data: pois, error: poisError } = await supabaseClient.from('pois').select('*');
                 if (poisError) throw poisError;
-                if (pois && pois.length > 0) pois.forEach(p => renderPOI(p.id, p.content, p.yaw, p.pitch));
+                if (pois && pois.length > 0) pois.forEach(p => window.renderPOI(p.id, p.content, p.yaw, p.pitch));
                 if(lista.innerHTML === '') lista.innerHTML = '<p style="font-size:0.8rem;color:#666;">Inventario vacío.</p>';
             } catch (error) {
                 window.mostrarError("cargarInventario", error);
             }
         }
 
-        async function guardarTitulo() {
+        window.guardarTitulo = async function() {
             try {
                 const titulo = document.getElementById('input-title').value;
                 if(!titulo) return;
                 document.getElementById('display-title').innerText = titulo;
-                const { data, error: selectError } = await supabase.from('configuracion').select('id').eq('id', 1).maybeSingle();
+                const { data, error: selectError } = await supabaseClient.from('configuracion').select('id').eq('id', 1).maybeSingle();
                 if (selectError) throw selectError;
 
                 if (!data) {
-                    const { error: insertError } = await supabase.from('configuracion').insert([{ id: 1, titulo: titulo }]);
+                    const { error: insertError } = await supabaseClient.from('configuracion').insert([{ id: 1, titulo: titulo }]);
                     if (insertError) throw insertError;
                 } else {
-                    const { error: updateError } = await supabase.from('configuracion').update({ titulo: titulo }).eq('id', 1);
+                    const { error: updateError } = await supabaseClient.from('configuracion').update({ titulo: titulo }).eq('id', 1);
                     if (updateError) throw updateError;
                 }
                 alert("Título guardado");
@@ -206,7 +210,7 @@
             }
         }
 
-        async function cambiarImagen(event) {
+        window.cambiarImagen = async function(event) {
             const btn = document.getElementById('btn-upload-lbl');
             const originalText = btn.innerHTML;
             try {
@@ -214,19 +218,19 @@
                 if (!file) return;
                 btn.innerHTML = "Subiendo archivo... ⏳";
                 const fileName = `panorama_${Date.now()}.jpg`;
-                const { error: uploadError } = await supabase.storage.from('imagenes_360').upload(fileName, file);
+                const { error: uploadError } = await supabaseClient.storage.from('imagenes_360').upload(fileName, file);
                 if (uploadError) throw uploadError;
 
-                const { data } = supabase.storage.from('imagenes_360').getPublicUrl(fileName);
+                const { data } = supabaseClient.storage.from('imagenes_360').getPublicUrl(fileName);
                 const imageUrl = data.publicUrl;
-                const { data: configCheck, error: selectError } = await supabase.from('configuracion').select('id').eq('id', 1).maybeSingle();
+                const { data: configCheck, error: selectError } = await supabaseClient.from('configuracion').select('id').eq('id', 1).maybeSingle();
                 if (selectError) throw selectError;
 
                 if (!configCheck) {
-                    const { error: insertError } = await supabase.from('configuracion').insert([{ id: 1, imagen_url: imageUrl }]);
+                    const { error: insertError } = await supabaseClient.from('configuracion').insert([{ id: 1, imagen_url: imageUrl }]);
                     if (insertError) throw insertError;
                 } else {
-                    const { error: updateError } = await supabase.from('configuracion').update({ imagen_url: imageUrl }).eq('id', 1);
+                    const { error: updateError } = await supabaseClient.from('configuracion').update({ imagen_url: imageUrl }).eq('id', 1);
                     if (updateError) throw updateError;
                 }
                 viewer.setPanorama(imageUrl);
@@ -238,7 +242,7 @@
             }
         }
 
-        function activarModo(tipo) {
+        window.activarModo = function(tipo) {
             try {
                 isAddMode = true; currentMode = tipo;
                 document.getElementById('btn-add-lote').classList.toggle('btn-danger', tipo === 'lote');
@@ -249,7 +253,7 @@
             }
         }
 
-        function handleMapClick(e) {
+        window.handleMapClick = function(e) {
             try {
                 if (!isAddMode) return;
                 tempCoords = { yaw: e.data.yaw, pitch: e.data.pitch };
@@ -269,7 +273,7 @@
             }
         }
 
-        function cerrarModales() {
+        window.cerrarModales = function() {
             try {
                 document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
             } catch(error) {
@@ -277,23 +281,23 @@
             }
         }
 
-        async function guardarLote() {
+        window.guardarLote = async function() {
             try {
                 const nombre = document.getElementById('lote-nombre').value || 'Lote Nuevo';
                 const area = document.getElementById('lote-area').value || '0';
                 const precio = document.getElementById('lote-precio').value || '0';
                 const estado = document.getElementById('lote-estado').value;
                 const idUnico = 'lote-' + Date.now();
-                const { error } = await supabase.from('lotes').insert([{ id: idUnico, nombre, area, precio, estado, yaw: tempCoords.yaw, pitch: tempCoords.pitch }]);
+                const { error } = await supabaseClient.from('lotes').insert([{ id: idUnico, nombre, area, precio, estado, yaw: tempCoords.yaw, pitch: tempCoords.pitch }]);
                 if (error) throw error;
-                renderLote(idUnico, nombre, area, precio, estado, tempCoords.yaw, tempCoords.pitch);
-                cerrarModales();
+                window.renderLote(idUnico, nombre, area, precio, estado, tempCoords.yaw, tempCoords.pitch);
+                window.cerrarModales();
             } catch (error) {
                 window.mostrarError("guardarLote", error);
             }
         }
 
-        function renderLote(id, nombre, area, precio, estado, yaw, pitch) {
+        window.renderLote = function(id, nombre, area, precio, estado, yaw, pitch) {
             try {
                 let color = estado === 'Vendido' ? '#e74c3c' : (estado === 'Reservado' ? '#f39c12' : '#2ecc71');
                 const html = `<div class="lote-marker" style="background:${color}; box-shadow: 0 0 10px ${color};"></div>`;
@@ -308,54 +312,54 @@
                     existingItem.querySelector('.status-dot').style.color = color;
                     existingItem.querySelector('.input-select').value = estado;
                 } else {
-                    lista.insertAdjacentHTML('beforeend', `<div class="lot-item" id="item-${id}"><div><span class="status-dot" style="color:${color}">●</span> <strong>${nombre}</strong></div><div style="display:flex; gap:5px;"><select class="input-select" style="width:auto; padding:5px; margin:0;" onchange="actualizarEstado('${id}', this.value)"><option value="Disponible" ${estado === 'Disponible' ? 'selected' : ''}>Disp.</option><option value="Reservado" ${estado === 'Reservado' ? 'selected' : ''}>Resrv.</option><option value="Vendido" ${estado === 'Vendido' ? 'selected' : ''}>Vend.</option></select><button class="btn-delete" onclick="borrarElemento('lotes', '${id}')">X</button></div></div>`);
+                    lista.insertAdjacentHTML('beforeend', `<div class="lot-item" id="item-${id}"><div><span class="status-dot" style="color:${color}">●</span> <strong>${nombre}</strong></div><div style="display:flex; gap:5px;"><select class="input-select" style="width:auto; padding:5px; margin:0;" onchange="window.actualizarEstado('${id}', this.value)"><option value="Disponible" ${estado === 'Disponible' ? 'selected' : ''}>Disp.</option><option value="Reservado" ${estado === 'Reservado' ? 'selected' : ''}>Resrv.</option><option value="Vendido" ${estado === 'Vendido' ? 'selected' : ''}>Vend.</option></select><button class="btn-delete" onclick="window.borrarElemento('lotes', '${id}')">X</button></div></div>`);
                 }
             } catch (error) {
                 window.mostrarError("renderLote", error);
             }
         }
 
-        async function actualizarEstado(id, estado) {
+        window.actualizarEstado = async function(id, estado) {
             try {
-                const { error } = await supabase.from('lotes').update({ estado: estado }).eq('id', id);
+                const { error } = await supabaseClient.from('lotes').update({ estado: estado }).eq('id', id);
                 if (error) throw error;
                 const marker = markersPlugin.markers[id];
-                if (marker) renderLote(id, marker.config.data.nombre, marker.config.data.area, marker.config.data.precio, estado, marker.config.data.yaw, marker.config.data.pitch);
+                if (marker) window.renderLote(id, marker.config.data.nombre, marker.config.data.area, marker.config.data.precio, estado, marker.config.data.yaw, marker.config.data.pitch);
             } catch (error) {
                 window.mostrarError("actualizarEstado", error);
             }
         }
 
-        async function guardarPOI() {
+        window.guardarPOI = async function() {
             try {
                 const texto = document.getElementById('poi-texto').value || 'Punto';
                 const idUnico = 'poi-' + Date.now();
-                const { error } = await supabase.from('pois').insert([{ id: idUnico, visualType: 'texto', content: texto, yaw: tempCoords.yaw, pitch: tempCoords.pitch }]);
+                const { error } = await supabaseClient.from('pois').insert([{ id: idUnico, visualType: 'texto', content: texto, yaw: tempCoords.yaw, pitch: tempCoords.pitch }]);
                 if (error) throw error;
-                renderPOI(idUnico, texto, tempCoords.yaw, tempCoords.pitch);
-                cerrarModales();
+                window.renderPOI(idUnico, texto, tempCoords.yaw, tempCoords.pitch);
+                window.cerrarModales();
             } catch (error) {
                 window.mostrarError("guardarPOI", error);
             }
         }
 
-        function renderPOI(id, texto, yaw, pitch) {
+        window.renderPOI = function(id, texto, yaw, pitch) {
             try {
                 if (!markersPlugin.markers[id]) {
                     markersPlugin.addMarker({ id, position: { yaw, pitch }, html: `<div style="display:flex;flex-direction:column;align-items:center;"><div style="background:rgba(0,0,0,0.8);color:#fff;padding:4px 10px;border:1px solid #D4AF37;border-radius:4px;font-size:0.8rem;">${texto}</div><div style="width:2px;height:30px;background:#fff;"></div><div style="width:12px;height:12px;background:#D4AF37;border-radius:50%;"></div></div>`, size: { width: 100, height: 100 }, anchor: 'bottom center' });
                     const lista = document.getElementById('inventory-list');
                     if(lista.innerHTML.includes('vacío')) lista.innerHTML = '';
-                    lista.insertAdjacentHTML('beforeend', `<div class="lot-item" id="item-${id}"><div><span style="color:#D4AF37">★</span> <strong>${texto}</strong></div><button class="btn-delete" onclick="borrarElemento('pois', '${id}')">X</button></div>`);
+                    lista.insertAdjacentHTML('beforeend', `<div class="lot-item" id="item-${id}"><div><span style="color:#D4AF37">★</span> <strong>${texto}</strong></div><button class="btn-delete" onclick="window.borrarElemento('pois', '${id}')">X</button></div>`);
                 }
             } catch (error) {
                 window.mostrarError("renderPOI", error);
             }
         }
 
-        async function borrarElemento(tabla, id) {
+        window.borrarElemento = async function(tabla, id) {
             try {
                 if(!confirm("¿Borrar?")) return;
-                const { error } = await supabase.from(tabla).delete().eq('id', id);
+                const { error } = await supabaseClient.from(tabla).delete().eq('id', id);
                 if (error) throw error;
                 markersPlugin.removeMarker(id);
                 const item = document.getElementById(`item-${id}`);
