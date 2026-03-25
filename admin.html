@@ -47,9 +47,25 @@
         .modal-content { background: #1a1a1a; padding: 25px; border-radius: 12px; border: 1px solid #D4AF37; width: 90%; max-width: 320px; box-sizing: border-box; }
         .modal-content h3 { margin-top: 0; color: #D4AF37; font-size: 1.2rem; text-align: center; }
         input[type="file"] { display: none; }
+
+        #preloader { position: fixed; inset: 0; background: #050505; z-index: 10000; display: flex; justify-content: center; align-items: center; transition: opacity 0.8s ease; }
+        .preloader-content { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        #preloader-logo { max-height: 120px; max-width: 80vw; object-fit: contain; animation: logo-pulse 2s infinite; border-radius: 8px; }
+        .spinner { width: 50px; height: 50px; border: 4px solid rgba(212, 175, 55, 0.3); border-top-color: #D4AF37; border-radius: 50%; animation: spin 1s linear infinite; }
+        .preloader-text { color: #D4AF37; font-size: 1.1rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; animation: logo-pulse 2s infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes logo-pulse { 0% { opacity: 0.7; transform: scale(0.98); } 50% { opacity: 1; transform: scale(1.02); } 100% { opacity: 0.7; transform: scale(0.98); } }
     </style>
 </head>
 <body>
+    <div id="preloader">
+        <div class="preloader-content">
+            <img id="preloader-logo" src="" alt="Logo" style="display:none;">
+            <div class="spinner"></div>
+            <div class="preloader-text">Cargando Administrador...</div>
+        </div>
+    </div>
+
     <div id="global-progress"></div>
 
     <div class="viewer-area">
@@ -158,6 +174,8 @@
 
         window.mostrarError = function(contexto, err) {
             window.mostrarProgreso(100);
+            const preloader = document.getElementById('preloader');
+            if (preloader) preloader.style.display = 'none';
             console.error("Error en " + contexto + ":", err);
             const msg = err && err.message ? err.message : String(err);
             const titleElement = document.getElementById('display-title');
@@ -223,6 +241,11 @@
                     document.getElementById('display-logo').style.display = 'block';
                     document.getElementById('admin-logo-preview').src = logoUrl;
                     document.getElementById('logo-preview-container').style.display = 'block';
+                    const plogo = document.getElementById('preloader-logo');
+                    if (plogo) {
+                        plogo.src = logoUrl;
+                        plogo.style.display = 'block';
+                    }
                 } else {
                     document.getElementById('display-logo').style.display = 'none';
                     document.getElementById('logo-preview-container').style.display = 'none';
@@ -240,7 +263,14 @@
 
                 markersPlugin = viewer.getPlugin(PhotoSphereViewer.MarkersPlugin);
 
-                viewer.addEventListener('ready', cargarInventario);
+                viewer.addEventListener('ready', async () => {
+                    await cargarInventario();
+                    const preloader = document.getElementById('preloader');
+                    if (preloader) {
+                        preloader.style.opacity = '0';
+                        setTimeout(() => preloader.style.display = 'none', 800);
+                    }
+                });
                 viewer.addEventListener('click', handleMapClick);
 
             } catch (error) {
@@ -378,9 +408,16 @@
                 const file = event.target.files[0];
                 if (!file) return;
                 window.mostrarProgreso(10);
-                btn.innerHTML = "Comprimiendo 360... ⏳";
+                btn.innerHTML = "Procesando 360... ⏳";
 
-                const imageUrl = await window.comprimirImagen(file, 4096, 4096, 0.85);
+                // Leemos el archivo sin comprimirlo para mantener calidad original
+                const imageUrl = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = error => reject(error);
+                });
+
                 window.mostrarProgreso(50);
                 btn.innerHTML = "Subiendo archivo... ⏳";
 
