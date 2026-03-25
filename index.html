@@ -66,14 +66,26 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
-        // CAZADOR DE ERRORES GLOBALES
-        window.onerror = function(msg) {
+        window.mostrarError = function(contexto, err) {
+            console.error("Error en " + contexto + ":", err);
+            const msg = err && err.message ? err.message : String(err);
             const titleElement = document.getElementById('display-title');
             if(titleElement) {
-                titleElement.innerText = "Error: " + msg;
+                titleElement.innerText = "Error en " + contexto + ": " + msg;
                 titleElement.style.color = "#ff4444";
             }
+            alert("Error en " + contexto + ":\n" + msg);
+        }
+
+        // CAZADOR DE ERRORES GLOBALES
+        window.onerror = function(msg, url, line) {
+            window.mostrarError("Global", "Línea " + line + " - " + msg);
+            return false;
         };
+
+        window.addEventListener('unhandledrejection', function(event) {
+            window.mostrarError("Promesa Rechazada", event.reason);
+        });
 
         const supabaseUrl = 'https://mungbffwwjobinfcympd.supabase.co';
         const supabaseKey = 'EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im11bmdiZmZ3d2pvYmluZmN5bXBkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0NDIzNzcsImV4cCI6MjA5MDAxODM3N30.nkMo-QRJfZ1Z1gzuaZNvnw2kgChc_BGVHqpy0uPTVyY'; 
@@ -116,125 +128,153 @@
                 viewer.addEventListener('ready', cargarDatosPublicos);
 
             } catch (error) {
-                console.error("Fallo vista de cliente:", error);
-                document.getElementById('display-title').innerText = "Fallo: " + error.message;
-                document.getElementById('display-title').style.color = "#ff4444";
+                window.mostrarError("initClient", error);
             }
         }
 
         async function cargarDatosPublicos() {
-            if (!supabase) return;
-            const { data: lotes } = await supabase.from('lotes').select('*');
-            let disp = 0, res = 0, vend = 0;
-            
-            const activeMarkers = new Set();
+            try {
+                if (!supabase) return;
+                const { data: lotes, error: lotesError } = await supabase.from('lotes').select('*');
+                if (lotesError) throw lotesError;
 
-            if (lotes) {
-                lotes.forEach(l => {
-                    activeMarkers.add(l.id);
-                    let bg = l.estado === 'Vendido' ? 'rgba(231,76,60,0.9)' : (l.estado === 'Reservado' ? 'rgba(243,156,18,0.9)' : 'rgba(46,204,113,0.9)');
-                    let shadow = l.estado === 'Vendido' ? '#e74c3c' : (l.estado === 'Reservado' ? '#f39c12' : '#2ecc71');
-                    
-                    if(l.estado === 'Vendido') vend++; else if(l.estado === 'Reservado') res++; else disp++;
+                let disp = 0, res = 0, vend = 0;
 
-                    const htmlContent = `<div class="lote-marker" style="background:${bg}; box-shadow: 0 0 15px ${shadow}"></div>`;
+                const activeMarkers = new Set();
 
-                    if (markersPlugin.markers[l.id]) {
-                        markersPlugin.updateMarker({
-                            id: l.id,
-                            html: htmlContent,
-                            data: { type: 'lote', nombre: l.nombre, area: l.area + ' m²', precio: l.precio, estado: l.estado }
-                        });
-                    } else {
-                        markersPlugin.addMarker({
-                            id: l.id, position: { yaw: l.yaw, pitch: l.pitch },
-                            html: htmlContent,
-                            size: { width: 24, height: 24 }, anchor: 'center center',
-                            data: { type: 'lote', nombre: l.nombre, area: l.area + ' m²', precio: l.precio, estado: l.estado }
-                        });
-                    }
-                });
-            }
-            
-            document.getElementById('count-disp').innerText = disp; 
-            document.getElementById('count-res').innerText = res; 
-            document.getElementById('count-vend').innerText = vend;
+                if (lotes) {
+                    lotes.forEach(l => {
+                        activeMarkers.add(l.id);
+                        let bg = l.estado === 'Vendido' ? 'rgba(231,76,60,0.9)' : (l.estado === 'Reservado' ? 'rgba(243,156,18,0.9)' : 'rgba(46,204,113,0.9)');
+                        let shadow = l.estado === 'Vendido' ? '#e74c3c' : (l.estado === 'Reservado' ? '#f39c12' : '#2ecc71');
 
-            const { data: pois } = await supabase.from('pois').select('*');
-            if (pois) {
-                pois.forEach(p => {
-                    activeMarkers.add(p.id);
-                    if (!markersPlugin.markers[p.id]) {
-                        markersPlugin.addMarker({
-                            id: p.id, position: { yaw: p.yaw, pitch: p.pitch },
-                            html: `<div style="display:flex;flex-direction:column;align-items:center;">
-                                    <div style="background:rgba(0,0,0,0.8);color:#fff;padding:5px 12px;border:1px solid #D4AF37;border-radius:4px;font-weight:bold;">${p.content}</div>
-                                    <div style="width:2px;height:40px;background:#fff;"></div>
-                                    <div style="width:14px;height:14px;background:#D4AF37;border-radius:50%;"></div>
-                                   </div>`,
-                            size: { width: 100, height: 100 }, anchor: 'bottom center'
-                        });
-                    }
-                });
-            }
-            
-            Object.keys(markersPlugin.markers).forEach(markerId => {
-                if (!activeMarkers.has(markerId)) {
-                    markersPlugin.removeMarker(markerId);
+                        if(l.estado === 'Vendido') vend++; else if(l.estado === 'Reservado') res++; else disp++;
+
+                        const htmlContent = `<div class="lote-marker" style="background:${bg}; box-shadow: 0 0 15px ${shadow}"></div>`;
+
+                        if (markersPlugin.markers[l.id]) {
+                            markersPlugin.updateMarker({
+                                id: l.id,
+                                html: htmlContent,
+                                data: { type: 'lote', nombre: l.nombre, area: l.area + ' m²', precio: l.precio, estado: l.estado }
+                            });
+                        } else {
+                            markersPlugin.addMarker({
+                                id: l.id, position: { yaw: l.yaw, pitch: l.pitch },
+                                html: htmlContent,
+                                size: { width: 24, height: 24 }, anchor: 'center center',
+                                data: { type: 'lote', nombre: l.nombre, area: l.area + ' m²', precio: l.precio, estado: l.estado }
+                            });
+                        }
+                    });
                 }
-            });
+
+                document.getElementById('count-disp').innerText = disp;
+                document.getElementById('count-res').innerText = res;
+                document.getElementById('count-vend').innerText = vend;
+
+                const { data: pois, error: poisError } = await supabase.from('pois').select('*');
+                if (poisError) throw poisError;
+
+                if (pois) {
+                    pois.forEach(p => {
+                        activeMarkers.add(p.id);
+                        if (!markersPlugin.markers[p.id]) {
+                            markersPlugin.addMarker({
+                                id: p.id, position: { yaw: p.yaw, pitch: p.pitch },
+                                html: `<div style="display:flex;flex-direction:column;align-items:center;">
+                                        <div style="background:rgba(0,0,0,0.8);color:#fff;padding:5px 12px;border:1px solid #D4AF37;border-radius:4px;font-weight:bold;">${p.content}</div>
+                                        <div style="width:2px;height:40px;background:#fff;"></div>
+                                        <div style="width:14px;height:14px;background:#D4AF37;border-radius:50%;"></div>
+                                       </div>`,
+                                size: { width: 100, height: 100 }, anchor: 'bottom center'
+                            });
+                        }
+                    });
+                }
+
+                Object.keys(markersPlugin.markers).forEach(markerId => {
+                    if (!activeMarkers.has(markerId)) {
+                        markersPlugin.removeMarker(markerId);
+                    }
+                });
+            } catch (error) {
+                window.mostrarError("cargarDatosPublicos", error);
+            }
         }
 
-        function cerrarModal() { document.getElementById('premium-modal').classList.remove('active'); }
+        function cerrarModal() {
+            try {
+                document.getElementById('premium-modal').classList.remove('active');
+            } catch (error) {
+                window.mostrarError("cerrarModal", error);
+            }
+        }
 
         function attachModalEvents() {
-            if(!markersPlugin) return;
-            markersPlugin.addEventListener('select-marker', (e) => {
-                const marker = e.marker;
-                if (marker.config.data && marker.config.data.type === 'lote') {
-                    document.getElementById('m-titulo').innerText = marker.config.data.nombre;
-                    document.getElementById('m-area').innerText = marker.config.data.area;
-                    document.getElementById('m-precio').innerText = marker.config.data.precio;
-                    
-                    const est = document.getElementById('m-estado');
-                    est.innerText = marker.config.data.estado;
-                    est.style.color = marker.config.data.estado === 'Vendido' ? '#e74c3c' : (marker.config.data.estado === 'Reservado' ? '#f39c12' : '#2ecc71');
-                    est.style.background = 'rgba(255,255,255,0.1)';
+            try {
+                if(!markersPlugin) return;
+                markersPlugin.addEventListener('select-marker', (e) => {
+                    const marker = e.marker;
+                    if (marker.config.data && marker.config.data.type === 'lote') {
+                        document.getElementById('m-titulo').innerText = marker.config.data.nombre;
+                        document.getElementById('m-area').innerText = marker.config.data.area;
+                        document.getElementById('m-precio').innerText = marker.config.data.precio;
 
-                    const numeroTel = "573000000000"; 
-                    const msj = `Hola, me interesa el ${marker.config.data.nombre} del proyecto ${document.getElementById('display-title').innerText}.`;
-                    document.getElementById('m-whatsapp').href = `https://wa.me/${numeroTel}?text=${encodeURIComponent(msj)}`;
+                        const est = document.getElementById('m-estado');
+                        est.innerText = marker.config.data.estado;
+                        est.style.color = marker.config.data.estado === 'Vendido' ? '#e74c3c' : (marker.config.data.estado === 'Reservado' ? '#f39c12' : '#2ecc71');
+                        est.style.background = 'rgba(255,255,255,0.1)';
 
-                    document.getElementById('premium-modal').classList.add('active');
-                }
-            });
+                        const numeroTel = "573000000000";
+                        const msj = `Hola, me interesa el ${marker.config.data.nombre} del proyecto ${document.getElementById('display-title').innerText}.`;
+                        document.getElementById('m-whatsapp').href = `https://wa.me/${numeroTel}?text=${encodeURIComponent(msj)}`;
+
+                        document.getElementById('premium-modal').classList.add('active');
+                    }
+                });
+            } catch (error) {
+                window.mostrarError("attachModalEvents", error);
+            }
         }
 
         function setupRealtimeSubscription() {
-            if(!supabase) return;
-            supabase.channel('public_data_changes')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'lotes' }, payload => {
-                    cargarDatosPublicos();
-                })
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'pois' }, payload => {
-                    cargarDatosPublicos();
-                })
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'configuracion' }, payload => {
-                    if (payload.new && payload.new.titulo) {
-                        document.getElementById('display-title').innerText = payload.new.titulo;
-                    }
-                    if (payload.new && payload.new.imagen_url && viewer) {
-                        viewer.setPanorama(payload.new.imagen_url);
-                    }
-                })
-                .subscribe();
+            try {
+                if(!supabase) return;
+                supabase.channel('public_data_changes')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'lotes' }, payload => {
+                        cargarDatosPublicos();
+                    })
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'pois' }, payload => {
+                        cargarDatosPublicos();
+                    })
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'configuracion' }, payload => {
+                        if (payload.new && payload.new.titulo) {
+                            document.getElementById('display-title').innerText = payload.new.titulo;
+                        }
+                        if (payload.new && payload.new.imagen_url && viewer) {
+                            viewer.setPanorama(payload.new.imagen_url);
+                        }
+                    })
+                    .subscribe((status, err) => {
+                        if (err) throw err;
+                    });
+            } catch (error) {
+                window.mostrarError("setupRealtimeSubscription", error);
+            }
         }
 
         window.onload = function() {
-            initClient().then(() => {
-                setTimeout(attachModalEvents, 500);
-                setupRealtimeSubscription();
-            });
+            try {
+                initClient().then(() => {
+                    setTimeout(attachModalEvents, 500);
+                    setupRealtimeSubscription();
+                }).catch(error => {
+                    window.mostrarError("onload", error);
+                });
+            } catch (error) {
+                window.mostrarError("onload (síncrono)", error);
+            }
         };
         
     </script>
