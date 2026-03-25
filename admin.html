@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control - Rincón de Baviera</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core/index.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin/index.min.css" />
+    
+    <style>
+        body { margin: 0; font-family: 'Montserrat', sans-serif; background-color: #0f0f0f; color: #fff; display: flex; height: 100vh; overflow: hidden; }
+        
+        /* --- PANEL LATERAL (DASHBOARD) --- */
+        .sidebar { width: 320px; background: #1a1a1a; border-right: 1px solid #333; padding: 20px; display: flex; flex-direction: column; overflow-y: auto; z-index: 20; box-shadow: 5px 0 15px rgba(0,0,0,0.5); }
+        .sidebar-title { font-size: 1.2rem; font-weight: 600; color: #D4AF37; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        
+        .control-group { margin-bottom: 20px; }
+        .control-label { display: block; font-size: 0.8rem; color: #aaa; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .input-text, .input-select { width: 100%; padding: 10px; background: #000; border: 1px solid #444; color: #fff; border-radius: 6px; font-family: 'Montserrat', sans-serif; box-sizing: border-box; }
+        .input-text:focus, .input-select:focus { outline: none; border-color: #D4AF37; }
+        
+        /* Botones Premium */
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; font-family: 'Montserrat', sans-serif; font-weight: 600; cursor: pointer; transition: all 0.2s; box-sizing: border-box; margin-bottom: 10px; }
+        .btn-upload { background: #333; color: #fff; border: 1px dashed #D4AF37; }
+        .btn-upload:hover { background: #444; }
+        .btn-action { background: #D4AF37; color: #000; }
+        .btn-action:hover { background: #f1c40f; transform: translateY(-2px); }
+        .btn-action.active { background: #e74c3c; color: white; animation: pulse-btn 1.5s infinite; }
+        
+        @keyframes pulse-btn { 0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); } 100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); } }
+
+        /* Lista de Lotes */
+        .inventory-list { margin-top: 10px; }
+        .lot-item { background: #222; border: 1px solid #444; padding: 10px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; }
+        .lot-status { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+        
+        /* --- VISOR Y CABECERA FLOTANTE --- */
+        .viewer-wrapper { flex: 1; position: relative; }
+        #viewer { width: 100%; height: 100%; }
+        
+        .header-premium { position: absolute; top: 0; left: 0; width: 100%; padding: 25px 35px; background: linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%); color: white; z-index: 10; pointer-events: none; }
+        .header-title { font-size: 1.4rem; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: #D4AF37; }
+        
+        /* --- ESTILOS DE LOS PUNTOS --- */
+        .lote-marker { width: 24px; height: 24px; border: 2px solid #fff; border-radius: 50%; cursor: pointer; }
+        .marker-disponible { background: rgba(46, 204, 113, 0.9); box-shadow: 0 0 15px rgba(46, 204, 113, 0.6); animation: pulse-green 2s infinite; }
+        .marker-vendido { background: rgba(231, 76, 60, 0.9); box-shadow: 0 0 15px rgba(231, 76, 60, 0.6); }
+        
+        @keyframes pulse-green { 0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(46, 204, 113, 0); } 100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); } }
+
+        /* --- MODAL PARA AGREGAR DATOS DEL LOTE --- */
+        .modal-overlay { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 100; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .modal-overlay.active { display: flex; }
+        .modal-content { background: #1a1a1a; padding: 25px; border-radius: 12px; border: 1px solid #D4AF37; width: 300px; }
+        .modal-content h3 { margin-top: 0; color: #D4AF37; text-align: center; }
+        
+        /* Input file oculto */
+        input[type="file"] { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-title">Admin Dashboard</div>
+        
+        <div class="control-group">
+            <span class="control-label">Título del Proyecto</span>
+            <input type="text" id="input-title" class="input-text" value="Rincón de Baviera" onkeyup="actualizarTitulo()">
+        </div>
+
+        <div class="control-group">
+            <span class="control-label">Imagen 360 del Terreno</span>
+            <label class="btn btn-upload">
+                Subir Imagen JPG
+                <input type="file" id="upload-360" accept="image/*" onchange="cambiarImagen(event)">
+            </label>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
+
+        <div class="control-group">
+            <span class="control-label">Gestor de Lotes</span>
+            <button id="btn-add-mode" class="btn btn-action" onclick="toggleAddMode()">+ Activar Modo Agregar Lote</button>
+            <p style="font-size: 0.75rem; color: #888; text-align: center; margin-top: 5px;" id="add-helper">Haz clic para añadir puntos sobre la foto</p>
+        </div>
+
+        <div class="control-group">
+            <span class="control-label">Inventario Creado</span>
+            <div id="inventory-list" class="inventory-list">
+                <p style="font-size: 0.8rem; color: #666; text-align: center;">No hay lotes creados aún.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="viewer-wrapper">
+        <div class="header-premium">
+            <div class="header-title" id="display-title">Rincón de Baviera</div>
+        </div>
+        <div id="viewer"></div>
+    </div>
+
+    <div id="add-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Datos del Nuevo Lote</h3>
+            <div class="control-group">
+                <span class="control-label">Nombre / Número</span>
+                <input type="text" id="lote-nombre" class="input-text" placeholder="Ej: Lote 01">
+            </div>
+            <div class="control-group">
+                <span class="control-label">Área (m²)</span>
+                <input type="text" id="lote-area" class="input-text" placeholder="Ej: 500">
+            </div>
+            <div class="control-group">
+                <span class="control-label">Precio</span>
+                <input type="text" id="lote-precio" class="input-text" placeholder="Ej: $150.000.000">
+            </div>
+            <div class="control-group">
+                <span class="control-label">Estado</span>
+                <select id="lote-estado" class="input-select">
+                    <option value="Disponible">Disponible</option>
+                    <option value="Vendido">Vendido</option>
+                </select>
+            </div>
+            <button class="btn btn-action" onclick="guardarLote()">Guardar Lote</button>
+            <button class="btn btn-upload" onclick="cerrarModal()">Cancelar</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/three/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin/index.min.js"></script>
+
+    <script>
+        // Variables globales
+        let isAddMode = false;
+        let tempCoords = { yaw: 0, pitch: 0 };
+        let inventarioLotes = [];
+
+        // 1. INICIALIZAR EL VISOR
+        const viewer = new PhotoSphereViewer.Viewer({
+            container: document.querySelector('#viewer'),
+            // Imagen por defecto (se puede cambiar subiendo una)
+            panorama: 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg',
+            touchmoveTwoFingers: false, mousewheelCtrlKey: false,
+            defaultYaw: '130deg', defaultPitch: '-15deg', defaultZoomLvl: 30,
+            navbar: ['zoom', 'fullscreen'],
+            plugins: [ [PhotoSphereViewer.MarkersPlugin, { markers: [] }] ]
+        });
+
+        const markersPlugin = viewer.getPlugin(PhotoSphereViewer.MarkersPlugin);
+
+        // 2. FUNCIONES BÁSICAS (Título e Imagen)
+        function actualizarTitulo() {
+            document.getElementById('display-title').innerText = document.getElementById('input-title').value;
+        }
+
+        function cambiarImagen(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    viewer.setPanorama(e.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // 3. LÓGICA DEL MODO CREACIÓN
+        function toggleAddMode() {
+            isAddMode = !isAddMode;
+            const btn = document.getElementById('btn-add-mode');
+            const helper = document.getElementById('add-helper');
+            
+            if (isAddMode) {
+                btn.innerText = "¡MIRA LA FOTO Y HAZ CLIC!";
+                btn.classList.add('active');
+                helper.innerText = "Haz clic en la foto para fijar la ubicación";
+                document.querySelector('.viewer-wrapper').style.cursor = 'crosshair';
+            } else {
+                btn.innerText = "+ Activar Modo Agregar Lote";
+                btn.classList.remove('active');
+                helper.innerText = "Haz clic para añadir puntos sobre la foto";
+                document.querySelector('.viewer-wrapper').style.cursor = 'default';
+            }
+        }
+
+        // Evento al hacer clic en el visor
+        viewer.addEventListener('click', ({ data }) => {
+            if (isAddMode) {
+                // Guardar coordenadas temporales
+                tempCoords.yaw = data.yaw;
+                tempCoords.pitch = data.pitch;
+                
+                // Abrir formulario
+                document.getElementById('add-modal').classList.add('active');
+                
+                // Limpiar inputs
+                document.getElementById('lote-nombre').value = '';
+                document.getElementById('lote-area').value = '';
+                document.getElementById('lote-precio').value = '';
+                document.getElementById('lote-estado').value = 'Disponible';
+                
+                // Desactivar el modo visualmente
+                toggleAddMode(); 
+            }
+        });
+
+        function cerrarModal() {
+            document.getElementById('add-modal').classList.remove('active');
+        }
+
+        // 4. GUARDAR EL LOTE Y DIBUJARLO
+        function guardarLote() {
+            const nombre = document.getElementById('lote-nombre').value || `Lote ${inventarioLotes.length + 1}`;
+            const area = document.getElementById('lote-area').value || '0';
+            const precio = document.getElementById('lote-precio').value || '0';
+            const estado = document.getElementById('lote-estado').value;
+            const idUnico = 'lote-' + Date.now(); // ID único interno
+            
+            // Definir color del punto según estado
+            const claseMarker = estado === 'Vendido' ? 'marker-vendido' : 'marker-disponible';
+            const colorStatus = estado === 'Vendido' ? '#e74c3c' : '#2ecc71';
+
+            // Añadir al visor (MarkersPlugin)
+            markersPlugin.addMarker({
+                id: idUnico,
+                position: { yaw: tempCoords.yaw, pitch: tempCoords.pitch },
+                html: `<div class="lote-marker ${claseMarker}"></div>`,
+                size: { width: 24, height: 24 },
+                anchor: 'center center',
+                tooltip: {
+                    content: `<div style="font-family:'Montserrat',sans-serif; text-align:center;">
+                                <strong style="color:#D4AF37;font-size:1.1rem">${nombre}</strong><br>
+                                <span style="color:#ccc;font-size:0.8rem">${area} m² - ${precio}</span><br>
+                                <b style="color:${colorStatus};font-size:0.8rem;text-transform:uppercase;">${estado}</b>
+                              </div>`,
+                    position: 'top center'
+                }
+            });
+
+            // Añadir al panel lateral
+            const lista = document.getElementById('inventory-list');
+            if(inventarioLotes.length === 0) lista.innerHTML = ''; // Limpiar mensaje inicial
+            
+            const htmlItem = `
+                <div class="lot-item">
+                    <div>
+                        <span class="lot-status" style="background:${colorStatus}"></span>
+                        <strong>${nombre}</strong> <span style="color:#888;">(${area}m²)</span>
+                    </div>
+                    <span style="color:${colorStatus};font-weight:bold;font-size:0.75rem">${estado}</span>
+                </div>
+            `;
+            lista.innerHTML += htmlItem;
+
+            // Guardar en nuestra base de datos simulada (Array)
+            inventarioLotes.push({ id: idUnico, nombre, area, precio, estado, coords: tempCoords });
+
+            // Cerrar modal
+            cerrarModal();
+        }
+
+        // Acción al hacer clic en un lote ya creado (solo para probar)
+        markersPlugin.addEventListener('select-marker', ({ marker }) => {
+            console.log("Has seleccionado el marcador:", marker.config.id);
+        });
+
+    </script>
+</body>
+</html>
