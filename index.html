@@ -40,7 +40,12 @@
 </head>
 <body>
 
-    <div class="header-premium"><div class="header-title" id="display-title">Cargando...</div></div>
+    <div class="header-premium">
+        <div class="header-title" style="display: flex; align-items: center; gap: 10px;">
+            <img id="display-logo" style="height: 40px; border-radius: 4px; display: none;">
+            <span id="display-title">Cargando...</span>
+        </div>
+    </div>
 
     <div class="inventory-bar">
         <div class="inv-item"><span class="inv-dot" style="background:#2ecc71"></span> Disp: <span class="inv-count" id="count-disp">0</span></div>
@@ -125,10 +130,12 @@
                     window.mostrarError("Conexión BD", dbError);
                 }
 
+                document.getElementById('display-title').innerText = titulo;
                 if (logoUrl) {
-                    document.getElementById('display-title').innerHTML = `<img src="${logoUrl}" style="height: 30px; vertical-align: middle; margin-right: 10px; border-radius: 4px;">` + titulo;
+                    document.getElementById('display-logo').src = logoUrl;
+                    document.getElementById('display-logo').style.display = 'block';
                 } else {
-                    document.getElementById('display-title').innerText = titulo;
+                    document.getElementById('display-logo').style.display = 'none';
                 }
 
                 viewer = new PhotoSphereViewer.Viewer({
@@ -200,13 +207,26 @@
                     pois.forEach(p => {
                         activeMarkers.add(p.id);
                         if (!markersPlugin.markers[p.id]) {
-                            markersPlugin.addMarker({
-                                id: p.id, position: { yaw: p.yaw, pitch: p.pitch },
-                                html: `<div style="display:flex;flex-direction:column;align-items:center;">
+                            let htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;">
                                         <div style="background:rgba(0,0,0,0.8);color:#fff;padding:5px 12px;border:1px solid #D4AF37;border-radius:4px;font-weight:bold;">${p.content}</div>
                                         <div style="width:2px;height:40px;background:#fff;"></div>
                                         <div style="width:14px;height:14px;background:#D4AF37;border-radius:50%;"></div>
-                                       </div>`,
+                                       </div>`;
+
+                            if (p.visualtype && p.visualtype.startsWith('IMG|')) {
+                                let imgData = p.visualtype.substring(4);
+                                htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;">
+                                        <div style="background:rgba(0,0,0,0.8);padding:4px;border:1px solid #D4AF37;border-radius:4px;">
+                                            <img src="${imgData}" style="max-width: 80px; max-height: 80px;">
+                                        </div>
+                                        <div style="width:2px;height:40px;background:#fff;"></div>
+                                        <div style="width:14px;height:14px;background:#D4AF37;border-radius:50%;"></div>
+                                       </div>`;
+                            }
+
+                            markersPlugin.addMarker({
+                                id: p.id, position: { yaw: p.yaw, pitch: p.pitch },
+                                html: htmlContent,
                                 size: { width: 100, height: 100 }, anchor: 'bottom center'
                             });
                         }
@@ -272,9 +292,12 @@
                         if (payload.new && payload.new.titulo) {
                             if (payload.new.titulo.includes('|LOGO:')) {
                                 let parts = payload.new.titulo.split('|LOGO:');
-                                document.getElementById('display-title').innerHTML = `<img src="${parts[1]}" style="height: 30px; vertical-align: middle; margin-right: 10px; border-radius: 4px;">` + parts[0];
+                                document.getElementById('display-title').innerText = parts[0];
+                                document.getElementById('display-logo').src = parts[1];
+                                document.getElementById('display-logo').style.display = 'block';
                             } else {
                                 document.getElementById('display-title').innerText = payload.new.titulo;
+                                document.getElementById('display-logo').style.display = 'none';
                             }
                         }
                         if (payload.new && payload.new.imagen_url && viewer) {
