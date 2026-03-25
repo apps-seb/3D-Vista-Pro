@@ -92,7 +92,7 @@
         
         let supabase;
         let viewer, markersPlugin;
-        const fallbackImage = 'https://upload.wikimedia.org/wikipedia/commons/e/e0/Equirectangular_projection_SW.jpg';
+        const fallbackImage = 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg';
 
         async function initClient() {
             let panoUrl = fallbackImage;
@@ -124,10 +124,10 @@
                     touchmoveTwoFingers: false, mousewheelCtrlKey: false,
                     defaultYaw: '0deg', defaultPitch: '0deg',
                     navbar: ['zoom', 'fullscreen'],
-                    plugins: [ [PhotoSphereViewerMarkersPlugin.MarkersPlugin, { markers: [] }] ]
+                    plugins: [ [PhotoSphereViewer.MarkersPlugin, { markers: [] }] ]
                 });
 
-                markersPlugin = viewer.getPlugin(PhotoSphereViewerMarkersPlugin.MarkersPlugin);
+                markersPlugin = viewer.getPlugin(PhotoSphereViewer.MarkersPlugin);
 
                 viewer.addEventListener('ready', cargarDatosPublicos);
 

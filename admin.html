@@ -125,7 +125,7 @@
         
         let supabaseClient, viewer, markersPlugin;
         let isAddMode = false; let currentMode = ''; let tempCoords = { yaw: 0, pitch: 0 };
-        const fallbackImage = 'https://upload.wikimedia.org/wikipedia/commons/e/e0/Equirectangular_projection_SW.jpg';
+        const fallbackImage = 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg';
 
         async function initApp() {
             let panoUrl = fallbackImage;
@@ -159,10 +159,10 @@
                     mousewheelCtrlKey: false,
                     defaultYaw: '0deg', defaultPitch: '0deg',
                     navbar: ['zoom', 'fullscreen'],
-                    plugins: [ [PhotoSphereViewerMarkersPlugin.MarkersPlugin, { markers: [] }] ]
+                    plugins: [ [PhotoSphereViewer.MarkersPlugin, { markers: [] }] ]
                 });
 
-                markersPlugin = viewer.getPlugin(PhotoSphereViewerMarkersPlugin.MarkersPlugin);
+                markersPlugin = viewer.getPlugin(PhotoSphereViewer.MarkersPlugin);
 
                 viewer.addEventListener('ready', cargarInventario);
                 viewer.addEventListener('click', handleMapClick);
@@ -216,26 +216,35 @@
             try {
                 const file = event.target.files[0];
                 if (!file) return;
-                btn.innerHTML = "Subiendo archivo... ⏳";
-                const fileName = `panorama_${Date.now()}.jpg`;
-                const { error: uploadError } = await supabaseClient.storage.from('imagenes_360').upload(fileName, file);
-                if (uploadError) throw uploadError;
+                btn.innerHTML = "Procesando archivo... ⏳";
 
-                const { data } = supabaseClient.storage.from('imagenes_360').getPublicUrl(fileName);
-                const imageUrl = data.publicUrl;
-                const { data: configCheck, error: selectError } = await supabaseClient.from('configuracion').select('id').eq('id', 1).maybeSingle();
-                if (selectError) throw selectError;
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    try {
+                        const imageUrl = e.target.result;
+                        const { data: configCheck, error: selectError } = await supabaseClient.from('configuracion').select('id').eq('id', 1).maybeSingle();
+                        if (selectError) throw selectError;
 
-                if (!configCheck) {
-                    const { error: insertError } = await supabaseClient.from('configuracion').insert([{ id: 1, imagen_url: imageUrl }]);
-                    if (insertError) throw insertError;
-                } else {
-                    const { error: updateError } = await supabaseClient.from('configuracion').update({ imagen_url: imageUrl }).eq('id', 1);
-                    if (updateError) throw updateError;
-                }
-                viewer.setPanorama(imageUrl);
-                btn.innerHTML = "¡Imagen Actualizada! ✅";
-                setTimeout(() => { btn.innerHTML = originalText; }, 3000);
+                        if (!configCheck) {
+                            const { error: insertError } = await supabaseClient.from('configuracion').insert([{ id: 1, imagen_url: imageUrl }]);
+                            if (insertError) throw insertError;
+                        } else {
+                            const { error: updateError } = await supabaseClient.from('configuracion').update({ imagen_url: imageUrl }).eq('id', 1);
+                            if (updateError) throw updateError;
+                        }
+                        viewer.setPanorama(imageUrl);
+                        btn.innerHTML = "¡Imagen Actualizada! ✅";
+                        setTimeout(() => { btn.innerHTML = originalText; }, 3000);
+                    } catch (error) {
+                        btn.innerHTML = originalText;
+                        window.mostrarError("cambiarImagen (base64)", error);
+                    }
+                };
+                reader.onerror = function(error) {
+                    btn.innerHTML = originalText;
+                    window.mostrarError("FileReader", "No se pudo leer el archivo");
+                };
+                reader.readAsDataURL(file);
             } catch (error) {
                 btn.innerHTML = originalText;
                 window.mostrarError("cambiarImagen", error);
