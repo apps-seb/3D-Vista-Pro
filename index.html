@@ -12,34 +12,13 @@
         body { margin: 0; font-family: 'Montserrat', sans-serif; background-color: #000; overflow: hidden; }
         #viewer { width: 100vw; height: 100vh; transition: filter 0.3s ease; }
 
-        .header-premium {
-            position: absolute; top: 0; left: 0; width: 100%;
-            padding: 20px 35px; background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
-            color: white; z-index: 10; pointer-events: none;
-            box-sizing: border-box; display: flex; justify-content: space-between; align-items: flex-start;
-            flex-wrap: wrap; gap: 15px;
-        }
+        .header-premium { position: absolute; top: 0; left: 0; width: 100%; padding: 20px 35px; background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%); color: white; z-index: 10; pointer-events: none; box-sizing: border-box; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px; }
         .header-left { display: flex; flex-direction: column; }
         .header-title { font-size: 1.4rem; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: #D4AF37; }
         .header-subtitle { font-size: 0.9rem; font-weight: 300; color: #e5e7eb; letter-spacing: 1px; margin-top: 4px; }
 
-        .inventory-bar {
-            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            display: flex; gap: 15px; background: rgba(20, 20, 20, 0.8);
-            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-            padding: 10px 20px; border-radius: 30px; border: 1px solid rgba(212, 175, 55, 0.3);
-            pointer-events: auto; flex-wrap: nowrap; justify-content: center; z-index: 10;
-            white-space: nowrap; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-        }
-
-        @media (max-width: 600px) {
-            .inventory-bar {
-                width: 90%; max-width: 400px; padding: 10px; gap: 10px;
-                border-radius: 15px; flex-wrap: nowrap; overflow-x: auto;
-                justify-content: flex-start;
-            }
-            .inv-item { font-size: 0.75rem; }
-        }
+        .inventory-bar { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 15px; background: rgba(20, 20, 20, 0.8); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); padding: 10px 20px; border-radius: 30px; border: 1px solid rgba(212, 175, 55, 0.3); pointer-events: auto; flex-wrap: nowrap; justify-content: center; z-index: 10; white-space: nowrap; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        @media (max-width: 600px) { .inventory-bar { width: 90%; max-width: 400px; padding: 10px; gap: 10px; border-radius: 15px; flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; } .inv-item { font-size: 0.75rem; } }
         .inv-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
         .inv-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid #fff; }
         .dot-disp { background: #2ecc71; box-shadow: 0 0 8px rgba(46, 204, 113, 0.6); }
@@ -47,16 +26,8 @@
         .dot-vend { background: #e74c3c; box-shadow: 0 0 8px rgba(231, 76, 60, 0.6); }
         .inv-count { color: #fff; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 12px; }
 
-        .lote-marker {
-            width: 24px; height: 24px; background: rgba(212, 175, 55, 0.9);
-            border: 2px solid #fff; border-radius: 50%; box-shadow: 0 0 15px rgba(212, 175, 55, 0.6);
-            cursor: pointer; animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.7); }
-            70% { box-shadow: 0 0 0 15px rgba(212, 175, 55, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); }
-        }
+        .lote-marker { width: 24px; height: 24px; background: rgba(212, 175, 55, 0.9); border: 2px solid #fff; border-radius: 50%; box-shadow: 0 0 15px rgba(212, 175, 55, 0.6); cursor: pointer; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(212, 175, 55, 0); } 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); } }
 
         .poi-container { display: flex; flex-direction: column; align-items: center; pointer-events: none; }
         .poi-content-text { color: #fff; font-weight: 600; font-size: 14px; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); padding: 4px 12px; white-space: nowrap; border-bottom: 2px solid #fff; font-family: 'Montserrat', sans-serif; }
@@ -64,52 +35,20 @@
         .poi-line-v { width: 2px; height: 50px; background: #fff; box-shadow: 0 0 5px rgba(0,0,0,0.3); }
         .poi-dot { width: 14px; height: 14px; background: #D4AF37; border: 2px solid #fff; border-radius: 50%; pointer-events: auto; cursor: pointer; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
 
-        .modal-overlay {
-            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(0, 0, 0, 0.4); z-index: 50;
-            display: flex; justify-content: center; align-items: center;
-            opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
-        }
+        .modal-overlay { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.4); z-index: 50; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
         .modal-overlay.active { opacity: 1; pointer-events: all; }
-        
-        .modal-content {
-            background: rgba(20, 20, 20, 0.75);
-            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(212, 175, 55, 0.4); border-radius: 16px;
-            padding: 30px; width: 90%; max-width: 400px;
-            color: white; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-            transform: translateY(20px); transition: transform 0.4s ease;
-            position: relative;
-        }
+        .modal-content { background: rgba(20, 20, 20, 0.75); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(212, 175, 55, 0.4); border-radius: 16px; padding: 30px; width: 90%; max-width: 400px; color: white; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.6); transform: translateY(20px); transition: transform 0.4s ease; position: relative; }
         .modal-overlay.active .modal-content { transform: translateY(0); }
-
-        .btn-close {
-            position: absolute; top: 15px; right: 15px; background: none; border: none;
-            color: #ccc; font-size: 1.5rem; cursor: pointer; transition: color 0.2s;
-        }
+        .btn-close { position: absolute; top: 15px; right: 15px; background: none; border: none; color: #ccc; font-size: 1.5rem; cursor: pointer; transition: color 0.2s; }
         .btn-close:hover { color: #fff; }
-
         .modal-title { font-size: 1.6rem; font-weight: 600; color: #D4AF37; margin: 0 0 10px 0; }
-        .modal-badge {
-            display: inline-block; background: rgba(46, 204, 113, 0.2); color: #2ecc71;
-            padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;
-            border: 1px solid rgba(46, 204, 113, 0.5); margin-bottom: 20px;
-        }
-        
+        .modal-badge { display: inline-block; background: rgba(46, 204, 113, 0.2); color: #2ecc71; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; border: 1px solid rgba(46, 204, 113, 0.5); margin-bottom: 20px; }
         .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; text-align: left; }
         .info-box { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); }
         .info-label { font-size: 0.75rem; color: #aaa; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
         .info-value { font-size: 1.1rem; font-weight: 600; }
-
-        .btn-whatsapp {
-            display: block; width: 100%; padding: 15px;
-            background: linear-gradient(135deg, #25D366, #128C7E); color: white;
-            text-decoration: none; font-weight: 600; border-radius: 8px;
-            font-size: 1rem; transition: transform 0.2s, box-shadow 0.2s;
-            box-sizing: border-box;
-        }
+        .btn-whatsapp { display: block; width: 100%; padding: 15px; background: linear-gradient(135deg, #25D366, #128C7E); color: white; text-decoration: none; font-weight: 600; border-radius: 8px; font-size: 1rem; transition: transform 0.2s, box-shadow 0.2s; box-sizing: border-box; }
         .btn-whatsapp:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(37, 211, 102, 0.4); }
-
         .psv-navbar { background: rgba(0,0,0,0.6) !important; backdrop-filter: blur(5px); }
     </style>
 </head>
@@ -137,14 +76,8 @@
             <div class="modal-badge" id="m-estado">Disponible</div>
             
             <div class="info-grid">
-                <div class="info-box">
-                    <div class="info-label">Área Total</div>
-                    <div class="info-value" id="m-area">0 m²</div>
-                </div>
-                <div class="info-box">
-                    <div class="info-label">Precio</div>
-                    <div class="info-value" id="m-precio">$0</div>
-                </div>
+                <div class="info-box"><div class="info-label">Área Total</div><div class="info-value" id="m-area">0 m²</div></div>
+                <div class="info-box"><div class="info-label">Precio</div><div class="info-value" id="m-precio">$0</div></div>
             </div>
 
             <a href="#" target="_blank" class="btn-whatsapp" id="m-whatsapp">Contactar por WhatsApp</a>
@@ -165,10 +98,7 @@
         const viewer = new PhotoSphereViewer.Viewer({
             container: document.querySelector('#viewer'),
             panorama: 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg', 
-            touchmoveTwoFingers: false,
-            mousewheelCtrlKey: false,
-            moveSpeed: 1.5,
-            zoomSpeed: 2,
+            touchmoveTwoFingers: false, mousewheelCtrlKey: false, moveSpeed: 1.5, zoomSpeed: 2,
             defaultYaw: '130deg', defaultPitch: '-15deg', defaultZoomLvl: 30,
             navbar: ['zoom', 'fullscreen'],
             plugins: [ [PhotoSphereViewer.MarkersPlugin, { markers: [] }] ]
@@ -180,7 +110,8 @@
 
         async function cargarDatosDesdeBD() {
             try {
-                const { data: configData } = await supabase.from('configuracion').select('*').single();
+                // Filtramos la lectura con eq('id', 1) para sincronizar con el administrador
+                const { data: configData } = await supabase.from('configuracion').select('*').eq('id', 1).single();
                 const { data: lotesData } = await supabase.from('lotes').select('*');
                 const { data: poisData } = await supabase.from('pois').select('*');
 
@@ -199,55 +130,31 @@
                 if (lotesData) {
                     lotesData.forEach(lote => {
                         let markerStyle = '';
-                        if (lote.estado === 'Vendido') {
-                            markerStyle = 'background: rgba(231, 76, 60, 0.9); border-color:#fff; box-shadow: 0 0 10px rgba(231, 76, 60, 0.6); animation: none;';
-                            vendCount++;
-                        } else if (lote.estado === 'Reservado') {
-                            markerStyle = 'background: rgba(243, 156, 18, 0.9); border-color:#fff; box-shadow: 0 0 15px rgba(243, 156, 18, 0.6); animation: pulse-res 2s infinite;';
-                            resCount++;
-                        } else {
-                            markerStyle = 'background: rgba(46, 204, 113, 0.9); border-color:#fff; box-shadow: 0 0 15px rgba(46, 204, 113, 0.6); animation: pulse-disp 2s infinite;';
-                            dispCount++;
-                        }
+                        if (lote.estado === 'Vendido') { markerStyle = 'background: rgba(231, 76, 60, 0.9); border-color:#fff; box-shadow: 0 0 10px rgba(231, 76, 60, 0.6); animation: none;'; vendCount++; } 
+                        else if (lote.estado === 'Reservado') { markerStyle = 'background: rgba(243, 156, 18, 0.9); border-color:#fff; box-shadow: 0 0 15px rgba(243, 156, 18, 0.6); animation: pulse-res 2s infinite;'; resCount++; } 
+                        else { markerStyle = 'background: rgba(46, 204, 113, 0.9); border-color:#fff; box-shadow: 0 0 15px rgba(46, 204, 113, 0.6); animation: pulse-disp 2s infinite;'; dispCount++; }
 
                         markersPlugin.addMarker({
-                            id: lote.id,
-                            position: { yaw: lote.yaw, pitch: lote.pitch },
+                            id: lote.id, position: { yaw: lote.yaw, pitch: lote.pitch },
                             html: `<div class="lote-marker" style="${markerStyle}">
-                                <style>
-                                    @keyframes pulse-disp { 0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(46, 204, 113, 0); } 100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); } }
-                                    @keyframes pulse-res { 0% { box-shadow: 0 0 0 0 rgba(243, 156, 18, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(243, 156, 18, 0); } 100% { box-shadow: 0 0 0 0 rgba(243, 156, 18, 0); } }
-                                </style>
-                               </div>`,
-                            size: { width: 24, height: 24 },
-                            anchor: 'center center',
+                                <style>@keyframes pulse-disp { 0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(46, 204, 113, 0); } 100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); } } @keyframes pulse-res { 0% { box-shadow: 0 0 0 0 rgba(243, 156, 18, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(243, 156, 18, 0); } 100% { box-shadow: 0 0 0 0 rgba(243, 156, 18, 0); } }</style></div>`,
+                            size: { width: 24, height: 24 }, anchor: 'center center',
                             data: { type: 'lote', nombre: lote.nombre, area: lote.area + ' m²', precio: lote.precio, estado: lote.estado }
                         });
                     });
                 }
 
-                document.getElementById('count-disp').innerText = dispCount;
-                document.getElementById('count-res').innerText = resCount;
-                document.getElementById('count-vend').innerText = vendCount;
+                document.getElementById('count-disp').innerText = dispCount; document.getElementById('count-res').innerText = resCount; document.getElementById('count-vend').innerText = vendCount;
 
                 if (poisData) {
                     poisData.forEach(poi => {
-                        let contenidoHTML = '';
-                        if (poi.visualType === 'texto') {
-                            contenidoHTML = `<div class="poi-container"><div class="poi-content-text">${poi.content}</div><div class="poi-line-v"></div><div class="poi-dot"></div></div>`;
-                        } else {
-                            contenidoHTML = `<div class="poi-container"><img class="poi-content-img" src="${poi.content}" /><div class="poi-line-v"></div><div class="poi-dot"></div></div>`;
-                        }
-                        markersPlugin.addMarker({
-                            id: poi.id, position: { yaw: poi.yaw, pitch: poi.pitch },
-                            html: contenidoHTML, size: { width: 100, height: 120 },
-                            anchor: 'bottom center', data: { type: 'poi' }
-                        });
+                        let contenidoHTML = poi.visualType === 'texto' 
+                            ? `<div class="poi-container"><div class="poi-content-text">${poi.content}</div><div class="poi-line-v"></div><div class="poi-dot"></div></div>`
+                            : `<div class="poi-container"><img class="poi-content-img" src="${poi.content}" /><div class="poi-line-v"></div><div class="poi-dot"></div></div>`;
+                        markersPlugin.addMarker({ id: poi.id, position: { yaw: poi.yaw, pitch: poi.pitch }, html: contenidoHTML, size: { width: 100, height: 120 }, anchor: 'bottom center', data: { type: 'poi' } });
                     });
                 }
-            } catch (error) {
-                console.error("Error cargando datos:", error);
-            }
+            } catch (error) { console.error("Error cargando datos:", error); }
         }
 
         viewer.addEventListener('ready', () => { cargarDatosDesdeBD(); });
@@ -258,30 +165,21 @@
                 document.getElementById('m-area').innerText = marker.config.data.area;
                 document.getElementById('m-precio').innerText = marker.config.data.precio;
 
-                const estadoEl = document.getElementById('m-estado');
-                estadoEl.innerText = marker.config.data.estado;
+                const estadoEl = document.getElementById('m-estado'); estadoEl.innerText = marker.config.data.estado;
 
-                if(marker.config.data.estado === 'Vendido') {
-                    estadoEl.style.background = 'rgba(231, 76, 60, 0.2)'; estadoEl.style.color = '#e74c3c'; estadoEl.style.borderColor = 'rgba(231, 76, 60, 0.5)';
-                } else if(marker.config.data.estado === 'Reservado') {
-                    estadoEl.style.background = 'rgba(243, 156, 18, 0.2)'; estadoEl.style.color = '#f39c12'; estadoEl.style.borderColor = 'rgba(243, 156, 18, 0.5)';
-                } else {
-                    estadoEl.style.background = 'rgba(46, 204, 113, 0.2)'; estadoEl.style.color = '#2ecc71'; estadoEl.style.borderColor = 'rgba(46, 204, 113, 0.5)';
-                }
+                if(marker.config.data.estado === 'Vendido') { estadoEl.style.background = 'rgba(231, 76, 60, 0.2)'; estadoEl.style.color = '#e74c3c'; estadoEl.style.borderColor = 'rgba(231, 76, 60, 0.5)'; } 
+                else if(marker.config.data.estado === 'Reservado') { estadoEl.style.background = 'rgba(243, 156, 18, 0.2)'; estadoEl.style.color = '#f39c12'; estadoEl.style.borderColor = 'rgba(243, 156, 18, 0.5)'; } 
+                else { estadoEl.style.background = 'rgba(46, 204, 113, 0.2)'; estadoEl.style.color = '#2ecc71'; estadoEl.style.borderColor = 'rgba(46, 204, 113, 0.5)'; }
 
                 const numeroTel = "573000000000"; // EDITA TU NÚMERO DE WHATSAPP AQUÍ
                 const mensaje = `Hola, me interesa obtener más información sobre el ${marker.config.data.nombre || marker.config.id} de ${document.querySelector('.header-title').innerText}.`;
                 document.getElementById('m-whatsapp').href = `https://wa.me/${numeroTel}?text=${encodeURIComponent(mensaje)}`;
 
-                modal.classList.add('active');
-                viewerDiv.style.filter = 'blur(5px)';
+                modal.classList.add('active'); viewerDiv.style.filter = 'blur(5px)';
             }
         });
 
-        function cerrarModal() {
-            modal.classList.remove('active');
-            viewerDiv.style.filter = 'none';
-        }
+        function cerrarModal() { modal.classList.remove('active'); viewerDiv.style.filter = 'none'; }
         modal.addEventListener('click', (e) => { if (e.target === modal) cerrarModal(); });
     </script>
 </body>
