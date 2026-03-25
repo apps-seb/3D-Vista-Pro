@@ -160,8 +160,15 @@
     <script src="https://cdn.jsdelivr.net/npm/three/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin/index.min.js"></script>
+    <!-- 1. Importar Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
+        // 2. Configuración de Supabase (REEMPLAZA CON TUS CREDENCIALES)
+        const supabaseUrl = 'TU_URL_DE_SUPABASE';
+        const supabaseKey = 'TU_ANON_KEY_DE_SUPABASE';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
         const viewer = new PhotoSphereViewer.Viewer({
             container: document.querySelector('#viewer'),
             panorama: 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg',
@@ -178,35 +185,32 @@
         const modal = document.getElementById('premium-modal');
         const viewerDiv = document.getElementById('viewer');
 
-        // Función para cargar datos desde la base de datos simulada
-        function cargarDatosDesdeBD() {
-            // SIMULACIÓN: En un entorno real, aquí se hace fetch() a un endpoint (ej. GET /api/lotes)
-            const dbData = {
-                titulo: "Rincón de Baviera",
-                lotes: [
-                    { id: 'Lote 01', nombre: 'Lote 01', coords: { yaw: '135deg', pitch: '-20deg' }, area: '1200', precio: '$150.000.000 COP', estado: 'Disponible' },
-                    { id: 'Lote 02', nombre: 'Lote 02', coords: { yaw: '150deg', pitch: '-10deg' }, area: '980', precio: 'Vendido', estado: 'Vendido' },
-                    { id: 'Lote 03', nombre: 'Lote 03', coords: { yaw: '160deg', pitch: '-5deg' }, area: '1050', precio: '$130.000.000 COP', estado: 'Reservado' }
-                ],
-                pois: [
-                    { id: 'poi-1', type: 'poi', visualType: 'texto', content: 'Casa Club', coords: { yaw: '140deg', pitch: '-5deg' } }
-                ]
-            };
+        // Función para cargar datos desde Supabase
+        async function cargarDatosDesdeBD() {
+            try {
+                // Obtener configuración (título)
+                const { data: configData } = await supabase.from('configuracion').select('*').single();
 
-            // 1. Actualizar título si se recibe
-            if (dbData.titulo) {
-                document.querySelector('.header-title').innerText = dbData.titulo;
-                document.title = dbData.titulo + " - 360 Premium";
-            }
+                // Obtener lotes
+                const { data: lotesData } = await supabase.from('lotes').select('*');
 
-            let dispCount = 0;
-            let resCount = 0;
-            let vendCount = 0;
+                // Obtener Puntos de Interés (POIs)
+                const { data: poisData } = await supabase.from('pois').select('*');
 
-            // 2. Cargar Lotes
-            if (dbData.lotes) {
-                dbData.lotes.forEach(lote => {
-                    let markerStyle = '';
+                // 1. Actualizar título si se recibe
+                if (configData && configData.titulo) {
+                    document.querySelector('.header-title').innerText = configData.titulo;
+                    document.title = configData.titulo + " - 360 Premium";
+                }
+
+                let dispCount = 0;
+                let resCount = 0;
+                let vendCount = 0;
+
+                // 2. Cargar Lotes
+                if (lotesData) {
+                    lotesData.forEach(lote => {
+                        let markerStyle = '';
                     if (lote.estado === 'Vendido') {
                         markerStyle = 'background: rgba(231, 76, 60, 0.9); border-color:#fff; box-shadow: 0 0 10px rgba(231, 76, 60, 0.6); animation: none;';
                         vendCount++;
@@ -218,10 +222,10 @@
                         dispCount++;
                     }
 
-                    markersPlugin.addMarker({
-                        id: lote.id,
-                        position: lote.coords,
-                        html: `<div class="lote-marker" style="${markerStyle}">
+                        markersPlugin.addMarker({
+                            id: lote.id,
+                            position: { yaw: lote.yaw, pitch: lote.pitch },
+                            html: `<div class="lote-marker" style="${markerStyle}">
                                 <style>
                                     @keyframes pulse-disp { 0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(46, 204, 113, 0); } 100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); } }
                                     @keyframes pulse-res { 0% { box-shadow: 0 0 0 0 rgba(243, 156, 18, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(243, 156, 18, 0); } 100% { box-shadow: 0 0 0 0 rgba(243, 156, 18, 0); } }
@@ -230,53 +234,56 @@
                         size: { width: 24, height: 24 },
                         anchor: 'center center',
                         data: {
-                            type: 'lote',
-                            nombre: lote.nombre,
-                            area: lote.area + ' m²',
-                            precio: lote.precio,
-                            estado: lote.estado
-                        }
+                                type: 'lote',
+                                nombre: lote.nombre,
+                                area: lote.area + ' m²',
+                                precio: lote.precio,
+                                estado: lote.estado
+                            }
+                        });
                     });
-                });
-            }
+                }
 
-            document.getElementById('count-disp').innerText = dispCount;
-            document.getElementById('count-res').innerText = resCount;
-            document.getElementById('count-vend').innerText = vendCount;
+                document.getElementById('count-disp').innerText = dispCount;
+                document.getElementById('count-res').innerText = resCount;
+                document.getElementById('count-vend').innerText = vendCount;
 
-            // 3. Cargar Puntos de Interés
-            if (dbData.pois) {
-                dbData.pois.forEach(poi => {
-                    let contenidoHTML = '';
-                    if (poi.visualType === 'texto') {
-                        contenidoHTML = `
+                // 3. Cargar Puntos de Interés
+                if (poisData) {
+                    poisData.forEach(poi => {
+                        let contenidoHTML = '';
+                        if (poi.visualType === 'texto') {
+                            contenidoHTML = `
                             <div class="poi-container">
                                 <div class="poi-content-text">${poi.content}</div>
                                 <div class="poi-line-v"></div>
                                 <div class="poi-dot"></div>
                             </div>
                         `;
-                    } else {
-                        contenidoHTML = `
-                            <div class="poi-container">
-                                <img class="poi-content-img" src="${poi.content}" />
-                                <div class="poi-line-v"></div>
-                                <div class="poi-dot"></div>
-                            </div>
-                        `;
-                    }
-
-                    markersPlugin.addMarker({
-                        id: poi.id,
-                        position: poi.coords,
-                        html: contenidoHTML,
-                        size: { width: 100, height: 120 },
-                        anchor: 'bottom center',
-                        data: {
-                            type: 'poi'
+                        } else {
+                            contenidoHTML = `
+                                <div class="poi-container">
+                                    <img class="poi-content-img" src="${poi.content}" />
+                                    <div class="poi-line-v"></div>
+                                    <div class="poi-dot"></div>
+                                </div>
+                            `;
                         }
+
+                        markersPlugin.addMarker({
+                            id: poi.id,
+                            position: { yaw: poi.yaw, pitch: poi.pitch },
+                            html: contenidoHTML,
+                            size: { width: 100, height: 120 },
+                            anchor: 'bottom center',
+                            data: {
+                                type: 'poi'
+                            }
+                        });
                     });
-                });
+                }
+            } catch (error) {
+                console.error("Error cargando datos de Supabase:", error);
             }
         }
 
