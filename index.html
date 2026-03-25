@@ -23,7 +23,7 @@
         .inv-dot { width: 10px; height: 10px; border-radius: 50%; }
         .inv-count { background: rgba(255,255,255,0.15); padding: 2px 8px; border-radius: 12px; }
 
-        .lote-marker { width: 24px; height: 24px; border: 2px solid #fff; border-radius: 50%; cursor: pointer; animation: pulse 2s infinite; }
+        .lote-marker { width: 34px; height: 34px; border: 2px solid #fff; border-radius: 50%; cursor: pointer; animation: pulse 2s infinite; display: flex; justify-content: center; align-items: center; font-size: 11px; font-weight: bold; color: white; text-shadow: 1px 1px 2px black; text-align: center; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
 
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 50; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
@@ -97,6 +97,7 @@
         async function initClient() {
             let panoUrl = fallbackImage;
             let titulo = "Rincón de Baviera";
+            let logoUrl = "";
 
             try {
                 if (!window.supabase) throw new Error("Base de datos no cargada");
@@ -109,21 +110,33 @@
                     if (configError) throw new Error(configError.message);
                     if (config) {
                         if (config.imagen_url) panoUrl = config.imagen_url;
-                        if (config.titulo) titulo = config.titulo;
+                        if (config.titulo) {
+                            if (config.titulo.includes('|LOGO:')) {
+                                let parts = config.titulo.split('|LOGO:');
+                                titulo = parts[0];
+                                logoUrl = parts[1];
+                            } else {
+                                titulo = config.titulo;
+                            }
+                        }
                     }
                 } catch (dbError) {
                     console.warn("No se pudo cargar la configuración de Supabase. Usando valores por defecto.", dbError);
                     window.mostrarError("Conexión BD", dbError);
                 }
 
-                document.getElementById('display-title').innerText = titulo;
+                if (logoUrl) {
+                    document.getElementById('display-title').innerHTML = `<img src="${logoUrl}" style="height: 30px; vertical-align: middle; margin-right: 10px; border-radius: 4px;">` + titulo;
+                } else {
+                    document.getElementById('display-title').innerText = titulo;
+                }
 
                 viewer = new PhotoSphereViewer.Viewer({
                     container: document.querySelector('#viewer'),
                     panorama: panoUrl, 
                     touchmoveTwoFingers: false, mousewheelCtrlKey: false,
                     defaultYaw: '0deg', defaultPitch: '0deg',
-                    navbar: ['zoom', 'fullscreen'],
+                    navbar: false,
                     plugins: [ [PhotoSphereViewer.MarkersPlugin, { markers: [] }] ]
                 });
 
@@ -154,7 +167,10 @@
 
                         if(l.estado === 'Vendido') vend++; else if(l.estado === 'Reservado') res++; else disp++;
 
-                        const htmlContent = `<div class="lote-marker" style="background:${bg}; box-shadow: 0 0 15px ${shadow}"></div>`;
+                        let shortName = l.nombre.replace(/lote\s*/i, '').trim();
+                        if(shortName.length > 4) shortName = shortName.substring(0, 4);
+
+                        const htmlContent = `<div class="lote-marker" style="background:${bg}; box-shadow: 0 0 15px ${shadow}">${shortName}</div>`;
 
                         if (markersPlugin.markers[l.id]) {
                             markersPlugin.updateMarker({
@@ -166,7 +182,7 @@
                             markersPlugin.addMarker({
                                 id: l.id, position: { yaw: l.yaw, pitch: l.pitch },
                                 html: htmlContent,
-                                size: { width: 24, height: 24 }, anchor: 'center center',
+                                size: { width: 34, height: 34 }, anchor: 'center center',
                                 data: { type: 'lote', nombre: l.nombre, area: l.area + ' m²', precio: l.precio, estado: l.estado }
                             });
                         }
@@ -254,7 +270,12 @@
                     })
                     .on('postgres_changes', { event: '*', schema: 'public', table: 'configuracion' }, payload => {
                         if (payload.new && payload.new.titulo) {
-                            document.getElementById('display-title').innerText = payload.new.titulo;
+                            if (payload.new.titulo.includes('|LOGO:')) {
+                                let parts = payload.new.titulo.split('|LOGO:');
+                                document.getElementById('display-title').innerHTML = `<img src="${parts[1]}" style="height: 30px; vertical-align: middle; margin-right: 10px; border-radius: 4px;">` + parts[0];
+                            } else {
+                                document.getElementById('display-title').innerText = payload.new.titulo;
+                            }
                         }
                         if (payload.new && payload.new.imagen_url && viewer) {
                             viewer.setPanorama(payload.new.imagen_url);

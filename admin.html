@@ -29,7 +29,7 @@
         .inventory-list { overflow-y: auto; flex: 1; max-height: 150px; }
         .lot-item { background: #000; border: 1px solid #333; padding: 10px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; }
         .btn-delete { background: #e74c3c; color: white; border: none; border-radius: 4px; padding: 5px 8px; cursor: pointer; font-size: 0.7rem; }
-        .lote-marker { width: 20px; height: 20px; border: 2px solid #fff; border-radius: 50%; cursor: pointer; }
+        .lote-marker { width: 34px; height: 34px; border: 2px solid #fff; border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 11px; font-weight: bold; color: white; text-shadow: 1px 1px 2px black; text-align: center; }
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; display: none; justify-content: center; align-items: center; }
         .modal-overlay.active { display: flex; }
         .modal-content { background: #1a1a1a; padding: 25px; border-radius: 12px; border: 1px solid #D4AF37; width: 90%; max-width: 320px; box-sizing: border-box; }
@@ -48,10 +48,15 @@
         <div class="control-group">
             <span class="control-label">1. Configuración Principal</span>
             <input type="text" id="input-title" class="input-text" placeholder="Nombre del proyecto">
-            <button class="btn btn-action" onclick="guardarTitulo()">Guardar Título</button>
+            <label class="btn btn-upload" id="btn-upload-logo-lbl" style="margin-bottom: 10px;">
+                Subir Logo (PNG/JPG)
+                <input type="file" id="upload-logo" accept="image/png, image/jpeg" style="display:none;" onchange="cargarLogo(event)">
+            </label>
+            <input type="hidden" id="logo-data">
+            <button class="btn btn-action" onclick="guardarTitulo()">Guardar Proyecto (Título y Logo)</button>
             <label class="btn btn-upload" id="btn-upload-lbl">
                 Subir Foto 360 (JPG)
-                <input type="file" id="upload-360" accept="image/jpeg" onchange="cambiarImagen(event)">
+                <input type="file" id="upload-360" accept="image/jpeg" style="display:none;" onchange="cambiarImagen(event)">
             </label>
         </div>
 
@@ -130,6 +135,7 @@
         async function initApp() {
             let panoUrl = fallbackImage;
             let titulo = "Rincón de Baviera";
+            let logoUrl = "";
 
             try {
                 if (!window.supabase) throw new Error("No cargó Supabase");
@@ -142,7 +148,16 @@
                     if (configError) throw new Error(configError.message);
                     if (config) {
                         if (config.imagen_url) panoUrl = config.imagen_url;
-                        if (config.titulo) titulo = config.titulo;
+                        if (config.titulo) {
+                            if (config.titulo.includes('|LOGO:')) {
+                                let parts = config.titulo.split('|LOGO:');
+                                titulo = parts[0];
+                                logoUrl = parts[1];
+                                document.getElementById('logo-data').value = logoUrl;
+                            } else {
+                                titulo = config.titulo;
+                            }
+                        }
                     }
                 } catch (dbError) {
                     console.warn("No se pudo cargar la configuración de Supabase. Usando valores por defecto.", dbError);
@@ -150,7 +165,11 @@
                 }
 
                 document.getElementById('display-title').innerText = titulo;
-                document.getElementById('input-title').value = titulo;
+                if (logoUrl) {
+                    document.getElementById('display-title').innerHTML = `<img src="${logoUrl}" style="height: 30px; vertical-align: middle; margin-right: 10px; border-radius: 4px;">` + titulo;
+                } else {
+                    document.getElementById('display-title').innerText = titulo;
+                }
 
                 viewer = new PhotoSphereViewer.Viewer({
                     container: document.querySelector('#viewer'),
@@ -158,7 +177,7 @@
                     touchmoveTwoFingers: false,
                     mousewheelCtrlKey: false,
                     defaultYaw: '0deg', defaultPitch: '0deg',
-                    navbar: ['zoom', 'fullscreen'],
+                    navbar: false,
                     plugins: [ [PhotoSphereViewer.MarkersPlugin, { markers: [] }] ]
                 });
 
@@ -189,22 +208,50 @@
             }
         }
 
+        window.cargarLogo = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const btn = document.getElementById('btn-upload-logo-lbl');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = "Procesando... ⏳";
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('logo-data').value = e.target.result;
+                btn.innerHTML = "¡Logo Cargado! ✅";
+                setTimeout(() => { btn.innerHTML = originalText; }, 3000);
+            };
+            reader.onerror = function(error) {
+                btn.innerHTML = originalText;
+                window.mostrarError("FileReader Logo", "No se pudo leer el archivo logo");
+            };
+            reader.readAsDataURL(file);
+        };
+
         window.guardarTitulo = async function() {
             try {
-                const titulo = document.getElementById('input-title').value;
+                let titulo = document.getElementById('input-title').value;
                 if(!titulo) return;
-                document.getElementById('display-title').innerText = titulo;
+                let logoData = document.getElementById('logo-data').value;
+
+                let tituloAguardar = logoData ? `${titulo}|LOGO:${logoData}` : titulo;
+
+                if (logoData) {
+                    document.getElementById('display-title').innerHTML = `<img src="${logoData}" style="height: 30px; vertical-align: middle; margin-right: 10px; border-radius: 4px;">` + titulo;
+                } else {
+                    document.getElementById('display-title').innerText = titulo;
+                }
+
                 const { data, error: selectError } = await supabaseClient.from('configuracion').select('id').eq('id', 1).maybeSingle();
                 if (selectError) throw selectError;
 
                 if (!data) {
-                    const { error: insertError } = await supabaseClient.from('configuracion').insert([{ id: 1, titulo: titulo }]);
+                    const { error: insertError } = await supabaseClient.from('configuracion').insert([{ id: 1, titulo: tituloAguardar }]);
                     if (insertError) throw insertError;
                 } else {
-                    const { error: updateError } = await supabaseClient.from('configuracion').update({ titulo: titulo }).eq('id', 1);
+                    const { error: updateError } = await supabaseClient.from('configuracion').update({ titulo: tituloAguardar }).eq('id', 1);
                     if (updateError) throw updateError;
                 }
-                alert("Título guardado");
+                alert("Proyecto guardado correctamente");
             } catch (error) {
                 window.mostrarError("guardarTitulo", error);
             }
@@ -309,10 +356,13 @@
         window.renderLote = function(id, nombre, area, precio, estado, yaw, pitch) {
             try {
                 let color = estado === 'Vendido' ? '#e74c3c' : (estado === 'Reservado' ? '#f39c12' : '#2ecc71');
-                const html = `<div class="lote-marker" style="background:${color}; box-shadow: 0 0 10px ${color};"></div>`;
+                let shortName = nombre.replace(/lote\s*/i, '').trim();
+                if(shortName.length > 4) shortName = shortName.substring(0, 4);
+
+                const html = `<div class="lote-marker" style="background:${color}; box-shadow: 0 0 10px ${color};">${shortName}</div>`;
                 if (markersPlugin.markers[id]) markersPlugin.updateMarker({ id, html });
                 else {
-                    markersPlugin.addMarker({ id, position: { yaw, pitch }, html, size: { width: 20, height: 20 }, anchor: 'center center', tooltip: { content: `<div style="text-align:center;"><strong style="color:#D4AF37">${nombre}</strong></div>`, position: 'top center' }, data: { nombre, area, precio, estado, yaw, pitch } });
+                    markersPlugin.addMarker({ id, position: { yaw, pitch }, html, size: { width: 34, height: 34 }, anchor: 'center center', tooltip: { content: `<div style="text-align:center;"><strong style="color:#D4AF37">${nombre}</strong></div>`, position: 'top center' }, data: { nombre, area, precio, estado, yaw, pitch } });
                 }
                 const lista = document.getElementById('inventory-list');
                 if(lista.innerHTML.includes('vacío')) lista.innerHTML = '';
@@ -343,7 +393,7 @@
             try {
                 const texto = document.getElementById('poi-texto').value || 'Punto';
                 const idUnico = 'poi-' + Date.now();
-                const { error } = await supabaseClient.from('pois').insert([{ id: idUnico, visualType: 'texto', content: texto, yaw: tempCoords.yaw, pitch: tempCoords.pitch }]);
+                const { error } = await supabaseClient.from('pois').insert([{ id: idUnico, content: texto, yaw: tempCoords.yaw, pitch: tempCoords.pitch }]);
                 if (error) throw error;
                 window.renderPOI(idUnico, texto, tempCoords.yaw, tempCoords.pitch);
                 window.cerrarModales();
