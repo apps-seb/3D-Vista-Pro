@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin@5.1.4/index.min.css" />
     
     <style>
-        /* Diseño Indestructible 50/50 Mobile First */
         body { margin: 0; padding: 0; font-family: 'Montserrat', sans-serif; background-color: #050505; color: #fff; overflow: hidden; }
         
         .viewer-area { position: absolute; top: 0; left: 0; width: 100vw; height: 50vh; }
@@ -45,7 +44,6 @@
 
         .lote-marker { width: 20px; height: 20px; border: 2px solid #fff; border-radius: 50%; cursor: pointer; }
 
-        /* Modales */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; display: none; justify-content: center; align-items: center; }
         .modal-overlay.active { display: flex; }
         .modal-content { background: #1a1a1a; padding: 25px; border-radius: 12px; border: 1px solid #D4AF37; width: 90%; max-width: 320px; box-sizing: border-box; }
@@ -118,9 +116,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
-        // TUS CREDENCIALES EXACTAS
         const supabaseUrl = 'https://mungbffwwjobinfcympd.supabase.co';
-        const supabaseKey = 'sb_publishable_FdwVZx53pGAy_3Zf24-z6w_BJAPi0eD';
+        const supabaseKey = 'EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im11bmdiZmZ3d2pvYmluZmN5bXBkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0NDIzNzcsImV4cCI6MjA5MDAxODM3N30.nkMo-QRJfZ1Z1gzuaZNvnw2kgChc_BGVHqpy0uPTVyY'; 
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
         let viewer, markersPlugin;
@@ -128,13 +125,10 @@
         let currentMode = ''; 
         let tempCoords = { yaw: 0, pitch: 0 };
         
-        // Imagen de seguridad (Por si no hay foto en BD, no crashea)
         const fallbackImage = 'https://upload.wikimedia.org/wikipedia/commons/e/e0/Equirectangular_projection_SW.jpg';
 
-        // 1. INICIALIZACIÓN ROBUSTA
         async function initApp() {
             try {
-                // Consultar configuración sin crashear si está vacía (usando maybeSingle)
                 const { data: config } = await supabase.from('configuracion').select('*').eq('id', 1).maybeSingle();
                 
                 let panoUrl = fallbackImage;
@@ -148,7 +142,6 @@
                 document.getElementById('display-title').innerText = titulo;
                 document.getElementById('input-title').value = titulo;
 
-                // Cargar visor
                 viewer = new PhotoSphereViewer.Viewer({
                     container: document.querySelector('#viewer'),
                     panorama: panoUrl,
@@ -156,32 +149,29 @@
                     mousewheelCtrlKey: false,
                     defaultYaw: '0deg', defaultPitch: '0deg',
                     navbar: ['zoom', 'fullscreen'],
-                    plugins: [ [PhotoSphereViewer.MarkersPlugin, { markers: [] }] ]
+                    plugins: [ [PhotoSphereViewerMarkersPlugin.MarkersPlugin, { markers: [] }] ]
                 });
 
-                markersPlugin = viewer.getPlugin(PhotoSphereViewer.MarkersPlugin);
+                markersPlugin = viewer.getPlugin(PhotoSphereViewerMarkersPlugin.MarkersPlugin);
 
                 viewer.addEventListener('ready', cargarInventario);
                 viewer.addEventListener('click', handleMapClick);
 
             } catch (error) {
                 console.error("Error crítico de inicio:", error);
-                document.getElementById('display-title').innerText = "Error de conexión";
+                document.getElementById('display-title').innerText = "Error de conexión (Revisa RLS en Supabase)";
             }
         }
 
-        // 2. CARGAR INVENTARIO DESDE BD
         async function cargarInventario() {
             const lista = document.getElementById('inventory-list');
             lista.innerHTML = ''; 
 
-            // Cargar Lotes
             const { data: lotes } = await supabase.from('lotes').select('*');
             if (lotes && lotes.length > 0) {
                 lotes.forEach(l => renderLote(l.id, l.nombre, l.area, l.precio, l.estado, l.yaw, l.pitch));
             }
 
-            // Cargar POIs
             const { data: pois } = await supabase.from('pois').select('*');
             if (pois && pois.length > 0) {
                 pois.forEach(p => renderPOI(p.id, p.content, p.yaw, p.pitch));
@@ -190,7 +180,6 @@
             if(lista.innerHTML === '') lista.innerHTML = '<p style="font-size:0.8rem;color:#666;">Inventario vacío.</p>';
         }
 
-        // 3. GUARDAR CONFIGURACIÓN Y FOTO
         async function guardarTitulo() {
             const titulo = document.getElementById('input-title').value;
             if(!titulo) return;
@@ -231,7 +220,6 @@
             setTimeout(() => { btn.innerHTML = originalText; }, 3000);
         }
 
-        // 4. LÓGICA DE AGREGAR PUNTOS
         function activarModo(tipo) {
             isAddMode = true; currentMode = tipo;
             const btnLote = document.getElementById('btn-add-lote');
@@ -249,8 +237,9 @@
             }
         }
 
-        function handleMapClick({ data }) {
+        function handleMapClick(e) {
             if (!isAddMode) return;
+            const data = e.data;
             tempCoords = { yaw: data.yaw, pitch: data.pitch };
             
             isAddMode = false;
@@ -271,7 +260,6 @@
             document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
         }
 
-        // 5. CREAR Y RENDERIZAR LOTES
         async function guardarLote() {
             const nombre = document.getElementById('lote-nombre').value || 'Lote Nuevo';
             const area = document.getElementById('lote-area').value || '0';
@@ -279,7 +267,11 @@
             const estado = document.getElementById('lote-estado').value;
             const idUnico = 'lote-' + Date.now();
             
-            await supabase.from('lotes').insert([{ id: idUnico, nombre, area, precio, estado, yaw: tempCoords.yaw, pitch: tempCoords.pitch }]);
+            const { error } = await supabase.from('lotes').insert([{ id: idUnico, nombre, area, precio, estado, yaw: tempCoords.yaw, pitch: tempCoords.pitch }]);
+            if (error) {
+                alert("Error al guardar lote: " + error.message);
+                return;
+            }
             renderLote(idUnico, nombre, area, precio, estado, tempCoords.yaw, tempCoords.pitch);
             cerrarModales();
         }
@@ -287,75 +279,105 @@
         function renderLote(id, nombre, area, precio, estado, yaw, pitch) {
             let color = estado === 'Vendido' ? '#e74c3c' : (estado === 'Reservado' ? '#f39c12' : '#2ecc71');
             
-            markersPlugin.addMarker({
-                id: id, position: { yaw, pitch },
-                html: `<div class="lote-marker" style="background:${color}; box-shadow: 0 0 10px ${color};"></div>`,
-                size: { width: 20, height: 20 }, anchor: 'center center',
-                tooltip: { content: `<div style="text-align:center;"><strong style="color:#D4AF37">${nombre}</strong></div>`, position: 'top center' }
-            });
+            if (markersPlugin.markers[id]) {
+                markersPlugin.updateMarker({
+                    id: id,
+                    html: `<div class="lote-marker" style="background:${color}; box-shadow: 0 0 10px ${color};"></div>`,
+                });
+            } else {
+                markersPlugin.addMarker({
+                    id: id, position: { yaw, pitch },
+                    html: `<div class="lote-marker" style="background:${color}; box-shadow: 0 0 10px ${color};"></div>`,
+                    size: { width: 20, height: 20 }, anchor: 'center center',
+                    tooltip: { content: `<div style="text-align:center;"><strong style="color:#D4AF37">${nombre}</strong></div>`, position: 'top center' },
+                    data: { nombre, area, precio, estado, yaw, pitch }
+                });
+            }
 
             const lista = document.getElementById('inventory-list');
             if(lista.innerHTML.includes('Cargando') || lista.innerHTML.includes('vacío')) lista.innerHTML = '';
             
-            lista.innerHTML += `
-                <div class="lot-item" id="item-${id}">
-                    <div><span style="color:${color}">●</span> <strong>${nombre}</strong></div>
-                    <div style="display:flex; gap:5px;">
-                        <select class="input-select" style="width:auto; padding:5px; margin:0;" onchange="actualizarEstado('${id}', this.value)">
-                            <option value="Disponible" ${estado === 'Disponible' ? 'selected' : ''}>Disp.</option>
-                            <option value="Reservado" ${estado === 'Reservado' ? 'selected' : ''}>Resrv.</option>
-                            <option value="Vendido" ${estado === 'Vendido' ? 'selected' : ''}>Vend.</option>
-                        </select>
-                        <button class="btn-delete" onclick="borrarElemento('lotes', '${id}')">X</button>
-                    </div>
-                </div>`;
+            const existingItem = document.getElementById(`item-${id}`);
+            if (existingItem) {
+                existingItem.querySelector('.status-dot').style.color = color;
+                existingItem.querySelector('.input-select').value = estado;
+            } else {
+                lista.insertAdjacentHTML('beforeend', `
+                    <div class="lot-item" id="item-${id}">
+                        <div><span class="status-dot" style="color:${color}">●</span> <strong>${nombre}</strong></div>
+                        <div style="display:flex; gap:5px;">
+                            <select class="input-select" style="width:auto; padding:5px; margin:0;" onchange="actualizarEstado('${id}', this.value)">
+                                <option value="Disponible" ${estado === 'Disponible' ? 'selected' : ''}>Disp.</option>
+                                <option value="Reservado" ${estado === 'Reservado' ? 'selected' : ''}>Resrv.</option>
+                                <option value="Vendido" ${estado === 'Vendido' ? 'selected' : ''}>Vend.</option>
+                            </select>
+                            <button class="btn-delete" onclick="borrarElemento('lotes', '${id}')">X</button>
+                        </div>
+                    </div>`);
+            }
         }
 
         async function actualizarEstado(id, estado) {
-            await supabase.from('lotes').update({ estado: estado }).eq('id', id);
-            location.reload(); 
+            const { error } = await supabase.from('lotes').update({ estado: estado }).eq('id', id);
+            if (error) {
+                alert("Error al actualizar estado: " + error.message);
+                return;
+            }
+            
+            const marker = markersPlugin.markers[id];
+            if (marker) {
+                renderLote(id, marker.config.data.nombre, marker.config.data.area, marker.config.data.precio, estado, marker.config.data.yaw, marker.config.data.pitch);
+            }
         }
 
-        // 6. CREAR Y RENDERIZAR POI
         async function guardarPOI() {
             const texto = document.getElementById('poi-texto').value || 'Punto';
             const idUnico = 'poi-' + Date.now();
             
-            await supabase.from('pois').insert([{ id: idUnico, visualType: 'texto', content: texto, yaw: tempCoords.yaw, pitch: tempCoords.pitch }]);
+            const { error } = await supabase.from('pois').insert([{ id: idUnico, visualType: 'texto', content: texto, yaw: tempCoords.yaw, pitch: tempCoords.pitch }]);
+            if (error) {
+                alert("Error al guardar POI: " + error.message);
+                return;
+            }
             renderPOI(idUnico, texto, tempCoords.yaw, tempCoords.pitch);
             cerrarModales();
         }
 
         function renderPOI(id, texto, yaw, pitch) {
-            markersPlugin.addMarker({
-                id: id, position: { yaw, pitch },
-                html: `<div style="display:flex;flex-direction:column;align-items:center;">
-                        <div style="background:rgba(0,0,0,0.8);color:#fff;padding:4px 10px;border:1px solid #D4AF37;border-radius:4px;font-size:0.8rem;">${texto}</div>
-                        <div style="width:2px;height:30px;background:#fff;"></div>
-                        <div style="width:12px;height:12px;background:#D4AF37;border-radius:50%;"></div>
-                       </div>`,
-                size: { width: 100, height: 100 }, anchor: 'bottom center'
-            });
+            if (!markersPlugin.markers[id]) {
+                markersPlugin.addMarker({
+                    id: id, position: { yaw, pitch },
+                    html: `<div style="display:flex;flex-direction:column;align-items:center;">
+                            <div style="background:rgba(0,0,0,0.8);color:#fff;padding:4px 10px;border:1px solid #D4AF37;border-radius:4px;font-size:0.8rem;">${texto}</div>
+                            <div style="width:2px;height:30px;background:#fff;"></div>
+                            <div style="width:12px;height:12px;background:#D4AF37;border-radius:50%;"></div>
+                           </div>`,
+                    size: { width: 100, height: 100 }, anchor: 'bottom center'
+                });
 
-            const lista = document.getElementById('inventory-list');
-            if(lista.innerHTML.includes('Cargando') || lista.innerHTML.includes('vacío')) lista.innerHTML = '';
-            
-            lista.innerHTML += `
-                <div class="lot-item" id="item-${id}">
-                    <div><span style="color:#D4AF37">★</span> <strong>${texto}</strong></div>
-                    <button class="btn-delete" onclick="borrarElemento('pois', '${id}')">X</button>
-                </div>`;
+                const lista = document.getElementById('inventory-list');
+                if(lista.innerHTML.includes('Cargando') || lista.innerHTML.includes('vacío')) lista.innerHTML = '';
+                
+                lista.insertAdjacentHTML('beforeend', `
+                    <div class="lot-item" id="item-${id}">
+                        <div><span style="color:#D4AF37">★</span> <strong>${texto}</strong></div>
+                        <button class="btn-delete" onclick="borrarElemento('pois', '${id}')">X</button>
+                    </div>`);
+            }
         }
 
-        // 7. FUNCIONALIDAD PARA ELIMINAR ERRORES
         async function borrarElemento(tabla, id) {
             if(!confirm("¿Estás seguro de borrar este elemento?")) return;
-            await supabase.from(tabla).delete().eq('id', id);
+            const { error } = await supabase.from(tabla).delete().eq('id', id);
+            if (error) {
+                alert("Error al eliminar: " + error.message);
+                return;
+            }
             markersPlugin.removeMarker(id);
-            document.getElementById(`item-${id}`).remove();
+            const item = document.getElementById(`item-${id}`);
+            if (item) item.remove();
         }
 
-        // Iniciar todo
         initApp();
 
     </script>
