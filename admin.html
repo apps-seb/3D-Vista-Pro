@@ -100,13 +100,25 @@
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
     <script>
-        window.onerror = function(msg, url, line) {
+        window.mostrarError = function(contexto, err) {
+            console.error("Error en " + contexto + ":", err);
+            const msg = err && err.message ? err.message : String(err);
             const titleElement = document.getElementById('display-title');
             if(titleElement) {
-                titleElement.innerText = "Error (Línea " + line + "): " + msg;
+                titleElement.innerText = "Error en " + contexto + ": " + msg;
                 titleElement.style.color = "#ff4444";
             }
+            alert("Error en " + contexto + ":\n" + msg);
+        }
+
+        window.onerror = function(msg, url, line) {
+            window.mostrarError("Global", "Línea " + line + " - " + msg);
+            return false;
         };
+
+        window.addEventListener('unhandledrejection', function(event) {
+            window.mostrarError("Promesa Rechazada", event.reason);
+        });
 
         const supabaseUrl = 'https://mungbffwwjobinfcympd.supabase.co';
         const supabaseKey = 'EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im11bmdiZmZ3d2pvYmluZmN5bXBkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0NDIzNzcsImV4cCI6MjA5MDAxODM3N30.nkMo-QRJfZ1Z1gzuaZNvnw2kgChc_BGVHqpy0uPTVyY'; 
@@ -152,138 +164,205 @@
                 viewer.addEventListener('click', handleMapClick);
 
             } catch (error) {
-                document.getElementById('display-title').innerText = "Fallo: " + error.message;
-                document.getElementById('display-title').style.color = "#ff4444";
+                window.mostrarError("initApp", error);
             }
         }
 
         async function cargarInventario() {
-            if (!supabase) return;
-            const lista = document.getElementById('inventory-list');
-            lista.innerHTML = ''; 
-            const { data: lotes } = await supabase.from('lotes').select('*');
-            if (lotes && lotes.length > 0) lotes.forEach(l => renderLote(l.id, l.nombre, l.area, l.precio, l.estado, l.yaw, l.pitch));
-            const { data: pois } = await supabase.from('pois').select('*');
-            if (pois && pois.length > 0) pois.forEach(p => renderPOI(p.id, p.content, p.yaw, p.pitch));
-            if(lista.innerHTML === '') lista.innerHTML = '<p style="font-size:0.8rem;color:#666;">Inventario vacío.</p>';
+            try {
+                if (!supabase) return;
+                const lista = document.getElementById('inventory-list');
+                lista.innerHTML = '';
+                const { data: lotes, error: lotesError } = await supabase.from('lotes').select('*');
+                if (lotesError) throw lotesError;
+                if (lotes && lotes.length > 0) lotes.forEach(l => renderLote(l.id, l.nombre, l.area, l.precio, l.estado, l.yaw, l.pitch));
+                const { data: pois, error: poisError } = await supabase.from('pois').select('*');
+                if (poisError) throw poisError;
+                if (pois && pois.length > 0) pois.forEach(p => renderPOI(p.id, p.content, p.yaw, p.pitch));
+                if(lista.innerHTML === '') lista.innerHTML = '<p style="font-size:0.8rem;color:#666;">Inventario vacío.</p>';
+            } catch (error) {
+                window.mostrarError("cargarInventario", error);
+            }
         }
 
         async function guardarTitulo() {
-            const titulo = document.getElementById('input-title').value;
-            if(!titulo) return;
-            document.getElementById('display-title').innerText = titulo;
-            const { data } = await supabase.from('configuracion').select('id').eq('id', 1).maybeSingle();
-            if (!data) await supabase.from('configuracion').insert([{ id: 1, titulo: titulo }]);
-            else await supabase.from('configuracion').update({ titulo: titulo }).eq('id', 1);
-            alert("Título guardado");
+            try {
+                const titulo = document.getElementById('input-title').value;
+                if(!titulo) return;
+                document.getElementById('display-title').innerText = titulo;
+                const { data, error: selectError } = await supabase.from('configuracion').select('id').eq('id', 1).maybeSingle();
+                if (selectError) throw selectError;
+
+                if (!data) {
+                    const { error: insertError } = await supabase.from('configuracion').insert([{ id: 1, titulo: titulo }]);
+                    if (insertError) throw insertError;
+                } else {
+                    const { error: updateError } = await supabase.from('configuracion').update({ titulo: titulo }).eq('id', 1);
+                    if (updateError) throw updateError;
+                }
+                alert("Título guardado");
+            } catch (error) {
+                window.mostrarError("guardarTitulo", error);
+            }
         }
 
         async function cambiarImagen(event) {
-            const file = event.target.files[0];
-            if (!file) return;
             const btn = document.getElementById('btn-upload-lbl');
             const originalText = btn.innerHTML;
-            btn.innerHTML = "Subiendo archivo... ⏳";
-            const fileName = `panorama_${Date.now()}.jpg`;
-            const { error } = await supabase.storage.from('imagenes_360').upload(fileName, file);
-            if (error) { alert("Error: " + error.message); btn.innerHTML = originalText; return; }
-            const { data } = supabase.storage.from('imagenes_360').getPublicUrl(fileName);
-            const imageUrl = data.publicUrl;
-            const { data: configCheck } = await supabase.from('configuracion').select('id').eq('id', 1).maybeSingle();
-            if (!configCheck) await supabase.from('configuracion').insert([{ id: 1, imagen_url: imageUrl }]);
-            else await supabase.from('configuracion').update({ imagen_url: imageUrl }).eq('id', 1);
-            viewer.setPanorama(imageUrl);
-            btn.innerHTML = "¡Imagen Actualizada! ✅";
-            setTimeout(() => { btn.innerHTML = originalText; }, 3000);
+            try {
+                const file = event.target.files[0];
+                if (!file) return;
+                btn.innerHTML = "Subiendo archivo... ⏳";
+                const fileName = `panorama_${Date.now()}.jpg`;
+                const { error: uploadError } = await supabase.storage.from('imagenes_360').upload(fileName, file);
+                if (uploadError) throw uploadError;
+
+                const { data } = supabase.storage.from('imagenes_360').getPublicUrl(fileName);
+                const imageUrl = data.publicUrl;
+                const { data: configCheck, error: selectError } = await supabase.from('configuracion').select('id').eq('id', 1).maybeSingle();
+                if (selectError) throw selectError;
+
+                if (!configCheck) {
+                    const { error: insertError } = await supabase.from('configuracion').insert([{ id: 1, imagen_url: imageUrl }]);
+                    if (insertError) throw insertError;
+                } else {
+                    const { error: updateError } = await supabase.from('configuracion').update({ imagen_url: imageUrl }).eq('id', 1);
+                    if (updateError) throw updateError;
+                }
+                viewer.setPanorama(imageUrl);
+                btn.innerHTML = "¡Imagen Actualizada! ✅";
+                setTimeout(() => { btn.innerHTML = originalText; }, 3000);
+            } catch (error) {
+                btn.innerHTML = originalText;
+                window.mostrarError("cambiarImagen", error);
+            }
         }
 
         function activarModo(tipo) {
-            isAddMode = true; currentMode = tipo;
-            document.getElementById('btn-add-lote').classList.toggle('btn-danger', tipo === 'lote');
-            document.getElementById('btn-add-poi').classList.toggle('btn-danger', tipo === 'poi');
-            document.getElementById('add-helper').innerText = "¡TOCA EL MAPA PARA UBICAR!";
+            try {
+                isAddMode = true; currentMode = tipo;
+                document.getElementById('btn-add-lote').classList.toggle('btn-danger', tipo === 'lote');
+                document.getElementById('btn-add-poi').classList.toggle('btn-danger', tipo === 'poi');
+                document.getElementById('add-helper').innerText = "¡TOCA EL MAPA PARA UBICAR!";
+            } catch (error) {
+                window.mostrarError("activarModo", error);
+            }
         }
 
         function handleMapClick(e) {
-            if (!isAddMode) return;
-            tempCoords = { yaw: e.data.yaw, pitch: e.data.pitch };
-            isAddMode = false;
-            document.getElementById('btn-add-lote').classList.remove('btn-danger');
-            document.getElementById('btn-add-poi').classList.remove('btn-danger');
-            document.getElementById('add-helper').innerText = "Selecciona una opción arriba";
-            if (currentMode === 'lote') {
-                document.getElementById('lote-nombre').value = '';
-                document.getElementById('add-modal').classList.add('active');
-            } else {
-                document.getElementById('poi-texto').value = '';
-                document.getElementById('poi-modal').classList.add('active');
+            try {
+                if (!isAddMode) return;
+                tempCoords = { yaw: e.data.yaw, pitch: e.data.pitch };
+                isAddMode = false;
+                document.getElementById('btn-add-lote').classList.remove('btn-danger');
+                document.getElementById('btn-add-poi').classList.remove('btn-danger');
+                document.getElementById('add-helper').innerText = "Selecciona una opción arriba";
+                if (currentMode === 'lote') {
+                    document.getElementById('lote-nombre').value = '';
+                    document.getElementById('add-modal').classList.add('active');
+                } else {
+                    document.getElementById('poi-texto').value = '';
+                    document.getElementById('poi-modal').classList.add('active');
+                }
+            } catch (error) {
+                window.mostrarError("handleMapClick", error);
             }
         }
 
-        function cerrarModales() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active')); }
+        function cerrarModales() {
+            try {
+                document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+            } catch(error) {
+                window.mostrarError("cerrarModales", error);
+            }
+        }
 
         async function guardarLote() {
-            const nombre = document.getElementById('lote-nombre').value || 'Lote Nuevo';
-            const area = document.getElementById('lote-area').value || '0';
-            const precio = document.getElementById('lote-precio').value || '0';
-            const estado = document.getElementById('lote-estado').value;
-            const idUnico = 'lote-' + Date.now();
-            const { error } = await supabase.from('lotes').insert([{ id: idUnico, nombre, area, precio, estado, yaw: tempCoords.yaw, pitch: tempCoords.pitch }]);
-            if (error) return alert("Error: " + error.message);
-            renderLote(idUnico, nombre, area, precio, estado, tempCoords.yaw, tempCoords.pitch);
-            cerrarModales();
+            try {
+                const nombre = document.getElementById('lote-nombre').value || 'Lote Nuevo';
+                const area = document.getElementById('lote-area').value || '0';
+                const precio = document.getElementById('lote-precio').value || '0';
+                const estado = document.getElementById('lote-estado').value;
+                const idUnico = 'lote-' + Date.now();
+                const { error } = await supabase.from('lotes').insert([{ id: idUnico, nombre, area, precio, estado, yaw: tempCoords.yaw, pitch: tempCoords.pitch }]);
+                if (error) throw error;
+                renderLote(idUnico, nombre, area, precio, estado, tempCoords.yaw, tempCoords.pitch);
+                cerrarModales();
+            } catch (error) {
+                window.mostrarError("guardarLote", error);
+            }
         }
 
         function renderLote(id, nombre, area, precio, estado, yaw, pitch) {
-            let color = estado === 'Vendido' ? '#e74c3c' : (estado === 'Reservado' ? '#f39c12' : '#2ecc71');
-            const html = `<div class="lote-marker" style="background:${color}; box-shadow: 0 0 10px ${color};"></div>`;
-            if (markersPlugin.markers[id]) markersPlugin.updateMarker({ id, html });
-            else {
-                markersPlugin.addMarker({ id, position: { yaw, pitch }, html, size: { width: 20, height: 20 }, anchor: 'center center', tooltip: { content: `<div style="text-align:center;"><strong style="color:#D4AF37">${nombre}</strong></div>`, position: 'top center' }, data: { nombre, area, precio, estado, yaw, pitch } });
-            }
-            const lista = document.getElementById('inventory-list');
-            if(lista.innerHTML.includes('vacío')) lista.innerHTML = '';
-            const existingItem = document.getElementById(`item-${id}`);
-            if (existingItem) {
-                existingItem.querySelector('.status-dot').style.color = color;
-                existingItem.querySelector('.input-select').value = estado;
-            } else {
-                lista.insertAdjacentHTML('beforeend', `<div class="lot-item" id="item-${id}"><div><span class="status-dot" style="color:${color}">●</span> <strong>${nombre}</strong></div><div style="display:flex; gap:5px;"><select class="input-select" style="width:auto; padding:5px; margin:0;" onchange="actualizarEstado('${id}', this.value)"><option value="Disponible" ${estado === 'Disponible' ? 'selected' : ''}>Disp.</option><option value="Reservado" ${estado === 'Reservado' ? 'selected' : ''}>Resrv.</option><option value="Vendido" ${estado === 'Vendido' ? 'selected' : ''}>Vend.</option></select><button class="btn-delete" onclick="borrarElemento('lotes', '${id}')">X</button></div></div>`);
+            try {
+                let color = estado === 'Vendido' ? '#e74c3c' : (estado === 'Reservado' ? '#f39c12' : '#2ecc71');
+                const html = `<div class="lote-marker" style="background:${color}; box-shadow: 0 0 10px ${color};"></div>`;
+                if (markersPlugin.markers[id]) markersPlugin.updateMarker({ id, html });
+                else {
+                    markersPlugin.addMarker({ id, position: { yaw, pitch }, html, size: { width: 20, height: 20 }, anchor: 'center center', tooltip: { content: `<div style="text-align:center;"><strong style="color:#D4AF37">${nombre}</strong></div>`, position: 'top center' }, data: { nombre, area, precio, estado, yaw, pitch } });
+                }
+                const lista = document.getElementById('inventory-list');
+                if(lista.innerHTML.includes('vacío')) lista.innerHTML = '';
+                const existingItem = document.getElementById(`item-${id}`);
+                if (existingItem) {
+                    existingItem.querySelector('.status-dot').style.color = color;
+                    existingItem.querySelector('.input-select').value = estado;
+                } else {
+                    lista.insertAdjacentHTML('beforeend', `<div class="lot-item" id="item-${id}"><div><span class="status-dot" style="color:${color}">●</span> <strong>${nombre}</strong></div><div style="display:flex; gap:5px;"><select class="input-select" style="width:auto; padding:5px; margin:0;" onchange="actualizarEstado('${id}', this.value)"><option value="Disponible" ${estado === 'Disponible' ? 'selected' : ''}>Disp.</option><option value="Reservado" ${estado === 'Reservado' ? 'selected' : ''}>Resrv.</option><option value="Vendido" ${estado === 'Vendido' ? 'selected' : ''}>Vend.</option></select><button class="btn-delete" onclick="borrarElemento('lotes', '${id}')">X</button></div></div>`);
+                }
+            } catch (error) {
+                window.mostrarError("renderLote", error);
             }
         }
 
         async function actualizarEstado(id, estado) {
-            const { error } = await supabase.from('lotes').update({ estado: estado }).eq('id', id);
-            if (error) return alert("Error: " + error.message);
-            const marker = markersPlugin.markers[id];
-            if (marker) renderLote(id, marker.config.data.nombre, marker.config.data.area, marker.config.data.precio, estado, marker.config.data.yaw, marker.config.data.pitch);
+            try {
+                const { error } = await supabase.from('lotes').update({ estado: estado }).eq('id', id);
+                if (error) throw error;
+                const marker = markersPlugin.markers[id];
+                if (marker) renderLote(id, marker.config.data.nombre, marker.config.data.area, marker.config.data.precio, estado, marker.config.data.yaw, marker.config.data.pitch);
+            } catch (error) {
+                window.mostrarError("actualizarEstado", error);
+            }
         }
 
         async function guardarPOI() {
-            const texto = document.getElementById('poi-texto').value || 'Punto';
-            const idUnico = 'poi-' + Date.now();
-            const { error } = await supabase.from('pois').insert([{ id: idUnico, visualType: 'texto', content: texto, yaw: tempCoords.yaw, pitch: tempCoords.pitch }]);
-            if (error) return alert("Error: " + error.message);
-            renderPOI(idUnico, texto, tempCoords.yaw, tempCoords.pitch);
-            cerrarModales();
+            try {
+                const texto = document.getElementById('poi-texto').value || 'Punto';
+                const idUnico = 'poi-' + Date.now();
+                const { error } = await supabase.from('pois').insert([{ id: idUnico, visualType: 'texto', content: texto, yaw: tempCoords.yaw, pitch: tempCoords.pitch }]);
+                if (error) throw error;
+                renderPOI(idUnico, texto, tempCoords.yaw, tempCoords.pitch);
+                cerrarModales();
+            } catch (error) {
+                window.mostrarError("guardarPOI", error);
+            }
         }
 
         function renderPOI(id, texto, yaw, pitch) {
-            if (!markersPlugin.markers[id]) {
-                markersPlugin.addMarker({ id, position: { yaw, pitch }, html: `<div style="display:flex;flex-direction:column;align-items:center;"><div style="background:rgba(0,0,0,0.8);color:#fff;padding:4px 10px;border:1px solid #D4AF37;border-radius:4px;font-size:0.8rem;">${texto}</div><div style="width:2px;height:30px;background:#fff;"></div><div style="width:12px;height:12px;background:#D4AF37;border-radius:50%;"></div></div>`, size: { width: 100, height: 100 }, anchor: 'bottom center' });
-                const lista = document.getElementById('inventory-list');
-                if(lista.innerHTML.includes('vacío')) lista.innerHTML = '';
-                lista.insertAdjacentHTML('beforeend', `<div class="lot-item" id="item-${id}"><div><span style="color:#D4AF37">★</span> <strong>${texto}</strong></div><button class="btn-delete" onclick="borrarElemento('pois', '${id}')">X</button></div>`);
+            try {
+                if (!markersPlugin.markers[id]) {
+                    markersPlugin.addMarker({ id, position: { yaw, pitch }, html: `<div style="display:flex;flex-direction:column;align-items:center;"><div style="background:rgba(0,0,0,0.8);color:#fff;padding:4px 10px;border:1px solid #D4AF37;border-radius:4px;font-size:0.8rem;">${texto}</div><div style="width:2px;height:30px;background:#fff;"></div><div style="width:12px;height:12px;background:#D4AF37;border-radius:50%;"></div></div>`, size: { width: 100, height: 100 }, anchor: 'bottom center' });
+                    const lista = document.getElementById('inventory-list');
+                    if(lista.innerHTML.includes('vacío')) lista.innerHTML = '';
+                    lista.insertAdjacentHTML('beforeend', `<div class="lot-item" id="item-${id}"><div><span style="color:#D4AF37">★</span> <strong>${texto}</strong></div><button class="btn-delete" onclick="borrarElemento('pois', '${id}')">X</button></div>`);
+                }
+            } catch (error) {
+                window.mostrarError("renderPOI", error);
             }
         }
 
         async function borrarElemento(tabla, id) {
-            if(!confirm("¿Borrar?")) return;
-            const { error } = await supabase.from(tabla).delete().eq('id', id);
-            if (error) return alert("Error: " + error.message);
-            markersPlugin.removeMarker(id);
-            const item = document.getElementById(`item-${id}`);
-            if (item) item.remove();
+            try {
+                if(!confirm("¿Borrar?")) return;
+                const { error } = await supabase.from(tabla).delete().eq('id', id);
+                if (error) throw error;
+                markersPlugin.removeMarker(id);
+                const item = document.getElementById(`item-${id}`);
+                if (item) item.remove();
+            } catch (error) {
+                window.mostrarError("borrarElemento", error);
+            }
         }
 
         window.onload = initApp;
