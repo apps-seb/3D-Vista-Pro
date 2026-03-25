@@ -10,6 +10,18 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin@5.1.4/index.min.css" />
     
     <style>
+        #global-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: #D4AF37;
+            width: 0%;
+            z-index: 9999;
+            transition: width 0.3s, opacity 0.3s;
+            opacity: 0;
+            box-shadow: 0 0 10px #D4AF37;
+        }
         body { margin: 0; padding: 0; font-family: 'Montserrat', sans-serif; background-color: #050505; color: #fff; overflow: hidden; }
         .viewer-area { position: absolute; top: 0; left: 0; width: 100vw; height: 50vh; }
         #viewer { width: 100%; height: 100%; }
@@ -38,6 +50,7 @@
     </style>
 </head>
 <body>
+    <div id="global-progress"></div>
 
     <div class="viewer-area">
         <div class="header-premium">
@@ -130,7 +143,21 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
+        window.mostrarProgreso = function(porcentaje) {
+            const bar = document.getElementById('global-progress');
+            if (!bar) return;
+            bar.style.opacity = '1';
+            bar.style.width = porcentaje + '%';
+            if (porcentaje >= 100) {
+                setTimeout(() => {
+                    bar.style.opacity = '0';
+                    setTimeout(() => { bar.style.width = '0%'; }, 300);
+                }, 500);
+            }
+        };
+
         window.mostrarError = function(contexto, err) {
+            window.mostrarProgreso(100);
             console.error("Error en " + contexto + ":", err);
             const msg = err && err.message ? err.message : String(err);
             const titleElement = document.getElementById('display-title');
@@ -238,31 +265,81 @@
             }
         }
 
-        window.cargarLogo = function(event) {
+        window.comprimirImagen = function(file, maxWidth, maxHeight, quality) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = function() {
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > maxWidth || height > maxHeight) {
+                            if (width / height > maxWidth / maxHeight) {
+                                height = Math.round(height * maxWidth / width);
+                                width = maxWidth;
+                            } else {
+                                width = Math.round(width * maxHeight / height);
+                                height = maxHeight;
+                            }
+                        }
+
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        let mimeType = file.type;
+                        if (mimeType !== 'image/png' && mimeType !== 'image/jpeg' && mimeType !== 'image/webp') {
+                            mimeType = 'image/jpeg';
+                        }
+
+                        // Si es PNG, mantener transparente si es posible
+                        const dataUrl = canvas.toDataURL(mimeType, quality);
+                        resolve(dataUrl);
+                    };
+                    img.onerror = function(err) {
+                        reject(err);
+                    };
+                };
+                reader.onerror = function(error) {
+                    reject(error);
+                };
+            });
+        };
+
+        window.cargarLogo = async function(event) {
             const file = event.target.files[0];
             if (!file) return;
             const btn = document.getElementById('btn-upload-logo-lbl');
             const originalText = btn.innerHTML;
             btn.innerHTML = "Procesando... ⏳";
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('logo-data').value = e.target.result;
-                document.getElementById('admin-logo-preview').src = e.target.result;
+            window.mostrarProgreso(10);
+            try {
+                const base64Compressed = await window.comprimirImagen(file, 800, 800, 0.9);
+                window.mostrarProgreso(100);
+                document.getElementById('logo-data').value = base64Compressed;
+                document.getElementById('admin-logo-preview').src = base64Compressed;
                 document.getElementById('logo-preview-container').style.display = 'block';
                 btn.innerHTML = "¡Logo Cargado! ✅";
                 setTimeout(() => { btn.innerHTML = originalText; }, 3000);
-            };
-            reader.onerror = function(error) {
+            } catch (error) {
                 btn.innerHTML = originalText;
-                window.mostrarError("FileReader Logo", "No se pudo leer el archivo logo");
-            };
-            reader.readAsDataURL(file);
+                window.mostrarError("Comprimir Logo", error);
+            }
         };
 
         window.guardarTitulo = async function() {
             try {
+                window.mostrarProgreso(10);
                 let titulo = document.getElementById('input-title').value;
-                if(!titulo) return;
+                if(!titulo) {
+                    window.mostrarProgreso(100);
+                    return;
+                }
                 let logoData = document.getElementById('logo-data').value;
 
                 let tituloAguardar = logoData ? `${titulo}|LOGO:${logoData}` : titulo;
@@ -275,9 +352,11 @@
                     document.getElementById('display-logo').style.display = 'none';
                 }
 
+                window.mostrarProgreso(40);
                 const { data, error: selectError } = await supabaseClient.from('configuracion').select('id').eq('id', 1).maybeSingle();
                 if (selectError) throw selectError;
 
+                window.mostrarProgreso(70);
                 if (!data) {
                     const { error: insertError } = await supabaseClient.from('configuracion').insert([{ id: 1, titulo: tituloAguardar }]);
                     if (insertError) throw insertError;
@@ -285,6 +364,7 @@
                     const { error: updateError } = await supabaseClient.from('configuracion').update({ titulo: tituloAguardar }).eq('id', 1);
                     if (updateError) throw updateError;
                 }
+                window.mostrarProgreso(100);
                 alert("Proyecto guardado correctamente");
             } catch (error) {
                 window.mostrarError("guardarTitulo", error);
@@ -297,36 +377,30 @@
             try {
                 const file = event.target.files[0];
                 if (!file) return;
-                btn.innerHTML = "Procesando archivo... ⏳";
+                window.mostrarProgreso(10);
+                btn.innerHTML = "Comprimiendo 360... ⏳";
 
-                const reader = new FileReader();
-                reader.onload = async function(e) {
-                    try {
-                        const imageUrl = e.target.result;
-                        const { data: configCheck, error: selectError } = await supabaseClient.from('configuracion').select('id').eq('id', 1).maybeSingle();
-                        if (selectError) throw selectError;
+                const imageUrl = await window.comprimirImagen(file, 4096, 4096, 0.85);
+                window.mostrarProgreso(50);
+                btn.innerHTML = "Subiendo archivo... ⏳";
 
-                        if (!configCheck) {
-                            const { error: insertError } = await supabaseClient.from('configuracion').insert([{ id: 1, imagen_url: imageUrl }]);
-                            if (insertError) throw insertError;
-                        } else {
-                            const { error: updateError } = await supabaseClient.from('configuracion').update({ imagen_url: imageUrl }).eq('id', 1);
-                            if (updateError) throw updateError;
-                        }
-                        viewer.setPanorama(imageUrl);
-                        btn.innerHTML = "¡Imagen Actualizada! ✅";
-                        setTimeout(() => { btn.innerHTML = originalText; }, 3000);
-                    } catch (error) {
-                        btn.innerHTML = originalText;
-                        window.mostrarError("cambiarImagen (base64)", error);
-                    }
-                };
-                reader.onerror = function(error) {
-                    btn.innerHTML = originalText;
-                    window.mostrarError("FileReader", "No se pudo leer el archivo");
-                };
-                reader.readAsDataURL(file);
+                const { data: configCheck, error: selectError } = await supabaseClient.from('configuracion').select('id').eq('id', 1).maybeSingle();
+                if (selectError) throw selectError;
+
+                window.mostrarProgreso(75);
+                if (!configCheck) {
+                    const { error: insertError } = await supabaseClient.from('configuracion').insert([{ id: 1, imagen_url: imageUrl }]);
+                    if (insertError) throw insertError;
+                } else {
+                    const { error: updateError } = await supabaseClient.from('configuracion').update({ imagen_url: imageUrl }).eq('id', 1);
+                    if (updateError) throw updateError;
+                }
+                window.mostrarProgreso(100);
+                viewer.setPanorama(imageUrl);
+                btn.innerHTML = "¡Imagen Actualizada! ✅";
+                setTimeout(() => { btn.innerHTML = originalText; }, 3000);
             } catch (error) {
+                window.mostrarProgreso(100);
                 btn.innerHTML = originalText;
                 window.mostrarError("cambiarImagen", error);
             }
@@ -373,15 +447,19 @@
 
         window.guardarLote = async function() {
             try {
+                window.mostrarProgreso(10);
                 const nombre = document.getElementById('lote-nombre').value || 'Lote Nuevo';
                 const area = document.getElementById('lote-area').value || '0';
                 const precio = document.getElementById('lote-precio').value || '0';
                 const estado = document.getElementById('lote-estado').value;
                 const idUnico = 'lote-' + Date.now();
+                window.mostrarProgreso(50);
                 const { error } = await supabaseClient.from('lotes').insert([{ id: idUnico, nombre, area, precio, estado, yaw: tempCoords.yaw, pitch: tempCoords.pitch }]);
                 if (error) throw error;
+                window.mostrarProgreso(80);
                 window.renderLote(idUnico, nombre, area, precio, estado, tempCoords.yaw, tempCoords.pitch);
                 window.cerrarModales();
+                window.mostrarProgreso(100);
             } catch (error) {
                 window.mostrarError("guardarLote", error);
             }
@@ -414,10 +492,13 @@
 
         window.actualizarEstado = async function(id, estado) {
             try {
+                window.mostrarProgreso(20);
                 const { error } = await supabaseClient.from('lotes').update({ estado: estado }).eq('id', id);
                 if (error) throw error;
+                window.mostrarProgreso(80);
                 const marker = markersPlugin.markers[id];
                 if (marker) window.renderLote(id, marker.config.data.nombre, marker.config.data.area, marker.config.data.precio, estado, marker.config.data.yaw, marker.config.data.pitch);
+                window.mostrarProgreso(100);
             } catch (error) {
                 window.mostrarError("actualizarEstado", error);
             }
@@ -431,24 +512,25 @@
             }
         }
 
-        window.cargarLogoPOI = function(event) {
+        window.cargarLogoPOI = async function(event) {
             const file = event.target.files[0];
             if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('poi-img-data').value = e.target.result;
+            window.mostrarProgreso(10);
+            try {
+                const base64Compressed = await window.comprimirImagen(file, 800, 800, 0.9);
+                document.getElementById('poi-img-data').value = base64Compressed;
                 const preview = document.getElementById('poi-img-preview');
-                preview.src = e.target.result;
+                preview.src = base64Compressed;
                 preview.style.display = 'block';
-            };
-            reader.onerror = function(error) {
-                window.mostrarError("FileReader POI Logo", "No se pudo leer el archivo de imagen");
-            };
-            reader.readAsDataURL(file);
+                window.mostrarProgreso(100);
+            } catch (error) {
+                window.mostrarError("Cargar Logo POI", error);
+            }
         };
 
         window.guardarPOI = async function() {
             try {
+                window.mostrarProgreso(10);
                 const texto = document.getElementById('poi-texto').value || 'Punto';
                 const idUnico = 'poi-' + Date.now();
                 const tipo = document.getElementById('poi-tipo-visual').value;
@@ -458,10 +540,13 @@
                 }
                 const visualtype = imgData ? `IMG|${imgData}` : null;
                 const newContent = visualtype ? `${visualtype}|TEXT|${texto}` : texto;
+                window.mostrarProgreso(50);
                 const { error } = await supabaseClient.from('pois').insert([{ id: idUnico, content: newContent, yaw: tempCoords.yaw, pitch: tempCoords.pitch }]);
                 if (error) throw error;
+                window.mostrarProgreso(80);
                 window.renderPOI(idUnico, newContent, tempCoords.yaw, tempCoords.pitch);
                 window.cerrarModales();
+                window.mostrarProgreso(100);
             } catch (error) {
                 window.mostrarError("guardarPOI", error);
             }
@@ -481,7 +566,7 @@
                     let htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;"><div style="background:rgba(0,0,0,0.8);color:#fff;padding:4px 10px;border:1px solid #D4AF37;border-radius:4px;font-size:0.8rem;">${displayText}</div><div style="width:2px;height:30px;background:#fff;"></div><div style="width:12px;height:12px;background:#D4AF37;border-radius:50%;"></div></div>`;
                     if (displayVisualType && displayVisualType.startsWith('IMG|')) {
                         let imgData = displayVisualType.substring(4);
-                        htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;"><div style="background:rgba(0,0,0,0.8);padding:4px;border:1px solid #D4AF37;border-radius:4px;"><img src="${imgData}" style="max-width: 60px; max-height: 60px;"></div><div style="width:2px;height:30px;background:#fff;"></div><div style="width:12px;height:12px;background:#D4AF37;border-radius:50%;"></div></div>`;
+                        htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;"><div><img src="${imgData}" style="max-width: 80px; max-height: 80px; object-fit: contain;"></div></div>`;
                     }
 
                     markersPlugin.addMarker({ id, position: { yaw, pitch }, html: htmlContent, size: { width: 100, height: 100 }, anchor: 'bottom center' });
@@ -497,11 +582,14 @@
         window.borrarElemento = async function(tabla, id) {
             try {
                 if(!confirm("¿Borrar?")) return;
+                window.mostrarProgreso(20);
                 const { error } = await supabaseClient.from(tabla).delete().eq('id', id);
                 if (error) throw error;
+                window.mostrarProgreso(80);
                 markersPlugin.removeMarker(id);
                 const item = document.getElementById(`item-${id}`);
                 if (item) item.remove();
+                window.mostrarProgreso(100);
             } catch (error) {
                 window.mostrarError("borrarElemento", error);
             }
