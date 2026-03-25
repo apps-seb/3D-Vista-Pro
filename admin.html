@@ -220,8 +220,15 @@
     <script src="https://cdn.jsdelivr.net/npm/three/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin/index.min.js"></script>
+    <!-- 1. Importar Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
+        // 2. Configuración de Supabase (REEMPLAZA CON TUS CREDENCIALES)
+        const supabaseUrl = 'TU_URL_DE_SUPABASE';
+        const supabaseKey = 'TU_ANON_KEY_DE_SUPABASE';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
         // Variables globales
         let isAddMode = false;
         let currentModeType = ''; // 'lote' or 'poi'
@@ -230,7 +237,7 @@
         let inventarioPOIs = [];
         let tempPoiImageDataUrl = '';
 
-        // 1. INICIALIZAR EL VISOR
+        // 1. INICIALIZAR EL VISOR Y CARGAR DATOS
         const viewer = new PhotoSphereViewer.Viewer({
             container: document.querySelector('#viewer'),
             // Imagen por defecto (se puede cambiar subiendo una)
@@ -249,6 +256,42 @@
         }
 
         const markersPlugin = viewer.getPlugin(PhotoSphereViewer.MarkersPlugin);
+
+        // --- Cargar datos iniciales ---
+        viewer.addEventListener('ready', async () => {
+            await cargarDatosDesdeBD();
+        });
+
+        async function cargarDatosDesdeBD() {
+            try {
+                // Configuración
+                const { data: configData } = await supabase.from('configuracion').select('*').single();
+                if (configData && configData.titulo) {
+                    document.getElementById('input-title').value = configData.titulo;
+                    actualizarTitulo();
+                }
+
+                // Lotes
+                const { data: lotesData } = await supabase.from('lotes').select('*');
+                if (lotesData) {
+                    lotesData.forEach(lote => {
+                        tempCoords = { yaw: lote.yaw, pitch: lote.pitch };
+                        renderLote(lote.id, lote.nombre, lote.area, lote.precio, lote.estado, false);
+                    });
+                }
+
+                // POIs
+                const { data: poisData } = await supabase.from('pois').select('*');
+                if (poisData) {
+                    poisData.forEach(poi => {
+                        tempCoords = { yaw: poi.yaw, pitch: poi.pitch };
+                        renderPOI(poi.id, poi.visualType, poi.content, false);
+                    });
+                }
+            } catch (error) {
+                console.error("Error cargando datos:", error);
+            }
+        }
 
         // 2. FUNCIONES BÁSICAS (Título e Imagen)
         function actualizarTitulo() {
@@ -376,14 +419,36 @@
 
 
         // 4. GUARDAR EL LOTE Y DIBUJARLO
-        function guardarLote() {
+        async function guardarLote() {
             const nombre = document.getElementById('lote-nombre').value || `Lote ${inventarioLotes.length + 1}`;
             const area = document.getElementById('lote-area').value || '0';
             const precio = document.getElementById('lote-precio').value || '0';
             const estado = document.getElementById('lote-estado').value;
-            const idUnico = 'lote-' + Date.now(); // ID único interno
+            const idUnico = 'lote-' + Date.now();
             
-            // Definir color del punto según estado
+            const nuevoLote = {
+                id: idUnico,
+                nombre,
+                area,
+                precio,
+                estado,
+                yaw: tempCoords.yaw,
+                pitch: tempCoords.pitch
+            };
+
+            // Guardar en Supabase
+            const { error } = await supabase.from('lotes').insert([nuevoLote]);
+            if (error) {
+                alert("Error al guardar el lote en la base de datos");
+                console.error(error);
+                return;
+            }
+
+            renderLote(idUnico, nombre, area, precio, estado, true);
+            cerrarModal();
+        }
+
+        function renderLote(idUnico, nombre, area, precio, estado, saveLocal = true) {
             let claseMarker = 'marker-disponible';
             let colorStatus = '#2ecc71';
 
@@ -395,7 +460,6 @@
                 colorStatus = '#f39c12';
             }
 
-            // Añadir al visor (MarkersPlugin)
             markersPlugin.addMarker({
                 id: idUnico,
                 position: { yaw: tempCoords.yaw, pitch: tempCoords.pitch },
@@ -427,37 +491,59 @@
             `;
             lista.innerHTML += htmlItem;
 
-            // Guardar en nuestra base de datos simulada (Array)
-            inventarioLotes.push({ id: idUnico, nombre, area, precio, estado, coords: tempCoords, type: 'lote' });
-
-            // Cerrar modal
-            cerrarModal();
+            if (saveLocal) {
+                inventarioLotes.push({ id: idUnico, nombre, area, precio, estado, coords: tempCoords, type: 'lote' });
+            }
         }
 
         // 5. GUARDAR EL POI Y DIBUJARLO
-        function guardarPOI() {
+        async function guardarPOI() {
             const tipo = document.getElementById('poi-tipo').value;
             const idUnico = 'poi-' + Date.now();
 
-            let contenidoHTML = '';
             let contentData = '';
-
             if (tipo === 'texto') {
-                const texto = document.getElementById('poi-texto').value || 'Punto de Interés';
-                contentData = texto;
-                contenidoHTML = `
-                    <div class="poi-container">
-                        <div class="poi-content-text">${texto}</div>
-                        <div class="poi-line-v"></div>
-                        <div class="poi-dot"></div>
-                    </div>
-                `;
+                contentData = document.getElementById('poi-texto').value || 'Punto de Interés';
             } else {
                 if (!tempPoiImageDataUrl) {
                     alert('Por favor selecciona una imagen primero.');
                     return;
                 }
                 contentData = tempPoiImageDataUrl;
+            }
+
+            const nuevoPoi = {
+                id: idUnico,
+                visualType: tipo,
+                content: contentData,
+                yaw: tempCoords.yaw,
+                pitch: tempCoords.pitch
+            };
+
+            // Guardar en Supabase
+            const { error } = await supabase.from('pois').insert([nuevoPoi]);
+            if (error) {
+                alert("Error al guardar el POI en la base de datos");
+                console.error(error);
+                return;
+            }
+
+            renderPOI(idUnico, tipo, contentData, true);
+            cerrarModalPOI();
+        }
+
+        function renderPOI(idUnico, tipo, contentData, saveLocal = true) {
+            let contenidoHTML = '';
+
+            if (tipo === 'texto') {
+                contenidoHTML = `
+                    <div class="poi-container">
+                        <div class="poi-content-text">${contentData}</div>
+                        <div class="poi-line-v"></div>
+                        <div class="poi-dot"></div>
+                    </div>
+                `;
+            } else {
                 contenidoHTML = `
                     <div class="poi-container">
                         <img class="poi-content-img" src="${tempPoiImageDataUrl}" />
@@ -492,23 +578,25 @@
             `;
             lista.innerHTML += htmlItem;
 
-            // Guardar en nuestra base de datos simulada (Array)
-            inventarioPOIs.push({ id: idUnico, type: 'poi', visualType: tipo, content: contentData, coords: tempCoords });
-
-            cerrarModalPOI();
+            if (saveLocal) {
+                inventarioPOIs.push({ id: idUnico, type: 'poi', visualType: tipo, content: contentData, coords: tempCoords });
+            }
         }
 
-        // Función para simular guardar en DB y que index.html pueda leer
-        function exportarBaseDatos() {
-            const dbSimulada = {
-                titulo: document.getElementById('input-title').value,
-                lotes: inventarioLotes,
-                pois: inventarioPOIs
-            };
-            console.log("Base de datos exportada:", JSON.stringify(dbSimulada));
-            // En un caso real se haría un fetch/POST aquí a tu servidor
-            alert("Datos guardados en consola (Simulación DB)");
-            return dbSimulada;
+        // Guardar configuración general (Título)
+        async function exportarBaseDatos() {
+            const titulo = document.getElementById('input-title').value;
+
+            const { error } = await supabase
+                .from('configuracion')
+                .upsert({ id: 1, titulo: titulo });
+
+            if (error) {
+                console.error(error);
+                alert("Error al guardar la configuración.");
+            } else {
+                alert("Configuración (Título) guardada en Supabase correctamente.");
+            }
         }
 
         // Añadir botón exportar al final del panel lateral
@@ -519,7 +607,7 @@
         exportBtnGroup.style.justifyContent = 'center';
         const exportBtn = document.createElement('button');
         exportBtn.className = 'btn btn-action';
-        exportBtn.innerText = 'Guardar / Exportar Datos';
+        exportBtn.innerText = 'Guardar Título en Servidor';
         exportBtn.onclick = exportarBaseDatos;
         exportBtnGroup.appendChild(exportBtn);
         sidebar.appendChild(exportBtnGroup);
