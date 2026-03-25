@@ -88,28 +88,32 @@
         });
 
         const supabaseUrl = 'https://mungbffwwjobinfcympd.supabase.co';
-        const supabaseKey = 'EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im11bmdiZmZ3d2pvYmluZmN5bXBkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0NDIzNzcsImV4cCI6MjA5MDAxODM3N30.nkMo-QRJfZ1Z1gzuaZNvnw2kgChc_BGVHqpy0uPTVyY'; 
+        const supabaseKey = 'sb_publishable_yW5gsHp1w8ElbWRTeoMJYw_ZC-u0j9e';
         
         let supabase;
         let viewer, markersPlugin;
         const fallbackImage = 'https://upload.wikimedia.org/wikipedia/commons/e/e0/Equirectangular_projection_SW.jpg';
 
         async function initClient() {
+            let panoUrl = fallbackImage;
+            let titulo = "Rincón de Baviera";
+
             try {
                 if (!window.supabase) throw new Error("Base de datos no cargada");
                 if (!window.PhotoSphereViewer) throw new Error("Visor 360 no cargado");
 
                 supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-                const { data: config, error: configError } = await supabase.from('configuracion').select('*').eq('id', 1).maybeSingle();
-                if (configError) throw new Error(configError.message);
-                
-                let panoUrl = fallbackImage;
-                let titulo = "Rincón de Baviera";
-
-                if (config) {
-                    if (config.imagen_url) panoUrl = config.imagen_url;
-                    if (config.titulo) titulo = config.titulo;
+                try {
+                    const { data: config, error: configError } = await supabase.from('configuracion').select('*').eq('id', 1).maybeSingle();
+                    if (configError) throw new Error(configError.message);
+                    if (config) {
+                        if (config.imagen_url) panoUrl = config.imagen_url;
+                        if (config.titulo) titulo = config.titulo;
+                    }
+                } catch (dbError) {
+                    console.warn("No se pudo cargar la configuración de Supabase. Usando valores por defecto.", dbError);
+                    window.mostrarError("Conexión BD", dbError);
                 }
 
                 document.getElementById('display-title').innerText = titulo;
@@ -203,7 +207,7 @@
             }
         }
 
-        function cerrarModal() {
+        window.cerrarModal = function() {
             try {
                 document.getElementById('premium-modal').classList.remove('active');
             } catch (error) {
