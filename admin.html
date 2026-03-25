@@ -410,13 +410,8 @@
                 window.mostrarProgreso(10);
                 btn.innerHTML = "Procesando 360... ⏳";
 
-                // Leemos el archivo sin comprimirlo para mantener calidad original
-                const imageUrl = await new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.readAsDataURL(file);
-                    reader.onload = () => resolve(reader.result);
-                    reader.onerror = error => reject(error);
-                });
+                // Comprimimos la imagen 360 para evitar error de Payload Too Large, con un límite alto para preservar calidad
+                const imageUrl = await window.comprimirImagen(file, 4096, 4096, 0.9);
 
                 window.mostrarProgreso(50);
                 btn.innerHTML = "Subiendo archivo... ⏳";
