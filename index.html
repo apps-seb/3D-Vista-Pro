@@ -13,6 +13,18 @@
         body { margin: 0; font-family: 'Montserrat', sans-serif; background-color: #000; overflow: hidden; }
         #viewer { width: 100vw; height: 100vh; }
 
+        #global-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: #D4AF37;
+            width: 0%;
+            z-index: 9999;
+            transition: width 0.3s, opacity 0.3s;
+            opacity: 0;
+            box-shadow: 0 0 10px #D4AF37;
+        }
         .header-premium { position: absolute; top: 0; left: 0; width: 100%; padding: 20px 30px; background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); color: white; z-index: 10; pointer-events: none; }
         .header-title { font-size: 1.4rem; font-weight: 600; letter-spacing: 2px; color: #D4AF37; text-transform: uppercase; }
 
@@ -39,6 +51,7 @@
     </style>
 </head>
 <body>
+    <div id="global-progress"></div>
 
     <div class="header-premium">
         <div class="header-title" style="display: flex; align-items: center; gap: 10px;">
@@ -71,7 +84,21 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
+        window.mostrarProgreso = function(porcentaje) {
+            const bar = document.getElementById('global-progress');
+            if (!bar) return;
+            bar.style.opacity = '1';
+            bar.style.width = porcentaje + '%';
+            if (porcentaje >= 100) {
+                setTimeout(() => {
+                    bar.style.opacity = '0';
+                    setTimeout(() => { bar.style.width = '0%'; }, 300);
+                }, 500);
+            }
+        };
+
         window.mostrarError = function(contexto, err) {
+            window.mostrarProgreso(100);
             console.error("Error en " + contexto + ":", err);
             const msg = err && err.message ? err.message : String(err);
             const titleElement = document.getElementById('display-title');
@@ -200,6 +227,7 @@
                 document.getElementById('count-res').innerText = res;
                 document.getElementById('count-vend').innerText = vend;
 
+                window.mostrarProgreso(50);
                 const { data: pois, error: poisError } = await supabaseClient.from('pois').select('*');
                 if (poisError) throw poisError;
 
@@ -207,31 +235,40 @@
                     pois.forEach(p => {
                         activeMarkers.add(p.id);
                         if (!markersPlugin.markers[p.id]) {
+                            let displayText = p.content;
+                            let displayVisualType = null;
+
+                            // Extraer base64 y texto de p.content porque p.visualtype no existe en admin.html inserción
+                            if (p.content && p.content.startsWith('IMG|')) {
+                                const parts = p.content.split('|TEXT|');
+                                displayVisualType = parts[0];
+                                displayText = parts[1] || 'Punto';
+                            }
+
                             let htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;">
-                                        <div style="background:rgba(0,0,0,0.8);color:#fff;padding:5px 12px;border:1px solid #D4AF37;border-radius:4px;font-weight:bold;">${p.content}</div>
+                                        <div style="background:rgba(0,0,0,0.8);color:#fff;padding:5px 12px;border:1px solid #D4AF37;border-radius:4px;font-weight:bold;">${displayText}</div>
                                         <div style="width:2px;height:40px;background:#fff;"></div>
                                         <div style="width:14px;height:14px;background:#D4AF37;border-radius:50%;"></div>
                                        </div>`;
 
-                            if (p.visualtype && p.visualtype.startsWith('IMG|')) {
-                                let imgData = p.visualtype.substring(4);
+                            if (displayVisualType && displayVisualType.startsWith('IMG|')) {
+                                let imgData = displayVisualType.substring(4);
                                 htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;">
-                                        <div style="background:rgba(0,0,0,0.8);padding:4px;border:1px solid #D4AF37;border-radius:4px;">
-                                            <img src="${imgData}" style="max-width: 80px; max-height: 80px;">
+                                        <div>
+                                            <img src="${imgData}" style="max-width: 120px; max-height: 120px; object-fit: contain;">
                                         </div>
-                                        <div style="width:2px;height:40px;background:#fff;"></div>
-                                        <div style="width:14px;height:14px;background:#D4AF37;border-radius:50%;"></div>
                                        </div>`;
                             }
 
                             markersPlugin.addMarker({
                                 id: p.id, position: { yaw: p.yaw, pitch: p.pitch },
                                 html: htmlContent,
-                                size: { width: 100, height: 100 }, anchor: 'bottom center'
+                                size: { width: 120, height: 120 }, anchor: 'bottom center'
                             });
                         }
                     });
                 }
+                window.mostrarProgreso(100);
 
                 Object.keys(markersPlugin.markers).forEach(markerId => {
                     if (!activeMarkers.has(markerId)) {
