@@ -98,6 +98,16 @@
                 Subir Foto 360 (JPG)
                 <input type="file" id="upload-360" accept="image/jpeg" style="display:none;" onchange="cambiarImagen(event)">
             </label>
+
+            <div style="margin-top: 15px; border-top: 1px solid #333; padding-top: 10px;">
+                <span class="control-label">Configuración del Simulador</span>
+                <input type="number" id="simulador-valor-lote" class="input-text" placeholder="Valor M2 (Ej: 150000)">
+                <input type="number" id="simulador-cuota-inicial" class="input-text" placeholder="Cuota Inicial % (Ej: 30)">
+                <input type="number" id="simulador-meses" class="input-text" placeholder="Meses Financiación (1-24)">
+                <input type="text" id="simulador-asesor-nombre" class="input-text" placeholder="Nombre Asesor (Ej: Juan Pérez)">
+                <input type="text" id="simulador-asesor-telefono" class="input-text" placeholder="Teléfono Asesor (Ej: 3001234567)">
+                <button class="btn btn-action" onclick="guardarSimulador()">Guardar Simulador</button>
+            </div>
         </div>
 
         <div class="control-group">
@@ -227,6 +237,14 @@
                                 titulo = config.titulo;
                             }
                         }
+                        if (config.simulador_data) {
+                            const simData = JSON.parse(config.simulador_data);
+                            if (simData.valorLote) document.getElementById('simulador-valor-lote').value = simData.valorLote;
+                            if (simData.cuotaInicial) document.getElementById('simulador-cuota-inicial').value = simData.cuotaInicial;
+                            if (simData.meses) document.getElementById('simulador-meses').value = simData.meses;
+                            if (simData.asesorNombre) document.getElementById('simulador-asesor-nombre').value = simData.asesorNombre;
+                            if (simData.asesorTelefono) document.getElementById('simulador-asesor-telefono').value = simData.asesorTelefono;
+                        }
                     }
                 } catch (dbError) {
                     console.warn("No se pudo cargar la configuración de Supabase. Usando valores por defecto.", dbError);
@@ -349,16 +367,18 @@
             btn.innerHTML = "Procesando... ⏳";
             window.mostrarProgreso(10);
             try {
-                const base64Compressed = await window.comprimirImagen(file, 800, 800, 0.9);
+                // Subir a Storage directamente
+                const imageUrl = await window.subirArchivoASupabase(file, 'logo');
+
                 window.mostrarProgreso(100);
-                document.getElementById('logo-data').value = base64Compressed;
-                document.getElementById('admin-logo-preview').src = base64Compressed;
+                document.getElementById('logo-data').value = imageUrl;
+                document.getElementById('admin-logo-preview').src = imageUrl;
                 document.getElementById('logo-preview-container').style.display = 'block';
                 btn.innerHTML = "¡Logo Cargado! ✅";
                 setTimeout(() => { btn.innerHTML = originalText; }, 3000);
             } catch (error) {
                 btn.innerHTML = originalText;
-                window.mostrarError("Comprimir Logo", error);
+                window.mostrarError("Cargar Logo", error);
             }
         };
 
@@ -401,6 +421,67 @@
             }
         }
 
+        window.guardarSimulador = async function() {
+            try {
+                window.mostrarProgreso(10);
+                let valorLote = document.getElementById('simulador-valor-lote').value;
+                let cuotaInicial = document.getElementById('simulador-cuota-inicial').value;
+                let meses = document.getElementById('simulador-meses').value;
+                let asesorNombre = document.getElementById('simulador-asesor-nombre').value;
+                let asesorTelefono = document.getElementById('simulador-asesor-telefono').value;
+
+                if (!valorLote || !cuotaInicial || !meses) {
+                    alert("Por favor, llena los campos principales del simulador (Valor, Cuota Inicial, Meses).");
+                    window.mostrarProgreso(100);
+                    return;
+                }
+
+                let simuladorData = JSON.stringify({
+                    valorLote: valorLote,
+                    cuotaInicial: cuotaInicial,
+                    meses: meses,
+                    asesorNombre: asesorNombre,
+                    asesorTelefono: asesorTelefono
+                });
+
+                window.mostrarProgreso(40);
+                const { data, error: selectError } = await supabaseClient.from('configuracion').select('id').eq('id', 1).maybeSingle();
+                if (selectError) throw selectError;
+
+                window.mostrarProgreso(70);
+                if (!data) {
+                    const { error: insertError } = await supabaseClient.from('configuracion').insert([{ id: 1, simulador_data: simuladorData }]);
+                    if (insertError) throw insertError;
+                } else {
+                    const { error: updateError } = await supabaseClient.from('configuracion').update({ simulador_data: simuladorData }).eq('id', 1);
+                    if (updateError) throw updateError;
+                }
+                window.mostrarProgreso(100);
+                alert("Configuración del Simulador guardada correctamente");
+            } catch (error) {
+                window.mostrarError("guardarSimulador", error);
+            }
+        }
+
+        window.subirArchivoASupabase = async function(file, ruta) {
+            // Intentar subir a Supabase Storage (requiere bucket 'images' configurado)
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${ruta}-${Math.random()}.${fileExt}`;
+            const filePath = `${fileName}`;
+
+            const { data, error } = await supabaseClient.storage
+                .from('images')
+                .upload(filePath, file, { cacheControl: '3600', upsert: true });
+
+            if (error) throw error;
+
+            const { data: publicData } = supabaseClient.storage
+                .from('images')
+                .getPublicUrl(filePath);
+
+            return publicData.publicUrl;
+        };
+
         window.cambiarImagen = async function(event) {
             const btn = document.getElementById('btn-upload-lbl');
             const originalText = btn.innerHTML;
@@ -408,13 +489,18 @@
                 const file = event.target.files[0];
                 if (!file) return;
                 window.mostrarProgreso(10);
-                btn.innerHTML = "Procesando 360... ⏳";
+                btn.innerHTML = "Subiendo archivo original... ⏳";
 
-                // Comprimimos la imagen 360 para evitar error de Payload Too Large, con un límite alto para preservar calidad
-                const imageUrl = await window.comprimirImagen(file, 4096, 4096, 0.9);
+                // Subir el archivo 360 ORIGINAL sin comprimir a Supabase Storage
+                let imageUrl;
+                try {
+                    imageUrl = await window.subirArchivoASupabase(file, 'pano');
+                } catch(storageError) {
+                    throw new Error(`Error en Storage (¿Falta configurar el bucket 'images' en Supabase?): ${storageError.message}`);
+                }
 
                 window.mostrarProgreso(50);
-                btn.innerHTML = "Subiendo archivo... ⏳";
+                btn.innerHTML = "Actualizando base de datos... ⏳";
 
                 const { data: configCheck, error: selectError } = await supabaseClient.from('configuracion').select('id').eq('id', 1).maybeSingle();
                 if (selectError) throw selectError;
@@ -549,10 +635,10 @@
             if (!file) return;
             window.mostrarProgreso(10);
             try {
-                const base64Compressed = await window.comprimirImagen(file, 800, 800, 0.9);
-                document.getElementById('poi-img-data').value = base64Compressed;
+                const imageUrl = await window.subirArchivoASupabase(file, 'poi');
+                document.getElementById('poi-img-data').value = imageUrl;
                 const preview = document.getElementById('poi-img-preview');
-                preview.src = base64Compressed;
+                preview.src = imageUrl;
                 preview.style.display = 'block';
                 window.mostrarProgreso(100);
             } catch (error) {

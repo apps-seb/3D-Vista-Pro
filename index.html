@@ -85,16 +85,26 @@
     <div id="viewer"></div>
 
     <div id="premium-modal" class="modal-overlay">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 400px; max-height: 90vh; overflow-y: auto;">
             <button class="btn-close" onclick="cerrarModal()">&times;</button>
             <h2 class="modal-title" id="m-titulo">Lote</h2>
             <div class="modal-badge" id="m-estado">Estado</div>
-            <div class="info-box">Área: <strong id="m-area">0</strong><br>Precio: <strong id="m-precio">0</strong></div>
-            <a href="#" target="_blank" class="btn-whatsapp" id="m-whatsapp">Contactar por WhatsApp</a>
+            <div class="info-box" style="margin-bottom: 5px;">Área: <strong id="m-area">0</strong> m²</div>
+            <div class="info-box" style="margin-bottom: 15px;">Precio Total: <strong id="m-precio">0</strong></div>
+
+            <button id="btn-toggle-simulador" onclick="toggleSimulador()" style="display:none; width:100%; padding:12px; background:#111; color:#D4AF37; border:1px solid #D4AF37; border-radius:8px; margin-bottom:15px; font-weight:bold; cursor:pointer; text-transform:uppercase;">Abrir Simulador</button>
+
+            <div id="simulator-container" style="display:none; background:#1a1a1a; padding:15px; border-radius:8px; border:1px solid #444; margin-bottom:15px; text-align:left; font-size:0.85rem;">
+                <!-- El contenido se inyecta dinámicamente al abrir un lote -->
+            </div>
+
+            <a href="#" target="_blank" class="btn-whatsapp" id="m-whatsapp" style="margin-top: 5px;">Contactar por WhatsApp</a>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core@5.1.4/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin@5.1.4/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -143,6 +153,8 @@
         let supabaseClient;
         let viewer, markersPlugin;
         const fallbackImage = 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg';
+        let globalSimuladorData = null;
+        let selectedLoteData = null;
 
         async function initClient() {
             let panoUrl = fallbackImage;
@@ -167,6 +179,13 @@
                                 logoUrl = parts[1];
                             } else {
                                 titulo = config.titulo;
+                            }
+                        }
+                        if (config.simulador_data) {
+                            try {
+                                globalSimuladorData = JSON.parse(config.simulador_data);
+                            } catch (e) {
+                                console.warn("Error parsing simulador data", e);
                             }
                         }
                     }
@@ -313,8 +332,22 @@
         window.cerrarModal = function() {
             try {
                 document.getElementById('premium-modal').classList.remove('active');
+                document.getElementById('simulator-container').style.display = 'none';
+                document.getElementById('btn-toggle-simulador').innerText = 'Abrir Simulador';
             } catch (error) {
                 window.mostrarError("cerrarModal", error);
+            }
+        }
+
+        window.toggleSimulador = function() {
+            const container = document.getElementById('simulator-container');
+            const btn = document.getElementById('btn-toggle-simulador');
+            if (container.style.display === 'none' || container.style.display === '') {
+                container.style.display = 'block';
+                btn.innerText = 'Cerrar Simulador';
+            } else {
+                container.style.display = 'none';
+                btn.innerText = 'Abrir Simulador';
             }
         }
 
@@ -324,15 +357,88 @@
                 markersPlugin.addEventListener('select-marker', (e) => {
                     const marker = e.marker;
                     if (marker.config.data && marker.config.data.type === 'lote') {
+                        selectedLoteData = marker.config.data;
                         document.getElementById('m-titulo').innerText = marker.config.data.nombre;
-                        document.getElementById('m-area').innerText = marker.config.data.area;
-                        document.getElementById('m-precio').innerText = marker.config.data.precio;
+                        document.getElementById('m-area').innerText = parseFloat(marker.config.data.area).toLocaleString('es-CO');
+
+                        let areaNum = parseFloat(marker.config.data.area) || 0;
+                        let valorTotal = 0;
+                        let isSimulatorActive = false;
+
+                        // Use simulator if available
+                        if (globalSimuladorData && globalSimuladorData.valorLote) {
+                            valorTotal = areaNum * parseFloat(globalSimuladorData.valorLote);
+                            isSimulatorActive = true;
+                        } else {
+                            // Fallback to manual price if simulator not set
+                            let priceText = String(marker.config.data.precio).replace(/[^\d]/g, '');
+                            valorTotal = parseFloat(priceText) || 0;
+                        }
+
+                        document.getElementById('m-precio').innerText = "$" + valorTotal.toLocaleString('es-CO');
 
                         const est = document.getElementById('m-estado');
                         est.innerText = marker.config.data.estado;
                         est.style.color = marker.config.data.estado === 'Vendido' ? '#e74c3c' : (marker.config.data.estado === 'Reservado' ? '#f39c12' : '#2ecc71');
                         est.style.background = 'rgba(255,255,255,0.1)';
 
+                        if (isSimulatorActive && marker.config.data.estado !== 'Vendido') {
+                            document.getElementById('btn-toggle-simulador').style.display = 'block';
+                            document.getElementById('simulator-container').style.display = 'none';
+                            document.getElementById('btn-toggle-simulador').innerText = 'Abrir Simulador';
+
+                            let pctCuota = parseFloat(globalSimuladorData.cuotaInicial) || 30;
+                            let mesesMax = parseInt(globalSimuladorData.meses) || 12;
+                            let meses = mesesMax; // Default
+
+                            // Re-render simulator content to include dynamic range input
+                            let simHtml = `
+                                <h3 style="color:#D4AF37; margin-top:0; text-align:center; font-size:1.1rem;">Simulador de Financiación</h3>
+                                <p>Cuota Inicial (<span id="sim-porcentaje-cuota">${pctCuota}</span>%): <strong id="sim-valor-cuota" style="float:right; color:#2ecc71;">$0</strong></p>
+                                <p>Saldo a Financiar: <strong id="sim-saldo" style="float:right;">$0</strong></p>
+                                <div style="margin: 15px 0;">
+                                    <label style="display:block; margin-bottom:5px;">Meses a Financiar: <strong id="sim-meses" style="color:#D4AF37;">${meses}</strong></label>
+                                    <input type="range" id="sim-meses-rango" min="1" max="${mesesMax}" value="${meses}" style="width:100%; cursor:pointer;">
+                                </div>
+                                <hr style="border-color:#333; margin:10px 0;">
+                                <p style="font-size:1rem; text-align:center; color:#fff;">Cuota Mensual Aprox:<br><strong id="sim-cuota-mensual" style="color:#D4AF37; font-size:1.2rem;">$0</strong></p>
+
+                                <div style="margin-top:15px;">
+                                    <input type="text" id="sim-nombre" placeholder="Nombre completo" style="width:100%; padding:8px; margin-bottom:8px; background:#000; border:1px solid #333; color:#fff; border-radius:4px; box-sizing:border-box;">
+                                    <input type="tel" id="sim-telefono" placeholder="Teléfono" style="width:100%; padding:8px; margin-bottom:8px; background:#000; border:1px solid #333; color:#fff; border-radius:4px; box-sizing:border-box;">
+                                    <input type="text" id="sim-direccion" placeholder="Dirección" style="width:100%; padding:8px; margin-bottom:8px; background:#000; border:1px solid #333; color:#fff; border-radius:4px; box-sizing:border-box;">
+                                    <input type="email" id="sim-correo" placeholder="Correo electrónico" style="width:100%; padding:8px; margin-bottom:8px; background:#000; border:1px solid #333; color:#fff; border-radius:4px; box-sizing:border-box;">
+                                    <button onclick="generarPDF()" style="width:100%; padding:10px; background:#D4AF37; color:#000; font-weight:bold; border:none; border-radius:4px; cursor:pointer; margin-bottom:8px;">Generar PDF de Cotización</button>
+                                </div>
+                            `;
+                            document.getElementById('simulator-container').innerHTML = simHtml;
+
+                            const actualizarSimulador = () => {
+                                const m = parseInt(document.getElementById('sim-meses-rango').value) || 1;
+                                document.getElementById('sim-meses').innerText = m;
+
+                                let cuotaInicialVal = valorTotal * (pctCuota / 100);
+                                let saldo = valorTotal - cuotaInicialVal;
+                                let cuotaMensual = saldo / m;
+
+                                document.getElementById('sim-valor-cuota').innerText = "$" + cuotaInicialVal.toLocaleString('es-CO', {maximumFractionDigits:0});
+                                document.getElementById('sim-saldo').innerText = "$" + saldo.toLocaleString('es-CO', {maximumFractionDigits:0});
+                                document.getElementById('sim-cuota-mensual').innerText = "$" + cuotaMensual.toLocaleString('es-CO', {maximumFractionDigits:0});
+
+                                selectedLoteData.simulador = {
+                                    valorTotal, pctCuota, cuotaInicialVal, saldo, meses: m, cuotaMensual
+                                };
+                            };
+
+                            document.getElementById('sim-meses-rango').addEventListener('input', actualizarSimulador);
+                            actualizarSimulador(); // Inicializar cálculos
+
+                        } else {
+                            document.getElementById('btn-toggle-simulador').style.display = 'none';
+                            document.getElementById('simulator-container').style.display = 'none';
+                        }
+
+                        // Configuración del botón de WhatsApp y PDF
                         const numeroTel = "573000000000";
                         const msj = `Hola, me interesa el ${marker.config.data.nombre} del proyecto ${document.getElementById('display-title').innerText}.`;
                         document.getElementById('m-whatsapp').href = `https://wa.me/${numeroTel}?text=${encodeURIComponent(msj)}`;
@@ -342,6 +448,95 @@
                 });
             } catch (error) {
                 window.mostrarError("attachModalEvents", error);
+            }
+        }
+
+        window.generarPDF = function() {
+            try {
+                const nombre = document.getElementById('sim-nombre').value;
+                const telefono = document.getElementById('sim-telefono').value;
+                const direccion = document.getElementById('sim-direccion').value;
+                const correo = document.getElementById('sim-correo').value;
+
+                if(!nombre || !telefono || !correo) {
+                    alert("Por favor completa nombre, teléfono y correo para generar el PDF.");
+                    return;
+                }
+
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+
+                const proyectoNombre = document.getElementById('display-title').innerText;
+                const logoImg = document.getElementById('display-logo');
+
+                // Header
+                if (logoImg && logoImg.style.display !== 'none' && logoImg.src) {
+                    try {
+                        // Intentar añadir logo si es base64 o URL permitida
+                        doc.addImage(logoImg.src, 'PNG', 15, 15, 30, 30);
+                    } catch(e) { console.warn("No se pudo cargar logo en PDF", e); }
+                }
+
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(22);
+                doc.setTextColor(212, 175, 55); // Dorado
+                doc.text(proyectoNombre, 50, 25);
+
+                doc.setFontSize(14);
+                doc.setTextColor(50, 50, 50);
+                doc.text("Cotización de Lote", 50, 35);
+
+                // Cliente info
+                doc.setFontSize(11);
+                doc.text(`Cliente: ${nombre}`, 15, 60);
+                doc.text(`Teléfono: ${telefono}`, 15, 67);
+                doc.text(`Correo: ${correo}`, 15, 74);
+                if(direccion) doc.text(`Dirección: ${direccion}`, 15, 81);
+
+                doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 140, 60);
+
+                // Lote info
+                const sim = selectedLoteData.simulador;
+                const areaTxt = parseFloat(selectedLoteData.area).toLocaleString('es-CO');
+
+                doc.autoTable({
+                    startY: 95,
+                    headStyles: { fillColor: [20, 20, 20], textColor: [212, 175, 55] },
+                    head: [['Descripción del Lote', 'Detalle']],
+                    body: [
+                        ['Nombre del Lote', selectedLoteData.nombre],
+                        ['Área', `${areaTxt} m²`],
+                        ['Valor Total Estimado', `$${sim.valorTotal.toLocaleString('es-CO', {maximumFractionDigits:0})}`]
+                    ]
+                });
+
+                // Financiación info
+                doc.autoTable({
+                    startY: doc.lastAutoTable.finalY + 15,
+                    headStyles: { fillColor: [212, 175, 55], textColor: [0, 0, 0] },
+                    head: [['Plan de Financiación', 'Valores']],
+                    body: [
+                        [`Cuota Inicial (${sim.pctCuota}%)`, `$${sim.cuotaInicialVal.toLocaleString('es-CO', {maximumFractionDigits:0})}`],
+                        ['Saldo a Financiar', `$${sim.saldo.toLocaleString('es-CO', {maximumFractionDigits:0})}`],
+                        [`Plazo (Meses)`, `${sim.meses}`],
+                        ['Cuota Mensual Estimada', `$${sim.cuotaMensual.toLocaleString('es-CO', {maximumFractionDigits:0})}`]
+                    ]
+                });
+
+                doc.setFontSize(10);
+                doc.setTextColor(0, 0, 0);
+                doc.text("Asesor Comercial: " + ((globalSimuladorData && globalSimuladorData.asesorNombre) ? globalSimuladorData.asesorNombre : "No especificado"), 15, doc.lastAutoTable.finalY + 15);
+                doc.text("Teléfono: " + ((globalSimuladorData && globalSimuladorData.asesorTelefono) ? globalSimuladorData.asesorTelefono : "No especificado"), 15, doc.lastAutoTable.finalY + 20);
+
+                doc.setFontSize(9);
+                doc.setTextColor(100, 100, 100);
+                doc.text("Nota: Los valores aquí presentados son una simulación y pueden estar sujetos a cambios.", 15, doc.lastAutoTable.finalY + 30);
+
+                doc.save(`Cotizacion_${selectedLoteData.nombre}_${nombre.replace(/\s+/g, '')}.pdf`);
+
+            } catch(error) {
+                console.error("Error generando PDF", error);
+                alert("Hubo un error al generar el PDF.");
             }
         }
 
