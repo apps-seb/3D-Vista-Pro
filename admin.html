@@ -57,6 +57,16 @@
         
         /* Input file oculto */
         input[type="file"] { display: none; }
+
+        /* --- RESPONSIVIDAD --- */
+        @media (max-width: 768px) {
+            body { flex-direction: column-reverse; }
+            .sidebar { width: 100%; height: 50%; padding: 15px; box-sizing: border-box; }
+            .viewer-wrapper { width: 100%; height: 50%; }
+            .header-premium { padding: 15px 20px; }
+            .header-title { font-size: 1.1rem; }
+            .modal-content { width: 85%; }
+        }
     </style>
 </head>
 <body>
@@ -78,6 +88,11 @@
         </div>
 
         <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
+
+        <div class="control-group">
+            <span class="control-label">Vistas</span>
+            <button id="btn-toggle-fisheye" class="btn btn-upload" onclick="toggleFisheye()">Alternar Vista Esfera / Normal</button>
+        </div>
 
         <div class="control-group">
             <span class="control-label">Gestor de Lotes</span>
@@ -122,7 +137,16 @@
                     <option value="Vendido">Vendido</option>
                 </select>
             </div>
-            <button class="btn btn-action" onclick="guardarLote()">Guardar Lote</button>
+            <hr style="border: 0; border-top: 1px solid #333; margin: 15px 0;">
+            <div class="control-group">
+                <span class="control-label">Logo URL (Opcional)</span>
+                <input type="text" id="lote-logo" class="input-text" placeholder="Ej: https://midominio.com/logo.png">
+            </div>
+            <div class="control-group">
+                <span class="control-label">Texto Personalizado (Opcional)</span>
+                <input type="text" id="lote-texto" class="input-text" placeholder="Ej: Zona de juegos">
+            </div>
+            <button class="btn btn-action" onclick="guardarLote()">Guardar Punto de Interés</button>
             <button class="btn btn-upload" onclick="cerrarModal()">Cancelar</button>
         </div>
     </div>
@@ -142,13 +166,25 @@
             container: document.querySelector('#viewer'),
             // Imagen por defecto (se puede cambiar subiendo una)
             panorama: 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg',
-            touchmoveTwoFingers: false, mousewheelCtrlKey: false,
+            touchmoveTwoFingers: true, // Mejor para móviles
+            mousewheelCtrlKey: false,
             defaultYaw: '130deg', defaultPitch: '-15deg', defaultZoomLvl: 30,
+            moveSpeed: 1.5, // Hacerlo más fluido
+            zoomSpeed: 2, // Hacerlo más fluido
             navbar: ['zoom', 'fullscreen'],
-            plugins: [ [PhotoSphereViewer.MarkersPlugin, { markers: [] }] ]
+            plugins: [ [PhotoSphereViewer.MarkersPlugin, { markers: [] }] ],
+            fisheye: false, // Vista inicial
         });
 
         const markersPlugin = viewer.getPlugin(PhotoSphereViewer.MarkersPlugin);
+
+        let isFisheye = false;
+        function toggleFisheye() {
+            isFisheye = !isFisheye;
+            viewer.setOption('fisheye', isFisheye ? 2 : false); // 2 para un efecto esfera
+            const btn = document.getElementById('btn-toggle-fisheye');
+            btn.innerText = isFisheye ? "Cambiar a Vista Normal" : "Cambiar a Vista Esfera";
+        }
 
         // 2. FUNCIONES BÁSICAS (Título e Imagen)
         function actualizarTitulo() {
@@ -200,6 +236,8 @@
                 document.getElementById('lote-area').value = '';
                 document.getElementById('lote-precio').value = '';
                 document.getElementById('lote-estado').value = 'Disponible';
+                document.getElementById('lote-logo').value = '';
+                document.getElementById('lote-texto').value = '';
                 
                 // Desactivar el modo visualmente
                 toggleAddMode(); 
@@ -216,25 +254,45 @@
             const area = document.getElementById('lote-area').value || '0';
             const precio = document.getElementById('lote-precio').value || '0';
             const estado = document.getElementById('lote-estado').value;
+            const logo = document.getElementById('lote-logo').value;
+            const texto = document.getElementById('lote-texto').value;
             const idUnico = 'lote-' + Date.now(); // ID único interno
             
             // Definir color del punto según estado
             const claseMarker = estado === 'Vendido' ? 'marker-vendido' : 'marker-disponible';
             const colorStatus = estado === 'Vendido' ? '#e74c3c' : '#2ecc71';
 
+            let markerHtml = `<div class="lote-marker ${claseMarker}"></div>`;
+            let tooltipContent = `<div style="font-family:'Montserrat',sans-serif; text-align:center;">
+                                <strong style="color:#D4AF37;font-size:1.1rem">${nombre}</strong><br>
+                                <span style="color:#ccc;font-size:0.8rem">${area} m² - ${precio}</span><br>
+                                <b style="color:${colorStatus};font-size:0.8rem;text-transform:uppercase;">${estado}</b>
+                              </div>`;
+
+            // Si hay logo o texto, sobreescribir html y tooltip para ser un POI (Punto de interés)
+            if (logo || texto) {
+                // Usar el logo como marcador, o mantener el punto si no hay logo
+                if (logo) {
+                    markerHtml = `<img src="${logo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid #D4AF37;box-shadow:0 0 10px rgba(0,0,0,0.5);">`;
+                } else {
+                    markerHtml = `<div class="lote-marker" style="background:#3498db; border-color:#fff; animation:none;"></div>`;
+                }
+
+                tooltipContent = `<div style="font-family:'Montserrat',sans-serif; text-align:center; max-width: 150px;">
+                                    <strong style="color:#D4AF37;font-size:1rem">${nombre}</strong>
+                                    ${texto ? `<p style="color:#fff;font-size:0.8rem;margin:5px 0 0 0;">${texto}</p>` : ''}
+                                  </div>`;
+            }
+
             // Añadir al visor (MarkersPlugin)
             markersPlugin.addMarker({
                 id: idUnico,
                 position: { yaw: tempCoords.yaw, pitch: tempCoords.pitch },
-                html: `<div class="lote-marker ${claseMarker}"></div>`,
-                size: { width: 24, height: 24 },
+                html: markerHtml,
+                size: logo ? { width: 40, height: 40 } : { width: 24, height: 24 },
                 anchor: 'center center',
                 tooltip: {
-                    content: `<div style="font-family:'Montserrat',sans-serif; text-align:center;">
-                                <strong style="color:#D4AF37;font-size:1.1rem">${nombre}</strong><br>
-                                <span style="color:#ccc;font-size:0.8rem">${area} m² - ${precio}</span><br>
-                                <b style="color:${colorStatus};font-size:0.8rem;text-transform:uppercase;">${estado}</b>
-                              </div>`,
+                    content: tooltipContent,
                     position: 'top center'
                 }
             });

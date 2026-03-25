@@ -82,6 +82,18 @@
         .btn-whatsapp:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(37, 211, 102, 0.4); }
 
         .psv-navbar { background: rgba(0,0,0,0.6) !important; backdrop-filter: blur(5px); }
+
+        /* --- RESPONSIVIDAD --- */
+        @media (max-width: 768px) {
+            .header-premium { flex-direction: column; align-items: flex-start; padding: 15px 20px; }
+            .header-title { font-size: 1.1rem; }
+            .header-subtitle { font-size: 0.8rem; }
+            .modal-content { width: 90%; max-width: none; padding: 20px; }
+            .modal-title { font-size: 1.3rem; }
+            .info-grid { grid-template-columns: 1fr; gap: 10px; }
+            .info-box { padding: 10px; }
+            .btn-whatsapp { padding: 12px; font-size: 0.9rem; }
+        }
     </style>
 </head>
 <body>
@@ -94,6 +106,8 @@
     </div>
 
     <div id="viewer"></div>
+
+        <button onclick="toggleFisheye()" style="position: absolute; bottom: 80px; left: 20px; z-index: 100; padding: 10px 15px; background: rgba(0,0,0,0.7); color: #D4AF37; border: 1px solid #D4AF37; border-radius: 8px; font-family: 'Montserrat', sans-serif; cursor: pointer; backdrop-filter: blur(5px);">Vista Esfera</button>
 
     <div id="premium-modal" class="modal-overlay">
         <div class="modal-content">
@@ -124,8 +138,11 @@
         const viewer = new PhotoSphereViewer.Viewer({
             container: document.querySelector('#viewer'),
             panorama: 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg',
-            touchmoveTwoFingers: false, mousewheelCtrlKey: false,
+            touchmoveTwoFingers: true, // Mejor para móviles
+            mousewheelCtrlKey: false,
             defaultYaw: '130deg', defaultPitch: '-15deg', defaultZoomLvl: 30,
+            moveSpeed: 1.5, // Hacerlo más fluido
+            zoomSpeed: 2, // Hacerlo más fluido
             navbar: ['zoom', 'fullscreen'],
             
             plugins: [
@@ -156,18 +173,47 @@
                                 precio: 'Vendido',
                                 estado: 'Vendido'
                             }
+                        },
+                        {
+                            // Ejemplo de Punto de Interés
+                            id: 'Club House',
+                            position: { yaw: '110deg', pitch: '-5deg' },
+                            html: '<img src="https://cdn-icons-png.flaticon.com/512/602/602162.png" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid #D4AF37;box-shadow:0 0 10px rgba(0,0,0,0.5); background: #fff;">',
+                            size: { width: 40, height: 40 },
+                            anchor: 'center center',
+                            tooltip: {
+                                content: `<div style="font-family:'Montserrat',sans-serif; text-align:center; max-width: 150px;">
+                                    <strong style="color:#D4AF37;font-size:1rem">Club House</strong>
+                                    <p style="color:#fff;font-size:0.8rem;margin:5px 0 0 0;">Disfruta de la piscina, gimnasio y zonas de esparcimiento exclusivas.</p>
+                                  </div>`,
+                                position: 'top center'
+                            },
+                            data: {
+                                isPOI: true // Flag para no abrir el modal de ventas
+                            }
                         }
                     ]
                 }]
-            ]
+            ],
+            fisheye: false, // Inicia normal
         });
 
         const markersPlugin = viewer.getPlugin(PhotoSphereViewer.MarkersPlugin);
+        let isFisheye = false;
+        function toggleFisheye() {
+            isFisheye = !isFisheye;
+            viewer.setOption('fisheye', isFisheye ? 2 : false); // 2 para el efecto "esfera" o little planet
+            const btn = document.querySelector('button[onclick="toggleFisheye()"]');
+            btn.innerText = isFisheye ? "Vista Normal" : "Vista Esfera";
+        }
         const modal = document.getElementById('premium-modal');
         const viewerDiv = document.getElementById('viewer');
 
         // Función para abrir modal y cargar los datos
         markersPlugin.addEventListener('select-marker', ({ marker }) => {
+            // Si es un POI no abrimos modal de lote
+            if (marker.config.data && marker.config.data.isPOI) return;
+
             // Inyectamos los datos del marcador en el modal
             document.getElementById('m-titulo').innerText = marker.config.id;
             document.getElementById('m-area').innerText = marker.config.data.area;
