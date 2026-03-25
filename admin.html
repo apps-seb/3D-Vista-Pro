@@ -3,131 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Control - Rincón de Baviera</title>
+    <title>Admin - Rincón de Baviera</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core/index.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin/index.min.css" />
     
     <style>
-        /* NUEVO DISEÑO BASE: Layout vertical estricto */
-        body { margin: 0; font-family: 'Montserrat', sans-serif; background-color: #0f0f0f; color: #fff; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        /* Estructura Base 50/50 Mobile First */
+        body { margin: 0; font-family: 'Montserrat', sans-serif; background-color: #000; color: #fff; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
-        /* 1. Visor en la parte superior ocupando el espacio restante */
-        .viewer-wrapper { flex: 1; position: relative; width: 100%; min-height: 50vh; }
+        .viewer-wrapper { flex: 1; min-height: 50vh; position: relative; width: 100%; }
         #viewer { width: 100%; height: 100%; }
         
-        .header-premium { position: absolute; top: 0; left: 0; width: 100%; padding: 25px 35px; background: linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%); color: white; z-index: 10; pointer-events: none; }
-        .header-title { font-size: 1.4rem; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: #D4AF37; }
+        .header-premium { position: absolute; top: 0; left: 0; width: 100%; padding: 15px 20px; background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%); z-index: 10; pointer-events: none; }
+        .header-title { font-size: 1.2rem; font-weight: 600; color: #D4AF37; letter-spacing: 2px; text-transform: uppercase; }
         
-        /* 2. Panel Administrador anclado al fondo */
-        .sidebar { height: 260px; min-height: 260px; background: #1a1a1a; border-top: 3px solid #D4AF37; display: flex; flex-direction: row; overflow-x: auto; overflow-y: hidden; padding: 20px; box-sizing: border-box; align-items: flex-start; gap: 20px; z-index: 20; box-shadow: 0 -5px 20px rgba(0,0,0,0.8); }
-        .sidebar::-webkit-scrollbar { height: 10px; }
-        .sidebar::-webkit-scrollbar-track { background: #111; }
-        .sidebar::-webkit-scrollbar-thumb { background: #D4AF37; border-radius: 5px; }
+        /* Panel Administrador (Grid Perfecto para Celular) */
+        .admin-panel { height: 50vh; background: #151515; border-top: 2px solid #D4AF37; overflow-y: auto; padding: 20px; display: grid; grid-template-columns: 1fr; gap: 20px; box-sizing: border-box; }
+        
+        @media (min-width: 768px) {
+            .viewer-wrapper { min-height: 60vh; }
+            .admin-panel { height: 40vh; grid-template-columns: repeat(3, 1fr); }
+            .header-title { font-size: 1.5rem; }
+        }
 
-        /* Cajas de control dentro del panel inferior */
-        .control-group { flex: 0 0 auto; min-width: 250px; display: flex; flex-direction: column; border-right: 1px solid #333; padding-right: 20px; height: 100%; }
-        .control-group:last-child { border-right: none; padding-right: 0; }
+        .control-group { background: #1f1f1f; padding: 15px; border-radius: 8px; border: 1px solid #333; }
+        .control-label { display: block; font-size: 0.8rem; color: #aaa; margin-bottom: 8px; text-transform: uppercase; font-weight: 600; }
         
-        .control-label { display: block; font-size: 0.8rem; color: #aaa; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
-        .input-text, .input-select { width: 100%; padding: 10px; background: #000; border: 1px solid #444; color: #fff; border-radius: 6px; font-family: 'Montserrat', sans-serif; box-sizing: border-box; margin-bottom: 10px; }
+        .input-text, .input-select { width: 100%; padding: 10px; background: #000; border: 1px solid #444; color: #fff; border-radius: 6px; font-family: inherit; margin-bottom: 10px; box-sizing: border-box; }
         .input-text:focus, .input-select:focus { outline: none; border-color: #D4AF37; }
         
-        .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; font-family: 'Montserrat', sans-serif; font-weight: 600; cursor: pointer; transition: all 0.2s; box-sizing: border-box; margin-bottom: 10px; }
-        .btn-upload { background: #333; color: #fff; border: 1px dashed #D4AF37; }
-        .btn-upload:hover { background: #444; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; font-family: inherit; font-weight: 600; cursor: pointer; transition: 0.2s; margin-bottom: 5px; }
+        .btn-upload { background: #222; color: #D4AF37; border: 1px dashed #D4AF37; }
         .btn-action { background: #D4AF37; color: #000; }
-        .btn-action:hover { background: #f1c40f; transform: translateY(-2px); }
-        .btn-action.active { background: #e74c3c; color: white; animation: pulse-btn 1.5s infinite; }
+        .btn-action.active { background: #e74c3c; color: white; animation: pulse 1s infinite; }
         
-        .inventory-list { overflow-y: auto; flex: 1; padding-right: 5px; }
-        .inventory-list::-webkit-scrollbar { width: 6px; }
-        .inventory-list::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
-        .lot-item { background: #222; border: 1px solid #444; padding: 10px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; }
-        .lot-status { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 8px; }
-
-        /* Estilos visuales del visor 360 */
-        .lote-marker { width: 24px; height: 24px; border: 2px solid #fff; border-radius: 50%; cursor: pointer; }
-        .marker-disponible { background: rgba(46, 204, 113, 0.9); box-shadow: 0 0 15px rgba(46, 204, 113, 0.6); animation: pulse-green 2s infinite; }
-        .marker-reservado { background: rgba(243, 156, 18, 0.9); box-shadow: 0 0 15px rgba(243, 156, 18, 0.6); animation: pulse-orange 2s infinite; }
-        .marker-vendido { background: rgba(231, 76, 60, 0.9); box-shadow: 0 0 15px rgba(231, 76, 60, 0.6); }
+        .inventory-list { max-height: 200px; overflow-y: auto; margin-top: 10px; }
+        .lot-item { background: #000; border: 1px solid #333; padding: 10px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; }
         
-        @keyframes pulse-green { 0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(46, 204, 113, 0); } 100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); } }
-        @keyframes pulse-orange { 0% { box-shadow: 0 0 0 0 rgba(243, 156, 18, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(243, 156, 18, 0); } 100% { box-shadow: 0 0 0 0 rgba(243, 156, 18, 0); } }
-        @keyframes pulse-btn { 0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); } 100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); } }
+        /* Marcadores Visuales */
+        .lote-marker { width: 20px; height: 20px; border: 2px solid #fff; border-radius: 50%; cursor: pointer; }
+        .marker-disponible { background: rgba(46, 204, 113, 0.9); box-shadow: 0 0 10px rgba(46,204,113,0.5); }
+        .marker-reservado { background: rgba(243, 156, 18, 0.9); box-shadow: 0 0 10px rgba(243,156,18,0.5); }
+        .marker-vendido { background: rgba(231, 76, 60, 0.9); box-shadow: 0 0 10px rgba(231,76,60,0.5); }
+        
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
 
-        .poi-container { display: flex; flex-direction: column; align-items: center; pointer-events: none; }
-        .poi-content-text { color: #fff; font-weight: 600; font-size: 14px; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); padding: 4px 12px; white-space: nowrap; border-bottom: 2px solid #fff; font-family: 'Montserrat', sans-serif; }
-        .poi-content-img { max-width: 80px; max-height: 80px; object-fit: contain; background: rgba(255,255,255,0.9); border-radius: 6px; padding: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .poi-line-v { width: 2px; height: 50px; background: #fff; box-shadow: 0 0 5px rgba(0,0,0,0.3); }
-        .poi-dot { width: 14px; height: 14px; background: #D4AF37; border: 2px solid #fff; border-radius: 50%; pointer-events: auto; cursor: pointer; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
-
-        .modal-overlay { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); z-index: 100; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        /* Modales */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 100; display: none; justify-content: center; align-items: center; }
         .modal-overlay.active { display: flex; }
-        .modal-content { background: #1a1a1a; padding: 25px; border-radius: 12px; border: 1px solid #D4AF37; width: 300px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
-        .modal-content h3 { margin-top: 0; color: #D4AF37; text-align: center; }
+        .modal-content { background: #1a1a1a; padding: 20px; border-radius: 12px; border: 1px solid #D4AF37; width: 90%; max-width: 320px; }
+        .modal-content h3 { margin-top: 0; color: #D4AF37; font-size: 1.2rem; }
         input[type="file"] { display: none; }
     </style>
 </head>
 <body>
 
     <div class="viewer-wrapper">
-        <div class="header-premium"><div class="header-title" id="display-title">Rincón de Baviera</div></div>
+        <div class="header-premium"><div class="header-title" id="display-title">Cargando...</div></div>
         <div id="viewer"></div>
     </div>
 
-    <div class="sidebar" id="sidebar">
+    <div class="admin-panel">
         <div class="control-group">
-            <span class="control-label">1. Configuración General</span>
-            <input type="text" id="input-title" class="input-text" placeholder="Nombre del proyecto" value="Rincón de Baviera">
+            <span class="control-label">1. Configuración Principal</span>
+            <input type="text" id="input-title" class="input-text" placeholder="Nombre del proyecto">
             <button class="btn btn-action" onclick="guardarTitulo()">Guardar Título</button>
-        </div>
-
-        <div class="control-group">
-            <span class="control-label">2. Imagen 360 Principal</span>
+            <hr style="border-color: #333; margin: 15px 0;">
             <label class="btn btn-upload" id="btn-upload-lbl">
-                Subir Imagen JPG
+                Subir Foto 360 (JPG)
                 <input type="file" id="upload-360" accept="image/*" onchange="cambiarImagen(event)">
             </label>
-            <p style="font-size: 0.7rem; color: #888; text-align: center;">Formatos: JPG / Max 10MB</p>
         </div>
 
         <div class="control-group">
-            <span class="control-label">3. Gestor de Lotes</span>
-            <button id="btn-add-mode" class="btn btn-action" onclick="toggleAddMode('lote')">+ Agregar Lote</button>
-            <p style="font-size: 0.75rem; color: #aaa; text-align: center;" id="add-helper">Haz clic en el botón y luego toca la foto</p>
+            <span class="control-label">2. Agregar Puntos al Mapa</span>
+            <button id="btn-add-mode" class="btn btn-action" onclick="toggleAddMode('lote')">+ Crear Lote</button>
+            <button id="btn-add-poi-mode" class="btn btn-upload" onclick="toggleAddMode('poi')">+ Crear Punto de Interés</button>
+            <p style="font-size: 0.75rem; color: #888; text-align: center; margin-top: 10px;" id="add-helper">Toca el botón y luego haz clic en la foto.</p>
         </div>
 
         <div class="control-group">
-            <span class="control-label">4. Gestor de POI</span>
-            <button id="btn-add-poi-mode" class="btn btn-action" onclick="toggleAddMode('poi')">+ Agregar POI</button>
-        </div>
-
-        <div class="control-group" style="min-width: 320px;">
-            <span class="control-label">Inventario Lotes</span>
-            <div id="inventory-list" class="inventory-list"><p style="font-size: 0.8rem; color: #666; text-align: center;">No hay lotes creados.</p></div>
-        </div>
-
-        <div class="control-group">
-            <span class="control-label">Lista POI</span>
-            <div id="poi-list" class="inventory-list"><p style="font-size: 0.8rem; color: #666; text-align: center;">No hay POIs creados.</p></div>
+            <span class="control-label">3. Inventario Lotes</span>
+            <div id="inventory-list" class="inventory-list"><p style="font-size: 0.8rem; color: #666;">Cargando...</p></div>
         </div>
     </div>
 
     <div id="add-modal" class="modal-overlay">
         <div class="modal-content">
-            <h3>Datos del Nuevo Lote</h3>
-            <div class="control-group"><span class="control-label">Nombre / Número</span><input type="text" id="lote-nombre" class="input-text" placeholder="Ej: Lote 01"></div>
-            <div class="control-group"><span class="control-label">Área (m²)</span><input type="text" id="lote-area" class="input-text" placeholder="Ej: 500"></div>
-            <div class="control-group"><span class="control-label">Precio</span><input type="text" id="lote-precio" class="input-text" placeholder="Ej: $150.000.000"></div>
-            <div class="control-group">
-                <span class="control-label">Estado</span>
-                <select id="lote-estado" class="input-select">
-                    <option value="Disponible">Disponible</option>
-                    <option value="Reservado">Reservado</option>
-                    <option value="Vendido">Vendido</option>
-                </select>
-            </div>
+            <h3>Nuevo Lote</h3>
+            <input type="text" id="lote-nombre" class="input-text" placeholder="Nombre (Ej: Lote 01)">
+            <input type="text" id="lote-area" class="input-text" placeholder="Área (Ej: 500)">
+            <input type="text" id="lote-precio" class="input-text" placeholder="Precio (Ej: $150.000)">
+            <select id="lote-estado" class="input-select">
+                <option value="Disponible">Disponible</option>
+                <option value="Reservado">Reservado</option>
+                <option value="Vendido">Vendido</option>
+            </select>
             <button class="btn btn-action" onclick="guardarLote()">Guardar Lote</button>
             <button class="btn btn-upload" onclick="cerrarModal()">Cancelar</button>
         </div>
@@ -135,20 +107,8 @@
 
     <div id="add-poi-modal" class="modal-overlay">
         <div class="modal-content">
-            <h3>Punto de Interés</h3>
-            <div class="control-group">
-                <span class="control-label">Tipo</span>
-                <select id="poi-tipo" class="input-select" onchange="togglePoiInputs()">
-                    <option value="texto">Texto</option>
-                    <option value="imagen">Imagen (Logo)</option>
-                </select>
-            </div>
-            <div class="control-group" id="poi-text-group"><span class="control-label">Texto</span><input type="text" id="poi-texto" class="input-text"></div>
-            <div class="control-group" id="poi-img-group" style="display: none;">
-                <span class="control-label">Subir Logo</span>
-                <label class="btn btn-upload">Seleccionar Imagen<input type="file" id="poi-imagen-upload" accept="image/*" onchange="previewPoiImage(event)"></label>
-                <img id="poi-img-preview" src="" style="max-width: 100%; margin-top: 10px; display: none; border-radius: 4px;">
-            </div>
+            <h3>Nuevo Punto de Interés</h3>
+            <input type="text" id="poi-texto" class="input-text" placeholder="Texto (Ej: Zona Social)">
             <button class="btn btn-action" onclick="guardarPOI()">Guardar POI</button>
             <button class="btn btn-upload" onclick="cerrarModalPOI()">Cancelar</button>
         </div>
@@ -160,51 +120,26 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
-        // CONFIGURACIÓN DE SUPABASE DIRECTA
+        // CREDENCIALES EXACTAS (No modificar)
         const supabaseUrl = 'https://mungbffwwjobinfcympd.supabase.co';
         const supabaseKey = 'sb_publishable_FdwVZx53pGAy_3Zf24-z6w_BJAPi0eD';
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
         let isAddMode = false; let currentModeType = ''; let tempCoords = { yaw: 0, pitch: 0 };
-        let inventarioLotes = []; let inventarioPOIs = []; let tempPoiImageDataUrl = '';
 
         const viewer = new PhotoSphereViewer.Viewer({
             container: document.querySelector('#viewer'),
             panorama: 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg',
-            touchmoveTwoFingers: false, mousewheelCtrlKey: false, moveSpeed: 1.5, zoomSpeed: 2,
+            touchmoveTwoFingers: false, mousewheelCtrlKey: false,
             defaultYaw: '130deg', defaultPitch: '-15deg', defaultZoomLvl: 30,
             navbar: ['zoom', 'fullscreen'],
             plugins: [ [PhotoSphereViewer.MarkersPlugin, { markers: [] }] ]
         });
-
         const markersPlugin = viewer.getPlugin(PhotoSphereViewer.MarkersPlugin);
 
-        // --- FUNCIÓN A PRUEBA DE FALLOS PARA GUARDAR CONFIGURACIÓN ---
-        async function guardarRegistroConfig(campo, valor) {
-            try {
-                // Primero verificamos si la fila id=1 existe
-                const { data } = await supabase.from('configuracion').select('id').eq('id', 1).single();
-                
-                if (!data) {
-                    // Si no existe, creamos la fila nueva
-                    const nuevoReg = { id: 1 };
-                    nuevoReg[campo] = valor;
-                    await supabase.from('configuracion').insert([nuevoReg]);
-                } else {
-                    // Si existe, solo actualizamos el campo específico (imagen o titulo)
-                    const actualizacion = {};
-                    actualizacion[campo] = valor;
-                    await supabase.from('configuracion').update(actualizacion).eq('id', 1);
-                }
-                return true;
-            } catch (err) {
-                console.error("Error guardando config:", err);
-                return false;
-            }
-        }
+        viewer.addEventListener('ready', cargarDatosDesdeBD);
 
-        // --- CARGAR DATOS AL INICIAR ---
-        viewer.addEventListener('ready', async () => { 
+        async function cargarDatosDesdeBD() {
             try {
                 const { data: configData } = await supabase.from('configuracion').select('*').eq('id', 1).single();
                 if (configData) {
@@ -212,204 +147,142 @@
                         document.getElementById('input-title').value = configData.titulo; 
                         document.getElementById('display-title').innerText = configData.titulo;
                     }
-                    if (configData.imagen_url) {
-                        viewer.setPanorama(configData.imagen_url);
-                    }
+                    if (configData.imagen_url) viewer.setPanorama(configData.imagen_url);
                 }
 
                 const { data: lotesData } = await supabase.from('lotes').select('*');
-                if (lotesData) {
-                    lotesData.forEach(lote => {
-                        tempCoords = { yaw: lote.yaw, pitch: lote.pitch };
-                        renderLote(lote.id, lote.nombre, lote.area, lote.precio, lote.estado, false);
-                    });
+                document.getElementById('inventory-list').innerHTML = ''; // Limpiar
+                if (lotesData && lotesData.length > 0) {
+                    lotesData.forEach(lote => { tempCoords = { yaw: lote.yaw, pitch: lote.pitch }; renderLote(lote.id, lote.nombre, lote.area, lote.precio, lote.estado); });
+                } else {
+                    document.getElementById('inventory-list').innerHTML = '<p style="font-size:0.8rem;color:#666;">No hay lotes creados.</p>';
                 }
 
                 const { data: poisData } = await supabase.from('pois').select('*');
                 if (poisData) {
-                    poisData.forEach(poi => {
-                        tempCoords = { yaw: poi.yaw, pitch: poi.pitch };
-                        renderPOI(poi.id, poi.visualType, poi.content, false);
-                    });
+                    poisData.forEach(poi => { tempCoords = { yaw: poi.yaw, pitch: poi.pitch }; renderPOI(poi.id, poi.content); });
                 }
-            } catch (error) { console.log("Aún no hay datos iniciales."); }
-        });
-
-        // --- GUARDAR TÍTULO EN TIEMPO REAL ---
-        async function guardarTitulo() {
-            const titulo = document.getElementById('input-title').value;
-            document.getElementById('display-title').innerText = titulo; // Actualizar visual
-            
-            const exito = await guardarRegistroConfig('titulo', titulo);
-            if(exito) {
-                alert("¡Título guardado en la base de datos!");
-            } else {
-                alert("Hubo un error al guardar el título.");
-            }
+            } catch (err) { console.error("Error BD:", err); }
         }
 
-        // --- SUBIR IMAGEN 360 EN TIEMPO REAL ---
+        async function guardarTitulo() {
+            const titulo = document.getElementById('input-title').value;
+            if(!titulo) return alert("Escribe un título primero.");
+            document.getElementById('display-title').innerText = titulo;
+            
+            const { data } = await supabase.from('configuracion').select('id').eq('id', 1).single();
+            if (!data) await supabase.from('configuracion').insert([{ id: 1, titulo: titulo }]);
+            else await supabase.from('configuracion').update({ titulo: titulo }).eq('id', 1);
+            alert("Título actualizado correctamente.");
+        }
+
         async function cambiarImagen(event) {
             const file = event.target.files[0];
             if (!file) return;
 
             const btnUpload = document.getElementById('btn-upload-lbl');
-            const originalText = btnUpload.innerHTML;
-            btnUpload.innerText = "Subiendo a la nube... ⏳";
+            btnUpload.innerText = "Subiendo imagen... ⏳";
+            const fileName = `panorama_${Date.now()}.jpg`;
             
-            const fileExt = file.name.split('.').pop();
-            const fileName = `panorama_${Date.now()}.${fileExt}`;
-            
-            // Subir a Storage
             const { error } = await supabase.storage.from('imagenes_360').upload(fileName, file);
-                
-            if (error) {
-                alert("Error al subir imagen: " + error.message);
-                btnUpload.innerHTML = originalText;
-                return;
-            }
+            if (error) return alert("Error subiendo: " + error.message);
 
-            // Obtener URL y guardar en BD
-            const { data: publicData } = supabase.storage.from('imagenes_360').getPublicUrl(fileName);
-            const imageUrl = publicData.publicUrl;
+            const { data } = supabase.storage.from('imagenes_360').getPublicUrl(fileName);
+            const imageUrl = data.publicUrl;
             
-            await guardarRegistroConfig('imagen_url', imageUrl);
+            const { data: configCheck } = await supabase.from('configuracion').select('id').eq('id', 1).single();
+            if (!configCheck) await supabase.from('configuracion').insert([{ id: 1, imagen_url: imageUrl }]);
+            else await supabase.from('configuracion').update({ imagen_url: imageUrl }).eq('id', 1);
             
-            // Actualizar visualizador en tiempo real
             viewer.setPanorama(imageUrl);
-            
             btnUpload.innerText = "¡Imagen guardada! ✅";
-            alert("¡Imagen 360 actualizada exitosamente!");
-            
-            // Restaurar botón después de 3 segundos
-            setTimeout(() => { btnUpload.innerHTML = originalText; }, 3000);
+            setTimeout(() => { btnUpload.innerHTML = 'Subir Foto 360 (JPG) <input type="file" accept="image/*" onchange="cambiarImagen(event)">'; }, 3000);
         }
 
-        // --- LÓGICA DE AGREGAR PUNTOS ---
         function toggleAddMode(type) {
-            if (isAddMode && currentModeType !== type) resetAddModes();
-            isAddMode = !isAddMode; currentModeType = isAddMode ? type : '';
-            const btnLote = document.getElementById('btn-add-mode'); const btnPoi = document.getElementById('btn-add-poi-mode');
-            resetAddModes();
-
-            if (isAddMode) {
-                if (type === 'lote') { btnLote.innerText = "¡TOCA LA FOTO!"; btnLote.classList.add('active'); } 
-                else { btnPoi.innerText = "¡TOCA LA FOTO!"; btnPoi.classList.add('active'); }
-                document.querySelector('.viewer-wrapper').style.cursor = 'crosshair';
-            } else { document.querySelector('.viewer-wrapper').style.cursor = 'default'; }
-        }
-
-        function resetAddModes() {
-            document.getElementById('btn-add-mode').innerText = "+ Agregar Lote"; document.getElementById('btn-add-mode').classList.remove('active');
-            document.getElementById('btn-add-poi-mode').innerText = "+ Agregar POI"; document.getElementById('btn-add-poi-mode').classList.remove('active');
+            isAddMode = true; currentModeType = type;
+            const btnLote = document.getElementById('btn-add-mode');
+            const btnPoi = document.getElementById('btn-add-poi-mode');
+            btnLote.classList.remove('active'); btnPoi.classList.remove('active');
+            
+            if (type === 'lote') { btnLote.classList.add('active'); document.getElementById('add-helper').innerText = "TOCA LA FOTO para crear el Lote"; }
+            else { btnPoi.classList.add('active'); document.getElementById('add-helper').innerText = "TOCA LA FOTO para crear el POI"; }
         }
 
         viewer.addEventListener('click', ({ data }) => {
             if (isAddMode) {
-                tempCoords.yaw = data.yaw; tempCoords.pitch = data.pitch;
+                tempCoords = { yaw: data.yaw, pitch: data.pitch };
+                isAddMode = false;
+                document.getElementById('btn-add-mode').classList.remove('active');
+                document.getElementById('btn-add-poi-mode').classList.remove('active');
+                document.getElementById('add-helper').innerText = "Toca el botón y luego haz clic en la foto.";
+
                 if (currentModeType === 'lote') {
-                    document.getElementById('add-modal').classList.add('active');
-                    document.getElementById('lote-nombre').value = ''; document.getElementById('lote-area').value = '';
-                    document.getElementById('lote-precio').value = ''; document.getElementById('lote-estado').value = 'Disponible';
+                    document.getElementById('lote-nombre').value = ''; document.getElementById('add-modal').classList.add('active');
                 } else {
-                    document.getElementById('add-poi-modal').classList.add('active');
-                    document.getElementById('poi-texto').value = ''; document.getElementById('poi-tipo').value = 'texto'; togglePoiInputs();
-                    document.getElementById('poi-img-preview').src = ''; document.getElementById('poi-img-preview').style.display = 'none'; tempPoiImageDataUrl = '';
+                    document.getElementById('poi-texto').value = ''; document.getElementById('add-poi-modal').classList.add('active');
                 }
-                toggleAddMode(currentModeType);
             }
         });
 
         function cerrarModal() { document.getElementById('add-modal').classList.remove('active'); }
         function cerrarModalPOI() { document.getElementById('add-poi-modal').classList.remove('active'); }
 
-        function togglePoiInputs() {
-            const type = document.getElementById('poi-tipo').value;
-            document.getElementById('poi-text-group').style.display = type === 'texto' ? 'block' : 'none';
-            document.getElementById('poi-img-group').style.display = type === 'imagen' ? 'block' : 'none';
-        }
-
-        function previewPoiImage(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    tempPoiImageDataUrl = e.target.result;
-                    document.getElementById('poi-img-preview').src = tempPoiImageDataUrl;
-                    document.getElementById('poi-img-preview').style.display = 'block';
-                }; reader.readAsDataURL(file);
-            }
-        }
-
         async function guardarLote() {
-            const nombre = document.getElementById('lote-nombre').value || `Lote ${inventarioLotes.length + 1}`;
+            const nombre = document.getElementById('lote-nombre').value || `Lote Nuevo`;
             const area = document.getElementById('lote-area').value || '0';
             const precio = document.getElementById('lote-precio').value || '0';
             const estado = document.getElementById('lote-estado').value;
             const idUnico = 'lote-' + Date.now();
             
-            const nuevoLote = { id: idUnico, nombre, area, precio, estado, yaw: tempCoords.yaw, pitch: tempCoords.pitch };
-            const { error } = await supabase.from('lotes').insert([nuevoLote]);
-            if (error) { alert("Error al guardar"); return; }
-            renderLote(idUnico, nombre, area, precio, estado, true); cerrarModal();
+            await supabase.from('lotes').insert([{ id: idUnico, nombre, area, precio, estado, yaw: tempCoords.yaw, pitch: tempCoords.pitch }]);
+            renderLote(idUnico, nombre, area, precio, estado);
+            cerrarModal();
         }
 
-        function renderLote(idUnico, nombre, area, precio, estado, saveLocal = true) {
-            let claseMarker = 'marker-disponible'; let colorStatus = '#2ecc71';
-            if (estado === 'Vendido') { claseMarker = 'marker-vendido'; colorStatus = '#e74c3c'; } 
-            else if (estado === 'Reservado') { claseMarker = 'marker-reservado'; colorStatus = '#f39c12'; }
+        function renderLote(idUnico, nombre, area, precio, estado) {
+            let color = estado === 'Vendido' ? '#e74c3c' : (estado === 'Reservado' ? '#f39c12' : '#2ecc71');
+            let clase = estado === 'Vendido' ? 'marker-vendido' : (estado === 'Reservado' ? 'marker-reservado' : 'marker-disponible');
 
             markersPlugin.addMarker({
                 id: idUnico, position: { yaw: tempCoords.yaw, pitch: tempCoords.pitch },
-                html: `<div class="lote-marker ${claseMarker}"></div>`, size: { width: 24, height: 24 }, anchor: 'center center',
-                tooltip: { content: `<div style="text-align:center;"><strong style="color:#D4AF37">${nombre}</strong><br><span style="font-size:0.8rem">${area} m² - ${precio}</span></div>`, position: 'top center' }
+                html: `<div class="lote-marker ${clase}"></div>`, size: { width: 20, height: 20 }, anchor: 'center center',
+                tooltip: { content: `<div style="text-align:center;"><strong style="color:#D4AF37">${nombre}</strong></div>`, position: 'top center' }
             });
 
             const lista = document.getElementById('inventory-list');
-            if(inventarioLotes.length === 0 && saveLocal) lista.innerHTML = '';
+            if(lista.innerHTML.includes('No hay lotes')) lista.innerHTML = '';
             
-            const htmlItem = `
-                <div class="lot-item" id="item-${idUnico}">
-                    <div><span class="lot-status" style="background:${colorStatus}"></span><strong>${nombre}</strong> <span style="color:#888;">(${area}m²)</span></div>
-                    <select class="input-select" style="width: auto; padding: 5px; font-size: 0.75rem; border-color: ${colorStatus};" onchange="cambiarEstadoLote('${idUnico}', this.value)">
-                        <option value="Disponible" ${estado === 'Disponible' ? 'selected' : ''}>Disponible</option>
-                        <option value="Reservado" ${estado === 'Reservado' ? 'selected' : ''}>Reservado</option>
-                        <option value="Vendido" ${estado === 'Vendido' ? 'selected' : ''}>Vendido</option>
+            lista.innerHTML += `
+                <div class="lot-item">
+                    <div><span style="color:${color}">●</span> <strong>${nombre}</strong></div>
+                    <select class="input-select" style="width: auto; padding: 4px; margin: 0; font-size: 0.75rem;" onchange="cambiarEstadoLote('${idUnico}', this.value)">
+                        <option value="Disponible" ${estado === 'Disponible' ? 'selected' : ''}>Disp.</option>
+                        <option value="Reservado" ${estado === 'Reservado' ? 'selected' : ''}>Resrv.</option>
+                        <option value="Vendido" ${estado === 'Vendido' ? 'selected' : ''}>Vend.</option>
                     </select>
-                </div>
-            `;
-            lista.innerHTML += htmlItem;
-            if (saveLocal) inventarioLotes.push({ id: idUnico, nombre, area, precio, estado, type: 'lote' });
+                </div>`;
         }
 
         async function cambiarEstadoLote(idLote, nuevoEstado) {
-            const { error } = await supabase.from('lotes').update({ estado: nuevoEstado }).eq('id', idLote);
-            if (error) alert("Error actualizando estado: " + error.message);
-            else location.reload();
+            await supabase.from('lotes').update({ estado: nuevoEstado }).eq('id', idLote);
+            location.reload(); // Recarga para aplicar el color
         }
 
         async function guardarPOI() {
-            const tipo = document.getElementById('poi-tipo').value;
+            const texto = document.getElementById('poi-texto').value || 'Punto';
             const idUnico = 'poi-' + Date.now();
-            let contentData = tipo === 'texto' ? (document.getElementById('poi-texto').value || 'POI') : tempPoiImageDataUrl;
-            
-            const nuevoPoi = { id: idUnico, visualType: tipo, content: contentData, yaw: tempCoords.yaw, pitch: tempCoords.pitch };
-            const { error } = await supabase.from('pois').insert([nuevoPoi]);
-            if (error) { alert("Error al guardar POI"); return; }
-            renderPOI(idUnico, tipo, contentData, true); cerrarModalPOI();
+            await supabase.from('pois').insert([{ id: idUnico, visualType: 'texto', content: texto, yaw: tempCoords.yaw, pitch: tempCoords.pitch }]);
+            renderPOI(idUnico, texto);
+            cerrarModalPOI();
         }
 
-        function renderPOI(idUnico, tipo, contentData, saveLocal = true) {
-            let contenidoHTML = tipo === 'texto' 
-                ? `<div class="poi-container"><div class="poi-content-text">${contentData}</div><div class="poi-line-v"></div><div class="poi-dot"></div></div>`
-                : `<div class="poi-container"><img class="poi-content-img" src="${tempPoiImageDataUrl}" /><div class="poi-line-v"></div><div class="poi-dot"></div></div>`;
-
-            markersPlugin.addMarker({ id: idUnico, position: { yaw: tempCoords.yaw, pitch: tempCoords.pitch }, html: contenidoHTML, size: { width: 100, height: 120 }, anchor: 'bottom center' });
-
-            const lista = document.getElementById('poi-list');
-            if(inventarioPOIs.length === 0 && saveLocal) lista.innerHTML = '';
-            lista.innerHTML += `<div class="lot-item"><div><span class="lot-status" style="background:#D4AF37"></span><strong>${tipo === 'texto' ? contentData : 'Imagen POI'}</strong></div><span style="color:#888;font-size:0.75rem">${tipo}</span></div>`;
-            if (saveLocal) inventarioPOIs.push({ id: idUnico, type: 'poi' });
+        function renderPOI(idUnico, texto) {
+            markersPlugin.addMarker({
+                id: idUnico, position: { yaw: tempCoords.yaw, pitch: tempCoords.pitch },
+                html: `<div style="display:flex;flex-direction:column;align-items:center;pointer-events:none;"><div style="color:#fff;font-weight:bold;background:rgba(0,0,0,0.5);padding:2px 8px;border-radius:4px;border:1px solid #D4AF37;">${texto}</div><div style="width:2px;height:40px;background:#fff;"></div><div style="width:10px;height:10px;background:#D4AF37;border-radius:50%;"></div></div>`,
+                size: { width: 100, height: 100 }, anchor: 'bottom center'
+            });
         }
     </script>
 </body>
