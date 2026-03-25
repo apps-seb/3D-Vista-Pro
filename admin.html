@@ -40,7 +40,12 @@
 <body>
 
     <div class="viewer-area">
-        <div class="header-premium"><div class="header-title" id="display-title">🔄 INICIANDO V3...</div></div>
+        <div class="header-premium">
+            <div class="header-title" style="display: flex; align-items: center; gap: 10px;">
+                <img id="display-logo" style="height: 40px; border-radius: 4px; display: none;">
+                <span id="display-title">🔄 INICIANDO V3...</span>
+            </div>
+        </div>
         <div id="viewer"></div>
     </div>
 
@@ -48,11 +53,17 @@
         <div class="control-group">
             <span class="control-label">1. Configuración Principal</span>
             <input type="text" id="input-title" class="input-text" placeholder="Nombre del proyecto">
+            
+            <div id="logo-preview-container" style="display: none; margin-bottom: 10px; text-align: center;">
+                <img id="admin-logo-preview" style="max-height: 50px; border-radius: 4px; border: 1px solid #444;" />
+            </div>
+            
             <label class="btn btn-upload" id="btn-upload-logo-lbl" style="margin-bottom: 10px;">
                 Subir Logo (PNG/JPG)
                 <input type="file" id="upload-logo" accept="image/png, image/jpeg" style="display:none;" onchange="cargarLogo(event)">
             </label>
             <input type="hidden" id="logo-data">
+            
             <button class="btn btn-action" onclick="guardarTitulo()">Guardar Proyecto (Título y Logo)</button>
             <label class="btn btn-upload" id="btn-upload-lbl">
                 Subir Foto 360 (JPG)
@@ -93,7 +104,21 @@
     <div id="poi-modal" class="modal-overlay">
         <div class="modal-content">
             <h3>Punto de Interés</h3>
+            <select id="poi-tipo-visual" class="input-select" onchange="cambiarTipoPOI(this.value)">
+                <option value="texto">Texto Simple</option>
+                <option value="imagen">Logo / Imagen</option>
+            </select>
             <input type="text" id="poi-texto" class="input-text" placeholder="Texto (Ej: Zona Social)">
+            
+            <div id="poi-imagen-container" style="display: none; margin-bottom: 10px;">
+                <label class="btn btn-upload">
+                    Subir Imagen (PNG/JPG)
+                    <input type="file" id="upload-poi-img" accept="image/png, image/jpeg" style="display:none;" onchange="cargarLogoPOI(event)">
+                </label>
+                <input type="hidden" id="poi-img-data">
+                <img id="poi-img-preview" style="max-width: 100%; max-height: 100px; display: none; margin-top: 10px; border-radius: 4px; border: 1px solid #333;" />
+            </div>
+
             <button class="btn btn-action" onclick="guardarPOI()">Guardar POI</button>
             <button class="btn btn-upload" style="border:none;" onclick="cerrarModales()">Cancelar</button>
         </div>
@@ -153,7 +178,6 @@
                                 let parts = config.titulo.split('|LOGO:');
                                 titulo = parts[0];
                                 logoUrl = parts[1];
-                                document.getElementById('logo-data').value = logoUrl;
                             } else {
                                 titulo = config.titulo;
                             }
@@ -164,11 +188,17 @@
                     window.mostrarError("Conexión BD", dbError);
                 }
 
+                document.getElementById('input-title').value = titulo;
                 document.getElementById('display-title').innerText = titulo;
                 if (logoUrl) {
-                    document.getElementById('display-title').innerHTML = `<img src="${logoUrl}" style="height: 30px; vertical-align: middle; margin-right: 10px; border-radius: 4px;">` + titulo;
+                    document.getElementById('logo-data').value = logoUrl;
+                    document.getElementById('display-logo').src = logoUrl;
+                    document.getElementById('display-logo').style.display = 'block';
+                    document.getElementById('admin-logo-preview').src = logoUrl;
+                    document.getElementById('logo-preview-container').style.display = 'block';
                 } else {
-                    document.getElementById('display-title').innerText = titulo;
+                    document.getElementById('display-logo').style.display = 'none';
+                    document.getElementById('logo-preview-container').style.display = 'none';
                 }
 
                 viewer = new PhotoSphereViewer.Viewer({
@@ -217,6 +247,8 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 document.getElementById('logo-data').value = e.target.result;
+                document.getElementById('admin-logo-preview').src = e.target.result;
+                document.getElementById('logo-preview-container').style.display = 'block';
                 btn.innerHTML = "¡Logo Cargado! ✅";
                 setTimeout(() => { btn.innerHTML = originalText; }, 3000);
             };
@@ -235,10 +267,12 @@
 
                 let tituloAguardar = logoData ? `${titulo}|LOGO:${logoData}` : titulo;
 
+                document.getElementById('display-title').innerText = titulo;
                 if (logoData) {
-                    document.getElementById('display-title').innerHTML = `<img src="${logoData}" style="height: 30px; vertical-align: middle; margin-right: 10px; border-radius: 4px;">` + titulo;
+                    document.getElementById('display-logo').src = logoData;
+                    document.getElementById('display-logo').style.display = 'block';
                 } else {
-                    document.getElementById('display-title').innerText = titulo;
+                    document.getElementById('display-logo').style.display = 'none';
                 }
 
                 const { data, error: selectError } = await supabaseClient.from('configuracion').select('id').eq('id', 1).maybeSingle();
@@ -389,26 +423,71 @@
             }
         }
 
+        window.cambiarTipoPOI = function(tipo) {
+            if (tipo === 'imagen') {
+                document.getElementById('poi-imagen-container').style.display = 'block';
+            } else {
+                document.getElementById('poi-imagen-container').style.display = 'none';
+            }
+        }
+
+        window.cargarLogoPOI = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('poi-img-data').value = e.target.result;
+                const preview = document.getElementById('poi-img-preview');
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            };
+            reader.onerror = function(error) {
+                window.mostrarError("FileReader POI Logo", "No se pudo leer el archivo de imagen");
+            };
+            reader.readAsDataURL(file);
+        };
+
         window.guardarPOI = async function() {
             try {
                 const texto = document.getElementById('poi-texto').value || 'Punto';
                 const idUnico = 'poi-' + Date.now();
-                const { error } = await supabaseClient.from('pois').insert([{ id: idUnico, content: texto, yaw: tempCoords.yaw, pitch: tempCoords.pitch }]);
+                const tipo = document.getElementById('poi-tipo-visual').value;
+                let imgData = null;
+                if (tipo === 'imagen') {
+                    imgData = document.getElementById('poi-img-data').value;
+                }
+                const visualtype = imgData ? `IMG|${imgData}` : null;
+                const newContent = visualtype ? `${visualtype}|TEXT|${texto}` : texto;
+                const { error } = await supabaseClient.from('pois').insert([{ id: idUnico, content: newContent, yaw: tempCoords.yaw, pitch: tempCoords.pitch }]);
                 if (error) throw error;
-                window.renderPOI(idUnico, texto, tempCoords.yaw, tempCoords.pitch);
+                window.renderPOI(idUnico, newContent, tempCoords.yaw, tempCoords.pitch);
                 window.cerrarModales();
             } catch (error) {
                 window.mostrarError("guardarPOI", error);
             }
         }
 
-        window.renderPOI = function(id, texto, yaw, pitch) {
+        window.renderPOI = function(id, content, yaw, pitch) {
             try {
+                let displayText = content;
+                let displayVisualType = null;
+                if (content && content.startsWith('IMG|')) {
+                    const parts = content.split('|TEXT|');
+                    displayVisualType = parts[0];
+                    displayText = parts[1] || 'Punto';
+                }
+
                 if (!markersPlugin.markers[id]) {
-                    markersPlugin.addMarker({ id, position: { yaw, pitch }, html: `<div style="display:flex;flex-direction:column;align-items:center;"><div style="background:rgba(0,0,0,0.8);color:#fff;padding:4px 10px;border:1px solid #D4AF37;border-radius:4px;font-size:0.8rem;">${texto}</div><div style="width:2px;height:30px;background:#fff;"></div><div style="width:12px;height:12px;background:#D4AF37;border-radius:50%;"></div></div>`, size: { width: 100, height: 100 }, anchor: 'bottom center' });
+                    let htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;"><div style="background:rgba(0,0,0,0.8);color:#fff;padding:4px 10px;border:1px solid #D4AF37;border-radius:4px;font-size:0.8rem;">${displayText}</div><div style="width:2px;height:30px;background:#fff;"></div><div style="width:12px;height:12px;background:#D4AF37;border-radius:50%;"></div></div>`;
+                    if (displayVisualType && displayVisualType.startsWith('IMG|')) {
+                        let imgData = displayVisualType.substring(4);
+                        htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;"><div style="background:rgba(0,0,0,0.8);padding:4px;border:1px solid #D4AF37;border-radius:4px;"><img src="${imgData}" style="max-width: 60px; max-height: 60px;"></div><div style="width:2px;height:30px;background:#fff;"></div><div style="width:12px;height:12px;background:#D4AF37;border-radius:50%;"></div></div>`;
+                    }
+
+                    markersPlugin.addMarker({ id, position: { yaw, pitch }, html: htmlContent, size: { width: 100, height: 100 }, anchor: 'bottom center' });
                     const lista = document.getElementById('inventory-list');
                     if(lista.innerHTML.includes('vacío')) lista.innerHTML = '';
-                    lista.insertAdjacentHTML('beforeend', `<div class="lot-item" id="item-${id}"><div><span style="color:#D4AF37">★</span> <strong>${texto}</strong></div><button class="btn-delete" onclick="window.borrarElemento('pois', '${id}')">X</button></div>`);
+                    lista.insertAdjacentHTML('beforeend', `<div class="lot-item" id="item-${id}"><div><span style="color:#D4AF37">★</span> <strong>${displayText}</strong></div><button class="btn-delete" onclick="window.borrarElemento('pois', '${id}')">X</button></div>`);
                 }
             } catch (error) {
                 window.mostrarError("renderPOI", error);
