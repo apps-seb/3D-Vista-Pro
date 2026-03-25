@@ -3,68 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rincón de Baviera - 360 Premium</title>
+    <title>Vista 360 - Rincón de Baviera</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core/index.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin/index.min.css" />
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core@5.1.4/index.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin@5.1.4/index.min.css" />
     
     <style>
         body { margin: 0; font-family: 'Montserrat', sans-serif; background-color: #000; overflow: hidden; }
-        #viewer { width: 100vw; height: 100vh; transition: filter 0.3s ease; }
+        #viewer { width: 100vw; height: 100vh; }
 
-        .header-premium { position: absolute; top: 0; left: 0; width: 100%; padding: 20px 35px; background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%); color: white; z-index: 10; pointer-events: none; box-sizing: border-box; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px; }
-        .header-left { display: flex; flex-direction: column; }
-        .header-title { font-size: 1.4rem; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: #D4AF37; }
-        .header-subtitle { font-size: 0.9rem; font-weight: 300; color: #e5e7eb; letter-spacing: 1px; margin-top: 4px; }
+        .header-premium { position: absolute; top: 0; left: 0; width: 100%; padding: 20px 30px; background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); color: white; z-index: 10; pointer-events: none; }
+        .header-title { font-size: 1.4rem; font-weight: 600; letter-spacing: 2px; color: #D4AF37; text-transform: uppercase; }
 
-        .inventory-bar { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 15px; background: rgba(20, 20, 20, 0.8); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); padding: 10px 20px; border-radius: 30px; border: 1px solid rgba(212, 175, 55, 0.3); pointer-events: auto; flex-wrap: nowrap; justify-content: center; z-index: 10; white-space: nowrap; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        @media (max-width: 600px) { .inventory-bar { width: 90%; max-width: 400px; padding: 10px; gap: 10px; border-radius: 15px; flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; } .inv-item { font-size: 0.75rem; } }
-        .inv-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
-        .inv-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid #fff; }
-        .dot-disp { background: #2ecc71; box-shadow: 0 0 8px rgba(46, 204, 113, 0.6); }
-        .dot-res { background: #f39c12; box-shadow: 0 0 8px rgba(243, 156, 18, 0.6); }
-        .dot-vend { background: #e74c3c; box-shadow: 0 0 8px rgba(231, 76, 60, 0.6); }
-        .inv-count { color: #fff; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 12px; }
+        .inventory-bar { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 15px; background: rgba(0, 0, 0, 0.8); padding: 12px 25px; border-radius: 30px; border: 1px solid rgba(212, 175, 55, 0.4); z-index: 10; white-space: nowrap; box-shadow: 0 5px 20px rgba(0,0,0,0.8); }
+        @media (max-width: 600px) { .inventory-bar { width: 90%; max-width: 350px; padding: 10px; gap: 10px; border-radius: 12px; overflow-x: auto; justify-content: flex-start; } .inv-item { font-size: 0.75rem; } }
+        
+        .inv-item { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; color: #fff; }
+        .inv-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .inv-count { background: rgba(255,255,255,0.15); padding: 2px 8px; border-radius: 12px; }
 
-        .lote-marker { width: 24px; height: 24px; background: rgba(212, 175, 55, 0.9); border: 2px solid #fff; border-radius: 50%; box-shadow: 0 0 15px rgba(212, 175, 55, 0.6); cursor: pointer; animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(212, 175, 55, 0); } 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); } }
+        .lote-marker { width: 24px; height: 24px; border: 2px solid #fff; border-radius: 50%; cursor: pointer; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
 
-        .poi-container { display: flex; flex-direction: column; align-items: center; pointer-events: none; }
-        .poi-content-text { color: #fff; font-weight: 600; font-size: 14px; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); padding: 4px 12px; white-space: nowrap; border-bottom: 2px solid #fff; font-family: 'Montserrat', sans-serif; }
-        .poi-content-img { max-width: 80px; max-height: 80px; object-fit: contain; background: rgba(255,255,255,0.9); border-radius: 6px; padding: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .poi-line-v { width: 2px; height: 50px; background: #fff; box-shadow: 0 0 5px rgba(0,0,0,0.3); }
-        .poi-dot { width: 14px; height: 14px; background: #D4AF37; border: 2px solid #fff; border-radius: 50%; pointer-events: auto; cursor: pointer; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
-
-        .modal-overlay { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.4); z-index: 50; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
-        .modal-overlay.active { opacity: 1; pointer-events: all; }
-        .modal-content { background: rgba(20, 20, 20, 0.75); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(212, 175, 55, 0.4); border-radius: 16px; padding: 30px; width: 90%; max-width: 400px; color: white; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.6); transform: translateY(20px); transition: transform 0.4s ease; position: relative; }
-        .modal-overlay.active .modal-content { transform: translateY(0); }
-        .btn-close { position: absolute; top: 15px; right: 15px; background: none; border: none; color: #ccc; font-size: 1.5rem; cursor: pointer; transition: color 0.2s; }
-        .btn-close:hover { color: #fff; }
-        .modal-title { font-size: 1.6rem; font-weight: 600; color: #D4AF37; margin: 0 0 10px 0; }
-        .modal-badge { display: inline-block; background: rgba(46, 204, 113, 0.2); color: #2ecc71; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; border: 1px solid rgba(46, 204, 113, 0.5); margin-bottom: 20px; }
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; text-align: left; }
-        .info-box { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); }
-        .info-label { font-size: 0.75rem; color: #aaa; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
-        .info-value { font-size: 1.1rem; font-weight: 600; }
-        .btn-whatsapp { display: block; width: 100%; padding: 15px; background: linear-gradient(135deg, #25D366, #128C7E); color: white; text-decoration: none; font-weight: 600; border-radius: 8px; font-size: 1rem; transition: transform 0.2s, box-shadow 0.2s; box-sizing: border-box; }
-        .btn-whatsapp:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(37, 211, 102, 0.4); }
-        .psv-navbar { background: rgba(0,0,0,0.6) !important; backdrop-filter: blur(5px); }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 50; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .modal-overlay.active { display: flex; }
+        .modal-content { background: #111; border: 1px solid #D4AF37; border-radius: 12px; padding: 25px; width: 85%; max-width: 320px; color: white; text-align: center; position: relative; }
+        .btn-close { position: absolute; top: 10px; right: 15px; background: none; border: none; color: #aaa; font-size: 1.5rem; cursor: pointer; }
+        
+        .modal-title { font-size: 1.5rem; color: #D4AF37; margin: 0 0 5px 0; }
+        .modal-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; margin-bottom: 20px; }
+        
+        .info-box { background: #222; padding: 12px; border-radius: 8px; margin-bottom: 10px; text-align: center; }
+        .btn-whatsapp { display: block; padding: 15px; background: #25D366; color: white; text-decoration: none; font-weight: bold; border-radius: 8px; margin-top: 15px; text-transform: uppercase; font-size: 0.9rem; }
     </style>
 </head>
 <body>
 
-    <div class="header-premium">
-        <div class="header-left">
-            <div class="header-title">Rincón de Baviera</div>
-            <div class="header-subtitle">Masterplan Interactivo</div>
-        </div>
-    </div>
+    <div class="header-premium"><div class="header-title" id="display-title">Cargando...</div></div>
 
     <div class="inventory-bar">
-        <div class="inv-item"><span class="inv-dot dot-disp"></span> Disponibles: <span class="inv-count" id="count-disp">0</span></div>
-        <div class="inv-item"><span class="inv-dot dot-res"></span> Reservados: <span class="inv-count" id="count-res">0</span></div>
-        <div class="inv-item"><span class="inv-dot dot-vend"></span> Vendidos: <span class="inv-count" id="count-vend">0</span></div>
+        <div class="inv-item"><span class="inv-dot" style="background:#2ecc71"></span> Disp: <span class="inv-count" id="count-disp">0</span></div>
+        <div class="inv-item"><span class="inv-dot" style="background:#f39c12"></span> Resrv: <span class="inv-count" id="count-res">0</span></div>
+        <div class="inv-item"><span class="inv-dot" style="background:#e74c3c"></span> Vend: <span class="inv-count" id="count-vend">0</span></div>
     </div>
 
     <div id="viewer"></div>
@@ -72,115 +53,128 @@
     <div id="premium-modal" class="modal-overlay">
         <div class="modal-content">
             <button class="btn-close" onclick="cerrarModal()">&times;</button>
-            <h2 class="modal-title" id="m-titulo">Lote 00</h2>
-            <div class="modal-badge" id="m-estado">Disponible</div>
-            
-            <div class="info-grid">
-                <div class="info-box"><div class="info-label">Área Total</div><div class="info-value" id="m-area">0 m²</div></div>
-                <div class="info-box"><div class="info-label">Precio</div><div class="info-value" id="m-precio">$0</div></div>
-            </div>
-
+            <h2 class="modal-title" id="m-titulo">Lote</h2>
+            <div class="modal-badge" id="m-estado">Estado</div>
+            <div class="info-box">Área: <strong id="m-area">0</strong><br>Precio: <strong id="m-precio">0</strong></div>
             <a href="#" target="_blank" class="btn-whatsapp" id="m-whatsapp">Contactar por WhatsApp</a>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/three/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core/index.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core@5.1.4/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin@5.1.4/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
-        // CONFIGURACIÓN DE SUPABASE
         const supabaseUrl = 'https://mungbffwwjobinfcympd.supabase.co';
         const supabaseKey = 'sb_publishable_FdwVZx53pGAy_3Zf24-z6w_BJAPi0eD';
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-        const viewer = new PhotoSphereViewer.Viewer({
-            container: document.querySelector('#viewer'),
-            panorama: 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg', 
-            touchmoveTwoFingers: false, mousewheelCtrlKey: false, moveSpeed: 1.5, zoomSpeed: 2,
-            defaultYaw: '130deg', defaultPitch: '-15deg', defaultZoomLvl: 30,
-            navbar: ['zoom', 'fullscreen'],
-            plugins: [ [PhotoSphereViewer.MarkersPlugin, { markers: [] }] ]
-        });
+        let viewer, markersPlugin;
+        const fallbackImage = 'https://upload.wikimedia.org/wikipedia/commons/e/e0/Equirectangular_projection_SW.jpg';
 
-        const markersPlugin = viewer.getPlugin(PhotoSphereViewer.MarkersPlugin);
-        const modal = document.getElementById('premium-modal');
-        const viewerDiv = document.getElementById('viewer');
-
-        async function cargarDatosDesdeBD() {
+        async function initClient() {
             try {
-                // Filtramos la lectura con eq('id', 1) para sincronizar con el administrador
-                const { data: configData } = await supabase.from('configuracion').select('*').eq('id', 1).single();
-                const { data: lotesData } = await supabase.from('lotes').select('*');
-                const { data: poisData } = await supabase.from('pois').select('*');
+                const { data: config } = await supabase.from('configuracion').select('*').eq('id', 1).maybeSingle();
+                
+                let panoUrl = fallbackImage;
+                let titulo = "Rincón de Baviera";
 
-                if (configData) {
-                    if (configData.titulo) {
-                        document.querySelector('.header-title').innerText = configData.titulo;
-                        document.title = configData.titulo + " - 360 Premium";
-                    }
-                    if (configData.imagen_url) {
-                        viewer.setPanorama(configData.imagen_url); 
-                    }
+                if (config) {
+                    if (config.imagen_url) panoUrl = config.imagen_url;
+                    if (config.titulo) titulo = config.titulo;
                 }
 
-                let dispCount = 0; let resCount = 0; let vendCount = 0;
+                document.getElementById('display-title').innerText = titulo;
 
-                if (lotesData) {
-                    lotesData.forEach(lote => {
-                        let markerStyle = '';
-                        if (lote.estado === 'Vendido') { markerStyle = 'background: rgba(231, 76, 60, 0.9); border-color:#fff; box-shadow: 0 0 10px rgba(231, 76, 60, 0.6); animation: none;'; vendCount++; } 
-                        else if (lote.estado === 'Reservado') { markerStyle = 'background: rgba(243, 156, 18, 0.9); border-color:#fff; box-shadow: 0 0 15px rgba(243, 156, 18, 0.6); animation: pulse-res 2s infinite;'; resCount++; } 
-                        else { markerStyle = 'background: rgba(46, 204, 113, 0.9); border-color:#fff; box-shadow: 0 0 15px rgba(46, 204, 113, 0.6); animation: pulse-disp 2s infinite;'; dispCount++; }
+                viewer = new PhotoSphereViewer.Viewer({
+                    container: document.querySelector('#viewer'),
+                    panorama: panoUrl, 
+                    touchmoveTwoFingers: false, mousewheelCtrlKey: false,
+                    defaultYaw: '0deg', defaultPitch: '0deg',
+                    navbar: ['zoom', 'fullscreen'],
+                    plugins: [ [PhotoSphereViewer.MarkersPlugin, { markers: [] }] ]
+                });
 
-                        markersPlugin.addMarker({
-                            id: lote.id, position: { yaw: lote.yaw, pitch: lote.pitch },
-                            html: `<div class="lote-marker" style="${markerStyle}">
-                                <style>@keyframes pulse-disp { 0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(46, 204, 113, 0); } 100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); } } @keyframes pulse-res { 0% { box-shadow: 0 0 0 0 rgba(243, 156, 18, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(243, 156, 18, 0); } 100% { box-shadow: 0 0 0 0 rgba(243, 156, 18, 0); } }</style></div>`,
-                            size: { width: 24, height: 24 }, anchor: 'center center',
-                            data: { type: 'lote', nombre: lote.nombre, area: lote.area + ' m²', precio: lote.precio, estado: lote.estado }
-                        });
-                    });
-                }
+                markersPlugin = viewer.getPlugin(PhotoSphereViewer.MarkersPlugin);
 
-                document.getElementById('count-disp').innerText = dispCount; document.getElementById('count-res').innerText = resCount; document.getElementById('count-vend').innerText = vendCount;
+                viewer.addEventListener('ready', cargarDatosPublicos);
 
-                if (poisData) {
-                    poisData.forEach(poi => {
-                        let contenidoHTML = poi.visualType === 'texto' 
-                            ? `<div class="poi-container"><div class="poi-content-text">${poi.content}</div><div class="poi-line-v"></div><div class="poi-dot"></div></div>`
-                            : `<div class="poi-container"><img class="poi-content-img" src="${poi.content}" /><div class="poi-line-v"></div><div class="poi-dot"></div></div>`;
-                        markersPlugin.addMarker({ id: poi.id, position: { yaw: poi.yaw, pitch: poi.pitch }, html: contenidoHTML, size: { width: 100, height: 120 }, anchor: 'bottom center', data: { type: 'poi' } });
-                    });
-                }
-            } catch (error) { console.error("Error cargando datos:", error); }
+            } catch (error) {
+                console.error("Error cargando vista de cliente:", error);
+            }
         }
 
-        viewer.addEventListener('ready', () => { cargarDatosDesdeBD(); });
+        async function cargarDatosPublicos() {
+            const { data: lotes } = await supabase.from('lotes').select('*');
+            let disp = 0, res = 0, vend = 0;
 
-        markersPlugin.addEventListener('select-marker', ({ marker }) => {
-            if (marker.config.data && marker.config.data.type === 'lote') {
-                document.getElementById('m-titulo').innerText = marker.config.data.nombre || marker.config.id;
-                document.getElementById('m-area').innerText = marker.config.data.area;
-                document.getElementById('m-precio').innerText = marker.config.data.precio;
+            if (lotes) {
+                lotes.forEach(l => {
+                    let bg = l.estado === 'Vendido' ? 'rgba(231,76,60,0.9)' : (l.estado === 'Reservado' ? 'rgba(243,156,18,0.9)' : 'rgba(46,204,113,0.9)');
+                    let shadow = l.estado === 'Vendido' ? '#e74c3c' : (l.estado === 'Reservado' ? '#f39c12' : '#2ecc71');
+                    
+                    if(l.estado === 'Vendido') vend++; else if(l.estado === 'Reservado') res++; else disp++;
 
-                const estadoEl = document.getElementById('m-estado'); estadoEl.innerText = marker.config.data.estado;
-
-                if(marker.config.data.estado === 'Vendido') { estadoEl.style.background = 'rgba(231, 76, 60, 0.2)'; estadoEl.style.color = '#e74c3c'; estadoEl.style.borderColor = 'rgba(231, 76, 60, 0.5)'; } 
-                else if(marker.config.data.estado === 'Reservado') { estadoEl.style.background = 'rgba(243, 156, 18, 0.2)'; estadoEl.style.color = '#f39c12'; estadoEl.style.borderColor = 'rgba(243, 156, 18, 0.5)'; } 
-                else { estadoEl.style.background = 'rgba(46, 204, 113, 0.2)'; estadoEl.style.color = '#2ecc71'; estadoEl.style.borderColor = 'rgba(46, 204, 113, 0.5)'; }
-
-                const numeroTel = "573000000000"; // EDITA TU NÚMERO DE WHATSAPP AQUÍ
-                const mensaje = `Hola, me interesa obtener más información sobre el ${marker.config.data.nombre || marker.config.id} de ${document.querySelector('.header-title').innerText}.`;
-                document.getElementById('m-whatsapp').href = `https://wa.me/${numeroTel}?text=${encodeURIComponent(mensaje)}`;
-
-                modal.classList.add('active'); viewerDiv.style.filter = 'blur(5px)';
+                    markersPlugin.addMarker({
+                        id: l.id, position: { yaw: l.yaw, pitch: l.pitch },
+                        html: `<div class="lote-marker" style="background:${bg}; box-shadow: 0 0 15px ${shadow}"></div>`,
+                        size: { width: 24, height: 24 }, anchor: 'center center',
+                        data: { type: 'lote', nombre: l.nombre, area: l.area + ' m²', precio: l.precio, estado: l.estado }
+                    });
+                });
             }
-        });
+            
+            document.getElementById('count-disp').innerText = disp; 
+            document.getElementById('count-res').innerText = res; 
+            document.getElementById('count-vend').innerText = vend;
 
-        function cerrarModal() { modal.classList.remove('active'); viewerDiv.style.filter = 'none'; }
-        modal.addEventListener('click', (e) => { if (e.target === modal) cerrarModal(); });
+            const { data: pois } = await supabase.from('pois').select('*');
+            if (pois) {
+                pois.forEach(p => {
+                    markersPlugin.addMarker({
+                        id: p.id, position: { yaw: p.yaw, pitch: p.pitch },
+                        html: `<div style="display:flex;flex-direction:column;align-items:center;">
+                                <div style="background:rgba(0,0,0,0.8);color:#fff;padding:5px 12px;border:1px solid #D4AF37;border-radius:4px;font-weight:bold;">${p.content}</div>
+                                <div style="width:2px;height:40px;background:#fff;"></div>
+                                <div style="width:14px;height:14px;background:#D4AF37;border-radius:50%;"></div>
+                               </div>`,
+                        size: { width: 100, height: 100 }, anchor: 'bottom center'
+                    });
+                });
+            }
+        }
+
+        function cerrarModal() { document.getElementById('premium-modal').classList.remove('active'); }
+
+        // Abrir Modal de Lotes
+        function attachModalEvents() {
+            if(!markersPlugin) return;
+            markersPlugin.addEventListener('select-marker', ({ marker }) => {
+                if (marker.config.data && marker.config.data.type === 'lote') {
+                    document.getElementById('m-titulo').innerText = marker.config.data.nombre;
+                    document.getElementById('m-area').innerText = marker.config.data.area;
+                    document.getElementById('m-precio').innerText = marker.config.data.precio;
+                    
+                    const est = document.getElementById('m-estado');
+                    est.innerText = marker.config.data.estado;
+                    est.style.color = marker.config.data.estado === 'Vendido' ? '#e74c3c' : (marker.config.data.estado === 'Reservado' ? '#f39c12' : '#2ecc71');
+                    est.style.background = 'rgba(255,255,255,0.1)';
+
+                    const numeroTel = "573000000000"; // CAMBIA TU NÚMERO AQUÍ
+                    const msj = `Hola, me interesa el ${marker.config.data.nombre} del proyecto ${document.getElementById('display-title').innerText}.`;
+                    document.getElementById('m-whatsapp').href = `https://wa.me/${numeroTel}?text=${encodeURIComponent(msj)}`;
+
+                    document.getElementById('premium-modal').classList.add('active');
+                }
+            });
+        }
+
+        // Ejecutar todo
+        initClient().then(() => {
+            setTimeout(attachModalEvents, 500); // Asegurarse de que el plugin cargó
+        });
+        
     </script>
 </body>
 </html>
