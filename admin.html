@@ -6,44 +6,30 @@
     <title>Admin - Rincón de Baviera</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core@5.1.4/index.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin@5.1.4/index.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/@photo-sphere-viewer/core@5.1.4/index.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/@photo-sphere-viewer/markers-plugin@5.1.4/index.min.css" />
     
     <style>
         body { margin: 0; padding: 0; font-family: 'Montserrat', sans-serif; background-color: #050505; color: #fff; overflow: hidden; }
-        
         .viewer-area { position: absolute; top: 0; left: 0; width: 100vw; height: 50vh; }
         #viewer { width: 100%; height: 100%; }
-        
         .header-premium { position: absolute; top: 0; left: 0; width: 100%; padding: 15px 20px; background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); z-index: 10; pointer-events: none; }
         .header-title { font-size: 1.2rem; font-weight: 600; color: #D4AF37; letter-spacing: 2px; text-transform: uppercase; }
-        
         .admin-panel { position: absolute; bottom: 0; left: 0; width: 100vw; height: 50vh; background: #111; border-top: 3px solid #D4AF37; overflow-y: auto; padding: 15px; box-sizing: border-box; display: flex; flex-direction: column; gap: 15px; }
-        
-        @media (min-width: 768px) {
-            .viewer-area { height: 60vh; }
-            .admin-panel { height: 40vh; flex-direction: row; display: grid; grid-template-columns: repeat(3, 1fr); }
-        }
-
+        @media (min-width: 768px) { .viewer-area { height: 60vh; } .admin-panel { height: 40vh; flex-direction: row; display: grid; grid-template-columns: repeat(3, 1fr); } }
         .control-group { background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #333; display: flex; flex-direction: column; }
         .control-label { font-size: 0.8rem; color: #aaa; margin-bottom: 10px; text-transform: uppercase; font-weight: 600; }
-        
         .input-text, .input-select { width: 100%; padding: 12px; background: #000; border: 1px solid #444; color: #fff; border-radius: 6px; font-family: inherit; margin-bottom: 10px; box-sizing: border-box; }
         .input-text:focus, .input-select:focus { outline: none; border-color: #D4AF37; }
-        
         .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; font-family: inherit; font-weight: 600; cursor: pointer; transition: 0.2s; box-sizing: border-box; text-align: center; }
         .btn-action { background: #D4AF37; color: #000; margin-bottom: 10px; }
         .btn-upload { background: #222; color: #D4AF37; border: 1px dashed #D4AF37; display: block; }
         .btn-danger { background: #e74c3c; color: white; margin-bottom: 10px; animation: pulse 1.5s infinite; }
-        
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); } 100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); } }
-
         .inventory-list { overflow-y: auto; flex: 1; max-height: 150px; }
         .lot-item { background: #000; border: 1px solid #333; padding: 10px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; }
         .btn-delete { background: #e74c3c; color: white; border: none; border-radius: 4px; padding: 5px 8px; cursor: pointer; font-size: 0.7rem; }
-
         .lote-marker { width: 20px; height: 20px; border: 2px solid #fff; border-radius: 50%; cursor: pointer; }
-
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; display: none; justify-content: center; align-items: center; }
         .modal-overlay.active { display: flex; }
         .modal-content { background: #1a1a1a; padding: 25px; border-radius: 12px; border: 1px solid #D4AF37; width: 90%; max-width: 320px; box-sizing: border-box; }
@@ -54,7 +40,7 @@
 <body>
 
     <div class="viewer-area">
-        <div class="header-premium"><div class="header-title" id="display-title">Iniciando Servidor...</div></div>
+        <div class="header-premium"><div class="header-title" id="display-title">🔄 INICIANDO V3...</div></div>
         <div id="viewer"></div>
     </div>
 
@@ -67,7 +53,6 @@
                 Subir Foto 360 (JPG)
                 <input type="file" id="upload-360" accept="image/jpeg" onchange="cambiarImagen(event)">
             </label>
-            <p style="font-size: 0.7rem; color: #888; text-align: center; margin-top: 5px;">Recomendado: Máx 10MB</p>
         </div>
 
         <div class="control-group">
@@ -100,7 +85,6 @@
             <button class="btn btn-upload" style="border:none;" onclick="cerrarModales()">Cancelar</button>
         </div>
     </div>
-
     <div id="poi-modal" class="modal-overlay">
         <div class="modal-content">
             <h3>Punto de Interés</h3>
@@ -110,17 +94,16 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core@5.1.4/index.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin@5.1.4/index.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/three@0.149.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/@photo-sphere-viewer/core@5.1.4/index.min.js"></script>
+    <script src="https://unpkg.com/@photo-sphere-viewer/markers-plugin@5.1.4/index.min.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
     <script>
-        // CAZADOR DE ERRORES: Si algo falla, lo pintamos en pantalla
-        window.onerror = function(msg) {
+        window.onerror = function(msg, url, line) {
             const titleElement = document.getElementById('display-title');
             if(titleElement) {
-                titleElement.innerText = "Error: " + msg;
+                titleElement.innerText = "Error (Línea " + line + "): " + msg;
                 titleElement.style.color = "#ff4444";
             }
         };
@@ -128,22 +111,15 @@
         const supabaseUrl = 'https://mungbffwwjobinfcympd.supabase.co';
         const supabaseKey = 'EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im11bmdiZmZ3d2pvYmluZmN5bXBkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0NDIzNzcsImV4cCI6MjA5MDAxODM3N30.nkMo-QRJfZ1Z1gzuaZNvnw2kgChc_BGVHqpy0uPTVyY'; 
         
-        // Variables globales seguras
-        let supabase;
-        let viewer, markersPlugin;
-        let isAddMode = false;
-        let currentMode = ''; 
-        let tempCoords = { yaw: 0, pitch: 0 };
-        
+        let supabase, viewer, markersPlugin;
+        let isAddMode = false; let currentMode = ''; let tempCoords = { yaw: 0, pitch: 0 };
         const fallbackImage = 'https://upload.wikimedia.org/wikipedia/commons/e/e0/Equirectangular_projection_SW.jpg';
 
         async function initApp() {
             try {
-                // Validación estricta de librerías
-                if (!window.supabase) throw new Error("La librería de base de datos no cargó.");
-                if (!window.PhotoSphereViewer) throw new Error("El visor 360 no cargó.");
+                if (!window.supabase) throw new Error("No cargó Supabase");
+                if (!window.PhotoSphereViewer) throw new Error("No cargó el Visor");
 
-                // Iniciar Supabase SOLO si la librería existe
                 supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
                 const { data: config, error: configError } = await supabase.from('configuracion').select('*').eq('id', 1).maybeSingle();
@@ -176,7 +152,6 @@
                 viewer.addEventListener('click', handleMapClick);
 
             } catch (error) {
-                console.error("Fallo de inicio:", error);
                 document.getElementById('display-title').innerText = "Fallo: " + error.message;
                 document.getElementById('display-title').style.color = "#ff4444";
             }
@@ -186,57 +161,37 @@
             if (!supabase) return;
             const lista = document.getElementById('inventory-list');
             lista.innerHTML = ''; 
-
             const { data: lotes } = await supabase.from('lotes').select('*');
-            if (lotes && lotes.length > 0) {
-                lotes.forEach(l => renderLote(l.id, l.nombre, l.area, l.precio, l.estado, l.yaw, l.pitch));
-            }
-
+            if (lotes && lotes.length > 0) lotes.forEach(l => renderLote(l.id, l.nombre, l.area, l.precio, l.estado, l.yaw, l.pitch));
             const { data: pois } = await supabase.from('pois').select('*');
-            if (pois && pois.length > 0) {
-                pois.forEach(p => renderPOI(p.id, p.content, p.yaw, p.pitch));
-            }
-
+            if (pois && pois.length > 0) pois.forEach(p => renderPOI(p.id, p.content, p.yaw, p.pitch));
             if(lista.innerHTML === '') lista.innerHTML = '<p style="font-size:0.8rem;color:#666;">Inventario vacío.</p>';
         }
 
         async function guardarTitulo() {
-            if (!supabase) return alert("Base de datos desconectada.");
             const titulo = document.getElementById('input-title').value;
             if(!titulo) return;
             document.getElementById('display-title').innerText = titulo;
-            
             const { data } = await supabase.from('configuracion').select('id').eq('id', 1).maybeSingle();
             if (!data) await supabase.from('configuracion').insert([{ id: 1, titulo: titulo }]);
             else await supabase.from('configuracion').update({ titulo: titulo }).eq('id', 1);
-            alert("Título guardado con éxito.");
+            alert("Título guardado");
         }
 
         async function cambiarImagen(event) {
-            if (!supabase) return alert("Base de datos desconectada.");
             const file = event.target.files[0];
             if (!file) return;
-
             const btn = document.getElementById('btn-upload-lbl');
             const originalText = btn.innerHTML;
             btn.innerHTML = "Subiendo archivo... ⏳";
-            
             const fileName = `panorama_${Date.now()}.jpg`;
             const { error } = await supabase.storage.from('imagenes_360').upload(fileName, file);
-            
-            if (error) {
-                alert("Error al subir: " + error.message);
-                btn.innerHTML = originalText;
-                return;
-            }
-
+            if (error) { alert("Error: " + error.message); btn.innerHTML = originalText; return; }
             const { data } = supabase.storage.from('imagenes_360').getPublicUrl(fileName);
             const imageUrl = data.publicUrl;
-            
             const { data: configCheck } = await supabase.from('configuracion').select('id').eq('id', 1).maybeSingle();
             if (!configCheck) await supabase.from('configuracion').insert([{ id: 1, imagen_url: imageUrl }]);
             else await supabase.from('configuracion').update({ imagen_url: imageUrl }).eq('id', 1);
-            
             viewer.setPanorama(imageUrl);
             btn.innerHTML = "¡Imagen Actualizada! ✅";
             setTimeout(() => { btn.innerHTML = originalText; }, 3000);
@@ -244,31 +199,18 @@
 
         function activarModo(tipo) {
             isAddMode = true; currentMode = tipo;
-            const btnLote = document.getElementById('btn-add-lote');
-            const btnPoi = document.getElementById('btn-add-poi');
-            const helper = document.getElementById('add-helper');
-
-            btnLote.classList.remove('btn-danger'); btnPoi.classList.remove('btn-danger');
-
-            if(tipo === 'lote') {
-                btnLote.classList.add('btn-danger');
-                helper.innerText = "¡TOCA EL MAPA PARA UBICAR EL LOTE!";
-            } else {
-                btnPoi.classList.add('btn-danger');
-                helper.innerText = "¡TOCA EL MAPA PARA UBICAR EL POI!";
-            }
+            document.getElementById('btn-add-lote').classList.toggle('btn-danger', tipo === 'lote');
+            document.getElementById('btn-add-poi').classList.toggle('btn-danger', tipo === 'poi');
+            document.getElementById('add-helper').innerText = "¡TOCA EL MAPA PARA UBICAR!";
         }
 
         function handleMapClick(e) {
             if (!isAddMode) return;
-            const data = e.data;
-            tempCoords = { yaw: data.yaw, pitch: data.pitch };
-            
+            tempCoords = { yaw: e.data.yaw, pitch: e.data.pitch };
             isAddMode = false;
             document.getElementById('btn-add-lote').classList.remove('btn-danger');
             document.getElementById('btn-add-poi').classList.remove('btn-danger');
             document.getElementById('add-helper').innerText = "Selecciona una opción arriba";
-
             if (currentMode === 'lote') {
                 document.getElementById('lote-nombre').value = '';
                 document.getElementById('add-modal').classList.add('active');
@@ -278,135 +220,73 @@
             }
         }
 
-        function cerrarModales() {
-            document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
-        }
+        function cerrarModales() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active')); }
 
         async function guardarLote() {
-            if (!supabase) return;
             const nombre = document.getElementById('lote-nombre').value || 'Lote Nuevo';
             const area = document.getElementById('lote-area').value || '0';
             const precio = document.getElementById('lote-precio').value || '0';
             const estado = document.getElementById('lote-estado').value;
             const idUnico = 'lote-' + Date.now();
-            
             const { error } = await supabase.from('lotes').insert([{ id: idUnico, nombre, area, precio, estado, yaw: tempCoords.yaw, pitch: tempCoords.pitch }]);
-            if (error) {
-                alert("Error al guardar lote: " + error.message);
-                return;
-            }
+            if (error) return alert("Error: " + error.message);
             renderLote(idUnico, nombre, area, precio, estado, tempCoords.yaw, tempCoords.pitch);
             cerrarModales();
         }
 
         function renderLote(id, nombre, area, precio, estado, yaw, pitch) {
             let color = estado === 'Vendido' ? '#e74c3c' : (estado === 'Reservado' ? '#f39c12' : '#2ecc71');
-            
-            if (markersPlugin.markers[id]) {
-                markersPlugin.updateMarker({
-                    id: id,
-                    html: `<div class="lote-marker" style="background:${color}; box-shadow: 0 0 10px ${color};"></div>`,
-                });
-            } else {
-                markersPlugin.addMarker({
-                    id: id, position: { yaw, pitch },
-                    html: `<div class="lote-marker" style="background:${color}; box-shadow: 0 0 10px ${color};"></div>`,
-                    size: { width: 20, height: 20 }, anchor: 'center center',
-                    tooltip: { content: `<div style="text-align:center;"><strong style="color:#D4AF37">${nombre}</strong></div>`, position: 'top center' },
-                    data: { nombre, area, precio, estado, yaw, pitch }
-                });
+            const html = `<div class="lote-marker" style="background:${color}; box-shadow: 0 0 10px ${color};"></div>`;
+            if (markersPlugin.markers[id]) markersPlugin.updateMarker({ id, html });
+            else {
+                markersPlugin.addMarker({ id, position: { yaw, pitch }, html, size: { width: 20, height: 20 }, anchor: 'center center', tooltip: { content: `<div style="text-align:center;"><strong style="color:#D4AF37">${nombre}</strong></div>`, position: 'top center' }, data: { nombre, area, precio, estado, yaw, pitch } });
             }
-
             const lista = document.getElementById('inventory-list');
-            if(lista.innerHTML.includes('Cargando') || lista.innerHTML.includes('vacío')) lista.innerHTML = '';
-            
+            if(lista.innerHTML.includes('vacío')) lista.innerHTML = '';
             const existingItem = document.getElementById(`item-${id}`);
             if (existingItem) {
                 existingItem.querySelector('.status-dot').style.color = color;
                 existingItem.querySelector('.input-select').value = estado;
             } else {
-                lista.insertAdjacentHTML('beforeend', `
-                    <div class="lot-item" id="item-${id}">
-                        <div><span class="status-dot" style="color:${color}">●</span> <strong>${nombre}</strong></div>
-                        <div style="display:flex; gap:5px;">
-                            <select class="input-select" style="width:auto; padding:5px; margin:0;" onchange="actualizarEstado('${id}', this.value)">
-                                <option value="Disponible" ${estado === 'Disponible' ? 'selected' : ''}>Disp.</option>
-                                <option value="Reservado" ${estado === 'Reservado' ? 'selected' : ''}>Resrv.</option>
-                                <option value="Vendido" ${estado === 'Vendido' ? 'selected' : ''}>Vend.</option>
-                            </select>
-                            <button class="btn-delete" onclick="borrarElemento('lotes', '${id}')">X</button>
-                        </div>
-                    </div>`);
+                lista.insertAdjacentHTML('beforeend', `<div class="lot-item" id="item-${id}"><div><span class="status-dot" style="color:${color}">●</span> <strong>${nombre}</strong></div><div style="display:flex; gap:5px;"><select class="input-select" style="width:auto; padding:5px; margin:0;" onchange="actualizarEstado('${id}', this.value)"><option value="Disponible" ${estado === 'Disponible' ? 'selected' : ''}>Disp.</option><option value="Reservado" ${estado === 'Reservado' ? 'selected' : ''}>Resrv.</option><option value="Vendido" ${estado === 'Vendido' ? 'selected' : ''}>Vend.</option></select><button class="btn-delete" onclick="borrarElemento('lotes', '${id}')">X</button></div></div>`);
             }
         }
 
         async function actualizarEstado(id, estado) {
-            if (!supabase) return;
             const { error } = await supabase.from('lotes').update({ estado: estado }).eq('id', id);
-            if (error) {
-                alert("Error al actualizar estado: " + error.message);
-                return;
-            }
-            
+            if (error) return alert("Error: " + error.message);
             const marker = markersPlugin.markers[id];
-            if (marker) {
-                renderLote(id, marker.config.data.nombre, marker.config.data.area, marker.config.data.precio, estado, marker.config.data.yaw, marker.config.data.pitch);
-            }
+            if (marker) renderLote(id, marker.config.data.nombre, marker.config.data.area, marker.config.data.precio, estado, marker.config.data.yaw, marker.config.data.pitch);
         }
 
         async function guardarPOI() {
-            if (!supabase) return;
             const texto = document.getElementById('poi-texto').value || 'Punto';
             const idUnico = 'poi-' + Date.now();
-            
             const { error } = await supabase.from('pois').insert([{ id: idUnico, visualType: 'texto', content: texto, yaw: tempCoords.yaw, pitch: tempCoords.pitch }]);
-            if (error) {
-                alert("Error al guardar POI: " + error.message);
-                return;
-            }
+            if (error) return alert("Error: " + error.message);
             renderPOI(idUnico, texto, tempCoords.yaw, tempCoords.pitch);
             cerrarModales();
         }
 
         function renderPOI(id, texto, yaw, pitch) {
             if (!markersPlugin.markers[id]) {
-                markersPlugin.addMarker({
-                    id: id, position: { yaw, pitch },
-                    html: `<div style="display:flex;flex-direction:column;align-items:center;">
-                            <div style="background:rgba(0,0,0,0.8);color:#fff;padding:4px 10px;border:1px solid #D4AF37;border-radius:4px;font-size:0.8rem;">${texto}</div>
-                            <div style="width:2px;height:30px;background:#fff;"></div>
-                            <div style="width:12px;height:12px;background:#D4AF37;border-radius:50%;"></div>
-                           </div>`,
-                    size: { width: 100, height: 100 }, anchor: 'bottom center'
-                });
-
+                markersPlugin.addMarker({ id, position: { yaw, pitch }, html: `<div style="display:flex;flex-direction:column;align-items:center;"><div style="background:rgba(0,0,0,0.8);color:#fff;padding:4px 10px;border:1px solid #D4AF37;border-radius:4px;font-size:0.8rem;">${texto}</div><div style="width:2px;height:30px;background:#fff;"></div><div style="width:12px;height:12px;background:#D4AF37;border-radius:50%;"></div></div>`, size: { width: 100, height: 100 }, anchor: 'bottom center' });
                 const lista = document.getElementById('inventory-list');
-                if(lista.innerHTML.includes('Cargando') || lista.innerHTML.includes('vacío')) lista.innerHTML = '';
-                
-                lista.insertAdjacentHTML('beforeend', `
-                    <div class="lot-item" id="item-${id}">
-                        <div><span style="color:#D4AF37">★</span> <strong>${texto}</strong></div>
-                        <button class="btn-delete" onclick="borrarElemento('pois', '${id}')">X</button>
-                    </div>`);
+                if(lista.innerHTML.includes('vacío')) lista.innerHTML = '';
+                lista.insertAdjacentHTML('beforeend', `<div class="lot-item" id="item-${id}"><div><span style="color:#D4AF37">★</span> <strong>${texto}</strong></div><button class="btn-delete" onclick="borrarElemento('pois', '${id}')">X</button></div>`);
             }
         }
 
         async function borrarElemento(tabla, id) {
-            if (!supabase) return;
-            if(!confirm("¿Estás seguro de borrar este elemento?")) return;
+            if(!confirm("¿Borrar?")) return;
             const { error } = await supabase.from(tabla).delete().eq('id', id);
-            if (error) {
-                alert("Error al eliminar: " + error.message);
-                return;
-            }
+            if (error) return alert("Error: " + error.message);
             markersPlugin.removeMarker(id);
             const item = document.getElementById(`item-${id}`);
             if (item) item.remove();
         }
 
-        // Ejecutar de forma segura cuando todo cargue
         window.onload = initApp;
-
     </script>
 </body>
 </html>
