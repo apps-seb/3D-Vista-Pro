@@ -90,7 +90,56 @@
             <h2 class="modal-title" id="m-titulo">Lote</h2>
             <div class="modal-badge" id="m-estado">Estado</div>
             <div class="info-box">Área: <strong id="m-area">0</strong><br>Precio: <strong id="m-precio">0</strong></div>
+            <button class="btn-whatsapp" style="background: #D4AF37; color: #000; border: none; width: 100%; cursor: pointer;" id="m-simular">Simular Financiamiento</button>
             <a href="#" target="_blank" class="btn-whatsapp" id="m-whatsapp">Contactar por WhatsApp</a>
+        </div>
+    </div>
+
+    <!-- Modal Simulador -->
+    <div id="simulador-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 400px; max-height: 90vh; overflow-y: auto;">
+            <button class="btn-close" onclick="cerrarSimulador()">&times;</button>
+            <h2 class="modal-title" style="font-size: 1.3rem;">Simulador de Pagos</h2>
+            <h3 id="sim-lote-nombre" style="margin-top: 5px; color: #fff; font-size: 1.1rem;">Lote</h3>
+            <div class="info-box" style="margin-bottom: 20px;">
+                Valor Total: <strong id="sim-valor-total" style="color: #D4AF37; font-size: 1.2rem;">$0</strong>
+            </div>
+
+            <div style="text-align: left; font-size: 0.85rem; margin-bottom: 15px;">
+                <label style="color: #aaa; font-weight: bold; margin-bottom: 5px; display: block;">Datos del Asesor (Autoguardado)</label>
+                <input type="text" id="sim-asesor-nombre" placeholder="Tu Nombre (Asesor)" style="width: 100%; padding: 10px; margin-bottom: 8px; background: #000; border: 1px solid #333; color: white; border-radius: 6px; box-sizing: border-box;" onchange="guardarDatosAsesor()">
+                <input type="text" id="sim-asesor-tel" placeholder="Tu Celular (Asesor)" style="width: 100%; padding: 10px; margin-bottom: 5px; background: #000; border: 1px solid #333; color: white; border-radius: 6px; box-sizing: border-box;" onchange="guardarDatosAsesor()">
+            </div>
+
+            <div style="text-align: left; font-size: 0.85rem; margin-bottom: 15px;">
+                <label style="color: #aaa; font-weight: bold; margin-bottom: 5px; display: block;">Datos del Cliente</label>
+                <input type="text" id="sim-cliente-nombre" placeholder="Nombre del Cliente" style="width: 100%; padding: 10px; margin-bottom: 8px; background: #000; border: 1px solid #444; color: white; border-radius: 6px; box-sizing: border-box;">
+                <input type="text" id="sim-cliente-tel" placeholder="Celular" style="width: 100%; padding: 10px; margin-bottom: 8px; background: #000; border: 1px solid #444; color: white; border-radius: 6px; box-sizing: border-box;">
+                <input type="text" id="sim-cliente-email" placeholder="Correo Electrónico" style="width: 100%; padding: 10px; margin-bottom: 8px; background: #000; border: 1px solid #444; color: white; border-radius: 6px; box-sizing: border-box;">
+                <input type="text" id="sim-cliente-dir" placeholder="Dirección" style="width: 100%; padding: 10px; margin-bottom: 5px; background: #000; border: 1px solid #444; color: white; border-radius: 6px; box-sizing: border-box;">
+            </div>
+
+            <div style="text-align: left; font-size: 0.85rem; margin-bottom: 15px;">
+                <label style="color: #aaa; font-weight: bold; margin-bottom: 5px; display: block;">Plan de Financiación</label>
+                <label style="display:block; margin-bottom: 3px;">Cuota Inicial ($)</label>
+                <input type="number" id="sim-cuota-inicial" placeholder="Ej: 5000000" style="width: 100%; padding: 10px; margin-bottom: 10px; background: #000; border: 1px solid #D4AF37; color: white; border-radius: 6px; box-sizing: border-box;" oninput="calcularSimulacion()">
+
+                <label style="display:block; margin-bottom: 3px;">Meses a diferir (1 - 24)</label>
+                <input type="number" id="sim-meses" min="1" max="24" value="12" style="width: 100%; padding: 10px; margin-bottom: 5px; background: #000; border: 1px solid #D4AF37; color: white; border-radius: 6px; box-sizing: border-box;" oninput="calcularSimulacion()">
+            </div>
+
+            <div class="info-box" style="margin-bottom: 20px; text-align: left;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <span>Saldo a Financiar:</span>
+                    <strong id="sim-saldo">$0</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; color: #D4AF37; font-size: 1.1rem; border-top: 1px solid #444; padding-top: 5px; margin-top: 5px;">
+                    <span>Valor Cuota Mensual:</span>
+                    <strong id="sim-cuota-mensual">$0</strong>
+                </div>
+            </div>
+
+            <button class="btn-whatsapp" style="background: #e74c3c; color: white; border: none; width: 100%; cursor: pointer;" onclick="generarPDF()">Generar PDF (Cotización)</button>
         </div>
     </div>
 
@@ -98,6 +147,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core@5.1.4/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin@5.1.4/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <script>
         window.mostrarProgreso = function(porcentaje) {
@@ -206,6 +256,16 @@
                         preloader.style.opacity = '0';
                         setTimeout(() => preloader.style.display = 'none', 800);
                     }
+
+                    // Auto-rotación inicial
+                    viewer.animate({
+                        yaw: viewer.getPosition().yaw + 0.5,
+                        pitch: viewer.getPosition().pitch,
+                        speed: "1rpm"
+                    }).then(() => {
+                        // Se detiene al llegar o si el usuario interactúa
+                    });
+
                 });
 
             } catch (error) {
@@ -337,11 +397,211 @@
                         const msj = `Hola, me interesa el ${marker.config.data.nombre} del proyecto ${document.getElementById('display-title').innerText}.`;
                         document.getElementById('m-whatsapp').href = `https://wa.me/${numeroTel}?text=${encodeURIComponent(msj)}`;
 
+                        // Configurar botón Simular
+                        const btnSimular = document.getElementById('m-simular');
+                        btnSimular.onclick = () => {
+                            abrirSimulador(marker.config.data);
+                        };
+
                         document.getElementById('premium-modal').classList.add('active');
                     }
                 });
             } catch (error) {
                 window.mostrarError("attachModalEvents", error);
+            }
+        }
+
+        // --- SISTEMA DE SIMULADOR ---
+        let simuladorLoteActual = null;
+
+        function abrirSimulador(loteData) {
+            simuladorLoteActual = loteData;
+            document.getElementById('premium-modal').classList.remove('active');
+
+            document.getElementById('sim-lote-nombre').innerText = loteData.nombre;
+            document.getElementById('sim-valor-total').innerText = loteData.precio;
+
+            // Cargar datos asesor guardados
+            const asesorGuardado = localStorage.getItem('rb_asesor');
+            if(asesorGuardado) {
+                const data = JSON.parse(asesorGuardado);
+                document.getElementById('sim-asesor-nombre').value = data.nombre || '';
+                document.getElementById('sim-asesor-tel').value = data.tel || '';
+            }
+
+            // Resetear plan
+            document.getElementById('sim-cuota-inicial').value = '';
+            document.getElementById('sim-meses').value = '12';
+
+            calcularSimulacion();
+
+            document.getElementById('simulador-modal').classList.add('active');
+        }
+
+        function cerrarSimulador() {
+            document.getElementById('simulador-modal').classList.remove('active');
+        }
+
+        function guardarDatosAsesor() {
+            const nombre = document.getElementById('sim-asesor-nombre').value;
+            const tel = document.getElementById('sim-asesor-tel').value;
+            localStorage.setItem('rb_asesor', JSON.stringify({ nombre, tel }));
+        }
+
+        function parsearDinero(textoDinero) {
+            if(!textoDinero) return 0;
+            const soloNumeros = String(textoDinero).replace(/[^\d.-]/g, '');
+            return parseFloat(soloNumeros) || 0;
+        }
+
+        function formatearDinero(valor) {
+            return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(valor);
+        }
+
+        function calcularSimulacion() {
+            if(!simuladorLoteActual) return;
+
+            const valorTotal = parsearDinero(simuladorLoteActual.precio);
+            let cuotaInicial = parsearDinero(document.getElementById('sim-cuota-inicial').value);
+
+            if (cuotaInicial > valorTotal) {
+                cuotaInicial = valorTotal;
+                document.getElementById('sim-cuota-inicial').value = cuotaInicial;
+            }
+
+            let meses = parseInt(document.getElementById('sim-meses').value) || 1;
+            if (meses < 1) meses = 1;
+            if (meses > 24) meses = 24;
+
+            const saldoFinanciar = valorTotal - cuotaInicial;
+            const valorCuotaMensual = saldoFinanciar / meses;
+
+            document.getElementById('sim-saldo').innerText = formatearDinero(saldoFinanciar);
+            document.getElementById('sim-cuota-mensual').innerText = formatearDinero(valorCuotaMensual);
+        }
+
+        async function generarPDF() {
+            const btn = document.querySelector('#simulador-modal .btn-whatsapp');
+            const originalText = btn.innerText;
+            try {
+                btn.innerText = "Generando PDF... ⏳";
+                window.mostrarProgreso(10);
+
+                const cNombre = document.getElementById('sim-cliente-nombre').value || 'Cliente';
+                const cTel = document.getElementById('sim-cliente-tel').value || 'N/A';
+                const cEmail = document.getElementById('sim-cliente-email').value || 'N/A';
+                const cDir = document.getElementById('sim-cliente-dir').value || 'N/A';
+
+                const aNombre = document.getElementById('sim-asesor-nombre').value || 'Asesor';
+                const aTel = document.getElementById('sim-asesor-tel').value || 'N/A';
+
+                const valorTotalStr = document.getElementById('sim-valor-total').innerText;
+                const valorTotalNum = parsearDinero(simuladorLoteActual.precio);
+                const cuotaInicialNum = parsearDinero(document.getElementById('sim-cuota-inicial').value) || 0;
+                let meses = parseInt(document.getElementById('sim-meses').value) || 1;
+                const saldoFinanciarStr = document.getElementById('sim-saldo').innerText;
+                const cuotaMensualStr = document.getElementById('sim-cuota-mensual').innerText;
+
+                const fechaStr = new Date().toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
+                const logoSrc = document.getElementById('display-logo').src;
+                const logoDisplay = document.getElementById('display-logo').style.display !== 'none' ? `<img src="${logoSrc}" style="max-height: 80px; max-width: 200px;">` : '';
+                const titleText = document.getElementById('display-title').innerText;
+
+                // Plantilla HTML para el PDF
+                const htmlTemplate = `
+                    <div style="font-family: 'Montserrat', sans-serif; color: #333; padding: 40px; background: #fff; max-width: 800px; margin: 0 auto; line-height: 1.6;">
+
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #D4AF37; padding-bottom: 20px; margin-bottom: 30px;">
+                            <div>
+                                ${logoDisplay}
+                                <h1 style="color: #000; margin: 10px 0 0 0; font-size: 24px; text-transform: uppercase; letter-spacing: 1px;">${titleText}</h1>
+                            </div>
+                            <div style="text-align: right; color: #666;">
+                                <div style="font-size: 18px; font-weight: bold; color: #D4AF37; margin-bottom: 5px;">COTIZACIÓN OFICIAL</div>
+                                <div>Fecha: ${fechaStr}</div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 30px; margin-bottom: 30px;">
+                            <div style="flex: 1; background: #f9f9f9; padding: 20px; border-radius: 8px; border-left: 4px solid #D4AF37;">
+                                <h3 style="margin-top: 0; color: #000; border-bottom: 1px solid #ddd; padding-bottom: 10px;">Datos del Cliente</h3>
+                                <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; font-size: 14px;">
+                                    <strong style="color: #555;">Nombre:</strong> <span>${cNombre}</span>
+                                    <strong style="color: #555;">Celular:</strong> <span>${cTel}</span>
+                                    <strong style="color: #555;">Email:</strong> <span>${cEmail}</span>
+                                    <strong style="color: #555;">Dirección:</strong> <span>${cDir}</span>
+                                </div>
+                            </div>
+                            <div style="flex: 1; background: #f9f9f9; padding: 20px; border-radius: 8px; border-left: 4px solid #D4AF37;">
+                                <h3 style="margin-top: 0; color: #000; border-bottom: 1px solid #ddd; padding-bottom: 10px;">Datos del Asesor</h3>
+                                <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; font-size: 14px;">
+                                    <strong style="color: #555;">Nombre:</strong> <span>${aNombre}</span>
+                                    <strong style="color: #555;">Celular:</strong> <span>${aTel}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="background: #111; color: #fff; padding: 20px; border-radius: 8px; margin-bottom: 30px; text-align: center;">
+                            <h2 style="margin: 0; color: #D4AF37; font-size: 22px;">${simuladorLoteActual.nombre}</h2>
+                            <div style="font-size: 16px; margin-top: 5px;">Área: ${simuladorLoteActual.area}</div>
+                        </div>
+
+                        <h3 style="color: #000; margin-bottom: 15px; border-bottom: 2px solid #D4AF37; padding-bottom: 5px; display: inline-block;">Plan de Financiamiento</h3>
+
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 40px; font-size: 15px;">
+                            <tbody>
+                                <tr style="border-bottom: 1px solid #eee;">
+                                    <td style="padding: 15px 10px; font-weight: bold; color: #555;">Valor Total del Inmueble</td>
+                                    <td style="padding: 15px 10px; text-align: right; font-weight: bold; font-size: 18px; color: #000;">${formatearDinero(valorTotalNum)}</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #eee; background: #fdfdfd;">
+                                    <td style="padding: 15px 10px; color: #666;">Cuota Inicial (Aporte)</td>
+                                    <td style="padding: 15px 10px; text-align: right; color: #000;">${formatearDinero(cuotaInicialNum)}</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #eee;">
+                                    <td style="padding: 15px 10px; font-weight: bold; color: #D4AF37;">Saldo a Financiar</td>
+                                    <td style="padding: 15px 10px; text-align: right; font-weight: bold; color: #D4AF37;">${saldoFinanciarStr}</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #eee; background: #fdfdfd;">
+                                    <td style="padding: 15px 10px; color: #666;">Plazo de Financiación</td>
+                                    <td style="padding: 15px 10px; text-align: right; color: #000;">${meses} Meses</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 20px 10px; font-weight: bold; font-size: 18px; color: #000; background: rgba(212, 175, 55, 0.1); border-radius: 8px 0 0 8px;">Valor Cuota Mensual</td>
+                                    <td style="padding: 20px 10px; text-align: right; font-weight: bold; font-size: 20px; color: #D4AF37; background: rgba(212, 175, 55, 0.1); border-radius: 0 8px 8px 0;">${cuotaMensualStr}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div style="text-align: center; margin-top: 50px; font-size: 12px; color: #888; border-top: 1px solid #eee; padding-top: 20px;">
+                            <p>Esta cotización es de carácter informativo y no constituye una promesa de compraventa. Los valores pueden estar sujetos a cambios.</p>
+                            <p>Generado automáticamente por el sistema interactivo de <strong>${titleText}</strong>.</p>
+                        </div>
+                    </div>
+                `;
+
+                const element = document.createElement('div');
+                element.innerHTML = htmlTemplate;
+
+                const opt = {
+                    margin:       0,
+                    filename:     `Cotizacion_${simuladorLoteActual.nombre.replace(/\s+/g, '_')}_${cNombre.replace(/\s+/g, '_')}.pdf`,
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { scale: 2, useCORS: true },
+                    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+                };
+
+                window.mostrarProgreso(50);
+                await html2pdf().set(opt).from(element).save();
+                window.mostrarProgreso(100);
+
+                btn.innerText = "¡PDF Generado! ✅";
+                setTimeout(() => { btn.innerText = originalText; }, 3000);
+
+            } catch (error) {
+                window.mostrarProgreso(100);
+                btn.innerText = originalText;
+                window.mostrarError("generarPDF", error);
             }
         }
 

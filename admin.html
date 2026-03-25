@@ -408,18 +408,32 @@
                 const file = event.target.files[0];
                 if (!file) return;
                 window.mostrarProgreso(10);
-                btn.innerHTML = "Procesando 360... ⏳";
+                btn.innerHTML = "Subiendo 360 Original... ⏳";
 
-                // Comprimimos la imagen 360 para evitar error de Payload Too Large, con un límite alto para preservar calidad
-                const imageUrl = await window.comprimirImagen(file, 4096, 4096, 0.9);
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${Math.random()}.${fileExt}`;
+                const filePath = `${fileName}`;
 
-                window.mostrarProgreso(50);
-                btn.innerHTML = "Subiendo archivo... ⏳";
+                window.mostrarProgreso(30);
+
+                const { data: uploadData, error: uploadError } = await supabaseClient.storage
+                    .from('imagenes_360')
+                    .upload(filePath, file);
+
+                if (uploadError) throw uploadError;
+
+                window.mostrarProgreso(60);
+                const { data: publicUrlData } = supabaseClient.storage
+                    .from('imagenes_360')
+                    .getPublicUrl(filePath);
+
+                const imageUrl = publicUrlData.publicUrl;
+
+                window.mostrarProgreso(80);
 
                 const { data: configCheck, error: selectError } = await supabaseClient.from('configuracion').select('id').eq('id', 1).maybeSingle();
                 if (selectError) throw selectError;
 
-                window.mostrarProgreso(75);
                 if (!configCheck) {
                     const { error: insertError } = await supabaseClient.from('configuracion').insert([{ id: 1, imagen_url: imageUrl }]);
                     if (insertError) throw insertError;
