@@ -48,8 +48,8 @@
         .modal-content h3 { margin-top: 0; color: #D4AF37; font-size: 1.2rem; text-align: center; }
         input[type="file"] { display: none; }
 
-        .btn-edit-title { background: none; border: none; color: rgba(255,255,255,0.5); font-size: 0.9rem; cursor: pointer; transition: color 0.3s; padding: 0 5px; pointer-events: auto; }
-        .btn-edit-title:hover { color: #fff; }
+        .btn-edit-title { background: #D4AF37; border: none; color: #000; font-size: 0.9rem; cursor: pointer; transition: background 0.3s, transform 0.2s; padding: 5px 10px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-weight: bold; pointer-events: auto; }
+        .btn-edit-title:hover { background: #b5952f; transform: scale(1.05); }
 
         /* Glassmorphism para el nuevo modal */
         .modal-glass {
@@ -85,7 +85,6 @@
             <div class="header-title" style="display: flex; align-items: center; gap: 10px;">
                 <img id="display-logo" style="height: 40px; border-radius: 4px; display: none;">
                 <span id="display-title">🔄 INICIANDO V3...</span>
-                <button id="btn-edit-title" class="btn-edit-title" onclick="abrirModalTitulo()">✎</button>
             </div>
         </div>
         <div id="viewer"></div>
@@ -93,8 +92,11 @@
 
     <div class="admin-panel">
         <div class="control-group">
-            <span class="control-label">1. Configuración Principal</span>
-            <input type="text" id="input-title" class="input-text" placeholder="Nombre del proyecto">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <span class="control-label" style="margin-bottom: 0;">1. Configuración Principal</span>
+                <button id="btn-edit-title" class="btn-edit-title" onclick="abrirModalTitulo()">✎ Editar</button>
+            </div>
+            <input type="text" id="input-title" class="input-text" placeholder="Nombre del proyecto" disabled style="opacity: 0.5;">
             
             <div id="logo-preview-container" style="display: none; margin-bottom: 10px; text-align: center;">
                 <img id="admin-logo-preview" style="max-height: 50px; border-radius: 4px; border: 1px solid #444;" />
@@ -154,6 +156,18 @@
 
             <label class="control-label" style="margin-top: 10px; display: block; color: #ddd;">Color del Título</label>
             <input type="color" id="modal-input-color" class="input-text" style="height: 50px; padding: 5px; cursor: pointer; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2);">
+
+            <label class="control-label" style="margin-top: 10px; display: block; color: #ddd;">Fuente (Tipo de Letra)</label>
+            <select id="modal-input-font" class="input-text" style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: #fff;">
+                <option value="Montserrat" style="font-family: Montserrat;">Montserrat</option>
+                <option value="Arial" style="font-family: Arial;">Arial</option>
+                <option value="Helvetica" style="font-family: Helvetica;">Helvetica</option>
+                <option value="Times New Roman" style="font-family: 'Times New Roman';">Times New Roman</option>
+                <option value="Courier New" style="font-family: 'Courier New';">Courier New</option>
+                <option value="Georgia" style="font-family: Georgia;">Georgia</option>
+                <option value="Verdana" style="font-family: Verdana;">Verdana</option>
+                <option value="Impact" style="font-family: Impact;">Impact</option>
+            </select>
 
             <button class="btn btn-action" onclick="guardarTituloDesdeModal()" style="margin-top: 15px;">Guardar Título</button>
             <button class="btn btn-upload" style="border:none; background: rgba(255,255,255,0.1); color: #fff;" onclick="cerrarModales()">Cancelar</button>
@@ -231,6 +245,7 @@
         let isAddMode = false; let currentMode = ''; let tempCoords = { yaw: 0, pitch: 0 };
         const fallbackImage = 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg';
         let globalTituloColor = '#D4AF37';
+        let globalTituloFont = 'Montserrat';
 
         async function initApp() {
             let panoUrl = fallbackImage;
@@ -259,6 +274,11 @@
                                 tempTitulo = parts[0];
                                 logoUrl = parts[1];
                             }
+                            if (tempTitulo.includes('|FONT:')) {
+                                let partsFont = tempTitulo.split('|FONT:');
+                                tempTitulo = partsFont[0];
+                                globalTituloFont = partsFont[1];
+                            }
                             if (tempTitulo.includes('|COLOR:')) {
                                 let partsColor = tempTitulo.split('|COLOR:');
                                 titulo = partsColor[0];
@@ -277,6 +297,7 @@
                 document.getElementById('input-cuota').value = cuotaInicial;
                 document.getElementById('display-title').innerText = titulo;
                 document.getElementById('display-title').style.color = globalTituloColor;
+                document.getElementById('display-title').style.fontFamily = globalTituloFont;
                 if (logoUrl) {
                     document.getElementById('logo-data').value = logoUrl;
                     document.getElementById('display-logo').src = logoUrl;
@@ -408,6 +429,7 @@
             try {
                 document.getElementById('modal-input-title').value = document.getElementById('input-title').value;
                 document.getElementById('modal-input-color').value = globalTituloColor;
+                document.getElementById('modal-input-font').value = globalTituloFont;
                 document.getElementById('titulo-modal').classList.add('active');
             } catch (error) {
                 window.mostrarError("abrirModalTitulo", error);
@@ -418,6 +440,7 @@
             try {
                 const nuevoTitulo = document.getElementById('modal-input-title').value;
                 const nuevoColor = document.getElementById('modal-input-color').value;
+                const nuevaFuente = document.getElementById('modal-input-font').value;
 
                 if(!nuevoTitulo) {
                     alert("El título no puede estar vacío");
@@ -426,9 +449,11 @@
 
                 document.getElementById('input-title').value = nuevoTitulo;
                 globalTituloColor = nuevoColor;
+                globalTituloFont = nuevaFuente;
 
                 document.getElementById('display-title').innerText = nuevoTitulo;
                 document.getElementById('display-title').style.color = globalTituloColor;
+                document.getElementById('display-title').style.fontFamily = globalTituloFont;
 
                 window.cerrarModales();
                 window.guardarConfiguracion();
@@ -452,6 +477,7 @@
 
                 let tituloAguardar = titulo;
                 tituloAguardar += `|COLOR:${globalTituloColor}`;
+                tituloAguardar += `|FONT:${globalTituloFont}`;
                 if (logoData) {
                     tituloAguardar += `|LOGO:${logoData}`;
                 }
