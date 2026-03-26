@@ -40,13 +40,68 @@
 
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 50; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
         .modal-overlay.active { display: flex; }
-        .modal-content { background: #111; border: 1px solid #D4AF37; border-radius: 12px; padding: 25px; width: 85%; max-width: 320px; color: white; text-align: center; position: relative; }
-        .btn-close { position: absolute; top: 10px; right: 15px; background: none; border: none; color: #aaa; font-size: 1.5rem; cursor: pointer; }
+        .modal-content {
+            background: rgba(17, 17, 17, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            border-radius: 16px;
+            padding: 25px;
+            width: 85%;
+            max-width: 320px;
+            color: white;
+            text-align: center;
+            position: relative;
+        }
+        .btn-close { position: absolute; top: 10px; right: 15px; background: none; border: none; color: #aaa; font-size: 1.5rem; cursor: pointer; transition: color 0.3s; }
+        .btn-close:hover { color: #fff; }
+
+        .modal-title { font-size: 1.5rem; color: #D4AF37; margin: 0 0 5px 0; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .modal-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
         
-        .modal-title { font-size: 1.5rem; color: #D4AF37; margin: 0 0 5px 0; }
-        .modal-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; margin-bottom: 20px; }
+        .info-box { background: rgba(34, 34, 34, 0.5); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 10px; text-align: center; }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #D4AF37;
+            cursor: pointer;
+            margin-top: -8px;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+        }
+        input[type=range]:focus { outline: none; }
         
-        .info-box { background: #222; padding: 12px; border-radius: 8px; margin-bottom: 10px; text-align: center; }
+        .input-glass {
+            width: 100%;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-family: inherit;
+            transition: border-color 0.3s, background 0.3s;
+        }
+        .input-glass:focus {
+            outline: none;
+            border-color: #D4AF37;
+            background: rgba(0, 0, 0, 0.5);
+        }
         .btn-whatsapp { display: block; padding: 15px; background: #25D366; color: white; text-decoration: none; font-weight: bold; border-radius: 8px; margin-top: 15px; text-transform: uppercase; font-size: 0.9rem; }
 
         #preloader { position: fixed; inset: 0; background: #050505; z-index: 10000; display: flex; justify-content: center; align-items: center; transition: opacity 0.8s ease; }
@@ -106,26 +161,35 @@
             </div>
 
             <div style="text-align: left; font-size: 0.85rem; margin-bottom: 15px;">
-                <label style="color: #aaa; font-weight: bold; margin-bottom: 5px; display: block;">Datos del Asesor (Autoguardado)</label>
-                <input type="text" id="sim-asesor-nombre" placeholder="Tu Nombre (Asesor)" style="width: 100%; padding: 10px; margin-bottom: 8px; background: #000; border: 1px solid #333; color: white; border-radius: 6px; box-sizing: border-box;" onchange="guardarDatosAsesor()">
-                <input type="text" id="sim-asesor-tel" placeholder="Tu Celular (Asesor)" style="width: 100%; padding: 10px; margin-bottom: 5px; background: #000; border: 1px solid #333; color: white; border-radius: 6px; box-sizing: border-box;" onchange="guardarDatosAsesor()">
+                <label style="color: #ddd; font-weight: 600; margin-bottom: 5px; display: block;">Datos del Asesor (Autoguardado)</label>
+                <input type="text" id="sim-asesor-nombre" class="input-glass" placeholder="Tu Nombre (Asesor)" style="margin-bottom: 8px;" onchange="guardarDatosAsesor()">
+                <input type="text" id="sim-asesor-tel" class="input-glass" placeholder="Tu Celular (Asesor)" style="margin-bottom: 5px;" onchange="guardarDatosAsesor()">
             </div>
 
             <div style="text-align: left; font-size: 0.85rem; margin-bottom: 15px;">
-                <label style="color: #aaa; font-weight: bold; margin-bottom: 5px; display: block;">Datos del Cliente</label>
-                <input type="text" id="sim-cliente-nombre" placeholder="Nombre del Cliente" style="width: 100%; padding: 10px; margin-bottom: 8px; background: #000; border: 1px solid #444; color: white; border-radius: 6px; box-sizing: border-box;">
-                <input type="text" id="sim-cliente-tel" placeholder="Celular" style="width: 100%; padding: 10px; margin-bottom: 8px; background: #000; border: 1px solid #444; color: white; border-radius: 6px; box-sizing: border-box;">
-                <input type="text" id="sim-cliente-email" placeholder="Correo Electrónico" style="width: 100%; padding: 10px; margin-bottom: 8px; background: #000; border: 1px solid #444; color: white; border-radius: 6px; box-sizing: border-box;">
-                <input type="text" id="sim-cliente-dir" placeholder="Dirección" style="width: 100%; padding: 10px; margin-bottom: 5px; background: #000; border: 1px solid #444; color: white; border-radius: 6px; box-sizing: border-box;">
+                <label style="color: #ddd; font-weight: 600; margin-bottom: 5px; display: block;">Datos del Cliente</label>
+                <input type="text" id="sim-cliente-nombre" class="input-glass" placeholder="Nombre del Cliente" style="margin-bottom: 8px;">
+                <input type="text" id="sim-cliente-tel" class="input-glass" placeholder="Celular" style="margin-bottom: 8px;">
+                <input type="text" id="sim-cliente-email" class="input-glass" placeholder="Correo Electrónico" style="margin-bottom: 8px;">
+                <input type="text" id="sim-cliente-dir" class="input-glass" placeholder="Dirección" style="margin-bottom: 5px;">
             </div>
 
-            <div style="text-align: left; font-size: 0.85rem; margin-bottom: 15px;">
-                <label style="color: #aaa; font-weight: bold; margin-bottom: 5px; display: block;">Plan de Financiación</label>
-                <label style="display:block; margin-bottom: 3px;">Cuota Inicial ($)</label>
-                <input type="number" id="sim-cuota-inicial" placeholder="Ej: 5000000" style="width: 100%; padding: 10px; margin-bottom: 10px; background: #000; border: 1px solid #D4AF37; color: white; border-radius: 6px; box-sizing: border-box;" oninput="calcularSimulacion()">
+            <div style="text-align: left; font-size: 0.85rem; margin-bottom: 15px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid rgba(212, 175, 55, 0.2);">
+                <label style="color: #D4AF37; font-weight: 600; margin-bottom: 10px; display: block; font-size: 0.95rem; text-align: center;">Plan de Financiación</label>
 
-                <label style="display:block; margin-bottom: 3px;">Meses a diferir (1 - 24)</label>
-                <input type="number" id="sim-meses" min="1" max="24" value="12" style="width: 100%; padding: 10px; margin-bottom: 5px; background: #000; border: 1px solid #D4AF37; color: white; border-radius: 6px; box-sizing: border-box;" oninput="calcularSimulacion()">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                    <label style="margin: 0;">Cuota Inicial ($)</label>
+                    <span id="lbl-cuota-inicial-pct" style="color: #D4AF37; font-weight: bold; font-size: 0.8rem;">30%</span>
+                </div>
+                <input type="number" id="sim-cuota-inicial" class="input-glass" style="margin-bottom: 10px; border-color: rgba(212, 175, 55, 0.5);" oninput="sincronizarRangoCuota()">
+                <input type="range" id="sim-rango-cuota" min="0" max="100" value="30" oninput="sincronizarInputCuota()" style="margin-bottom: 15px;">
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                    <label style="margin: 0;">Plazo de Financiación</label>
+                    <span id="lbl-meses" style="color: #D4AF37; font-weight: bold; font-size: 0.8rem;">12 Meses</span>
+                </div>
+                <input type="range" id="sim-meses-rango" min="1" max="36" value="12" oninput="sincronizarMeses()" style="margin-bottom: 10px;">
+                <input type="hidden" id="sim-meses" value="12">
             </div>
 
             <div class="info-box" style="margin-bottom: 20px; text-align: left;">
@@ -193,6 +257,7 @@
         let supabaseClient;
         let viewer, markersPlugin;
         const fallbackImage = 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg';
+        let configuracionCuotaInicial = 30; // Valor por defecto
 
         async function initClient() {
             let panoUrl = fallbackImage;
@@ -210,6 +275,9 @@
                     if (configError) throw new Error(configError.message);
                     if (config) {
                         if (config.imagen_url) panoUrl = config.imagen_url;
+                        if (config.cuota_inicial !== undefined && config.cuota_inicial !== null) {
+                            configuracionCuotaInicial = config.cuota_inicial;
+                        }
                         if (config.titulo) {
                             if (config.titulo.includes('|LOGO:')) {
                                 let parts = config.titulo.split('|LOGO:');
@@ -429,13 +497,67 @@
                 document.getElementById('sim-asesor-tel').value = data.tel || '';
             }
 
-            // Resetear plan
-            document.getElementById('sim-cuota-inicial').value = '';
-            document.getElementById('sim-meses').value = '12';
+            // Inicializar sliders e inputs con valores por defecto basados en configuración
+            const valorTotal = parsearDinero(loteData.precio);
+
+            document.getElementById('sim-rango-cuota').max = valorTotal;
+            document.getElementById('sim-cuota-inicial').max = valorTotal;
+
+            const cuotaSugerida = Math.round(valorTotal * (configuracionCuotaInicial / 100));
+            document.getElementById('sim-rango-cuota').value = cuotaSugerida;
+            document.getElementById('sim-cuota-inicial').value = cuotaSugerida;
+
+            actualizarLabelCuotaPorcentaje();
+
+            document.getElementById('sim-meses-rango').value = '12';
+            sincronizarMeses();
 
             calcularSimulacion();
 
             document.getElementById('simulador-modal').classList.add('active');
+        }
+
+        function sincronizarRangoCuota() {
+            if(!simuladorLoteActual) return;
+            let valorInput = parsearDinero(document.getElementById('sim-cuota-inicial').value);
+            const valorTotal = parsearDinero(simuladorLoteActual.precio);
+
+            if(valorInput > valorTotal) {
+                valorInput = valorTotal;
+                document.getElementById('sim-cuota-inicial').value = valorInput;
+            }
+            if(valorInput < 0 || isNaN(valorInput)) {
+                valorInput = 0;
+            }
+
+            document.getElementById('sim-rango-cuota').value = valorInput;
+            actualizarLabelCuotaPorcentaje();
+            calcularSimulacion();
+        }
+
+        function sincronizarInputCuota() {
+            const valorRango = document.getElementById('sim-rango-cuota').value;
+            document.getElementById('sim-cuota-inicial').value = valorRango;
+            actualizarLabelCuotaPorcentaje();
+            calcularSimulacion();
+        }
+
+        function actualizarLabelCuotaPorcentaje() {
+            if(!simuladorLoteActual) return;
+            const valorTotal = parsearDinero(simuladorLoteActual.precio);
+            const cuota = parsearDinero(document.getElementById('sim-rango-cuota').value);
+            let porcentaje = 0;
+            if(valorTotal > 0) {
+                porcentaje = (cuota / valorTotal) * 100;
+            }
+            document.getElementById('lbl-cuota-inicial-pct').innerText = `${porcentaje.toFixed(1)}%`;
+        }
+
+        function sincronizarMeses() {
+            const meses = document.getElementById('sim-meses-rango').value;
+            document.getElementById('sim-meses').value = meses;
+            document.getElementById('lbl-meses').innerText = `${meses} Meses`;
+            calcularSimulacion();
         }
 
         function cerrarSimulador() {
@@ -507,75 +629,93 @@
                 const logoDisplay = document.getElementById('display-logo').style.display !== 'none' ? `<img src="${logoSrc}" style="max-height: 80px; max-width: 200px;">` : '';
                 const titleText = document.getElementById('display-title').innerText;
 
-                // Plantilla HTML para el PDF
+                // Plantilla HTML para el PDF (Diseño Elegante y Profesional)
                 const htmlTemplate = `
-                    <div style="font-family: 'Montserrat', sans-serif; color: #333; padding: 40px; background: #fff; max-width: 800px; margin: 0 auto; line-height: 1.6;">
+                    <div style="font-family: 'Montserrat', sans-serif; color: #222; padding: 50px; background: #fff; max-width: 800px; margin: 0 auto; line-height: 1.6; position: relative;">
 
-                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #D4AF37; padding-bottom: 20px; margin-bottom: 30px;">
-                            <div>
+                        <!-- Fondo Decorativo -->
+                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 10px; background: linear-gradient(90deg, #D4AF37, #f1c40f);"></div>
+
+                        <!-- Cabecera -->
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #eee; padding-bottom: 30px; margin-bottom: 40px;">
+                            <div style="max-width: 50%;">
                                 ${logoDisplay}
-                                <h1 style="color: #000; margin: 10px 0 0 0; font-size: 24px; text-transform: uppercase; letter-spacing: 1px;">${titleText}</h1>
+                                <h1 style="color: #111; margin: 15px 0 5px 0; font-size: 20px; text-transform: uppercase; letter-spacing: 2px; font-weight: 600;">${titleText}</h1>
+                                <p style="color: #777; margin: 0; font-size: 12px;">Propuesta Comercial de Inversión</p>
                             </div>
-                            <div style="text-align: right; color: #666;">
-                                <div style="font-size: 18px; font-weight: bold; color: #D4AF37; margin-bottom: 5px;">COTIZACIÓN OFICIAL</div>
-                                <div>Fecha: ${fechaStr}</div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 28px; font-weight: 300; color: #D4AF37; margin-bottom: 8px; letter-spacing: 1px;">COTIZACIÓN</div>
+                                <div style="font-size: 13px; color: #555;"><strong>Fecha:</strong> ${fechaStr}</div>
+                                <div style="font-size: 13px; color: #555; margin-top: 3px;"><strong>Ref:</strong> ${simuladorLoteActual.id.split('-')[1] || Date.now()}</div>
                             </div>
                         </div>
 
-                        <div style="display: flex; gap: 30px; margin-bottom: 30px;">
-                            <div style="flex: 1; background: #f9f9f9; padding: 20px; border-radius: 8px; border-left: 4px solid #D4AF37;">
-                                <h3 style="margin-top: 0; color: #000; border-bottom: 1px solid #ddd; padding-bottom: 10px;">Datos del Cliente</h3>
-                                <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; font-size: 14px;">
-                                    <strong style="color: #555;">Nombre:</strong> <span>${cNombre}</span>
-                                    <strong style="color: #555;">Celular:</strong> <span>${cTel}</span>
-                                    <strong style="color: #555;">Email:</strong> <span>${cEmail}</span>
-                                    <strong style="color: #555;">Dirección:</strong> <span>${cDir}</span>
+                        <!-- Detalles de las Partes -->
+                        <div style="display: flex; gap: 40px; margin-bottom: 40px;">
+                            <div style="flex: 1;">
+                                <h3 style="font-size: 12px; color: #D4AF37; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; border-bottom: 1px solid #D4AF37; padding-bottom: 5px; display: inline-block;">Datos del Inversor</h3>
+                                <div style="font-size: 14px; color: #333;">
+                                    <div style="margin-bottom: 6px;"><strong>Nombre:</strong> ${cNombre}</div>
+                                    <div style="margin-bottom: 6px;"><strong>Teléfono:</strong> ${cTel}</div>
+                                    <div style="margin-bottom: 6px;"><strong>Email:</strong> ${cEmail}</div>
+                                    <div style="margin-bottom: 6px;"><strong>Dirección:</strong> ${cDir}</div>
                                 </div>
                             </div>
-                            <div style="flex: 1; background: #f9f9f9; padding: 20px; border-radius: 8px; border-left: 4px solid #D4AF37;">
-                                <h3 style="margin-top: 0; color: #000; border-bottom: 1px solid #ddd; padding-bottom: 10px;">Datos del Asesor</h3>
-                                <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; font-size: 14px;">
-                                    <strong style="color: #555;">Nombre:</strong> <span>${aNombre}</span>
-                                    <strong style="color: #555;">Celular:</strong> <span>${aTel}</span>
+                            <div style="flex: 1;">
+                                <h3 style="font-size: 12px; color: #D4AF37; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; border-bottom: 1px solid #D4AF37; padding-bottom: 5px; display: inline-block;">Asesor Comercial</h3>
+                                <div style="font-size: 14px; color: #333;">
+                                    <div style="margin-bottom: 6px;"><strong>Nombre:</strong> ${aNombre}</div>
+                                    <div style="margin-bottom: 6px;"><strong>Teléfono:</strong> ${aTel}</div>
                                 </div>
                             </div>
                         </div>
 
-                        <div style="background: #111; color: #fff; padding: 20px; border-radius: 8px; margin-bottom: 30px; text-align: center;">
-                            <h2 style="margin: 0; color: #D4AF37; font-size: 22px;">${simuladorLoteActual.nombre}</h2>
-                            <div style="font-size: 16px; margin-top: 5px;">Área: ${simuladorLoteActual.area}</div>
+                        <!-- Detalles del Inmueble -->
+                        <div style="background: #fafafa; border: 1px solid #eee; border-left: 4px solid #111; padding: 25px; border-radius: 4px; margin-bottom: 40px; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h2 style="margin: 0 0 8px 0; color: #111; font-size: 22px; font-weight: 600;">${simuladorLoteActual.nombre}</h2>
+                                <div style="font-size: 14px; color: #666;">Especificación del inmueble</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 13px; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">Área Total</div>
+                                <div style="font-size: 20px; color: #111; font-weight: 600;">${simuladorLoteActual.area}</div>
+                            </div>
                         </div>
 
-                        <h3 style="color: #000; margin-bottom: 15px; border-bottom: 2px solid #D4AF37; padding-bottom: 5px; display: inline-block;">Plan de Financiamiento</h3>
+                        <!-- Resumen Financiero -->
+                        <h3 style="font-size: 14px; color: #111; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; text-align: center;">Proyección Financiera</h3>
 
-                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 40px; font-size: 15px;">
-                            <tbody>
-                                <tr style="border-bottom: 1px solid #eee;">
-                                    <td style="padding: 15px 10px; font-weight: bold; color: #555;">Valor Total del Inmueble</td>
-                                    <td style="padding: 15px 10px; text-align: right; font-weight: bold; font-size: 18px; color: #000;">${formatearDinero(valorTotalNum)}</td>
-                                </tr>
-                                <tr style="border-bottom: 1px solid #eee; background: #fdfdfd;">
-                                    <td style="padding: 15px 10px; color: #666;">Cuota Inicial (Aporte)</td>
-                                    <td style="padding: 15px 10px; text-align: right; color: #000;">${formatearDinero(cuotaInicialNum)}</td>
-                                </tr>
-                                <tr style="border-bottom: 1px solid #eee;">
-                                    <td style="padding: 15px 10px; font-weight: bold; color: #D4AF37;">Saldo a Financiar</td>
-                                    <td style="padding: 15px 10px; text-align: right; font-weight: bold; color: #D4AF37;">${saldoFinanciarStr}</td>
-                                </tr>
-                                <tr style="border-bottom: 1px solid #eee; background: #fdfdfd;">
-                                    <td style="padding: 15px 10px; color: #666;">Plazo de Financiación</td>
-                                    <td style="padding: 15px 10px; text-align: right; color: #000;">${meses} Meses</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 20px 10px; font-weight: bold; font-size: 18px; color: #000; background: rgba(212, 175, 55, 0.1); border-radius: 8px 0 0 8px;">Valor Cuota Mensual</td>
-                                    <td style="padding: 20px 10px; text-align: right; font-weight: bold; font-size: 20px; color: #D4AF37; background: rgba(212, 175, 55, 0.1); border-radius: 0 8px 8px 0;">${cuotaMensualStr}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div style="border: 1px solid #eee; border-radius: 8px; overflow: hidden; margin-bottom: 50px;">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 15px;">
+                                <tbody>
+                                    <tr>
+                                        <td style="padding: 18px 25px; color: #555; border-bottom: 1px solid #eee;">Valor Total del Inmueble</td>
+                                        <td style="padding: 18px 25px; text-align: right; font-weight: 600; font-size: 18px; color: #111; border-bottom: 1px solid #eee;">${formatearDinero(valorTotalNum)}</td>
+                                    </tr>
+                                    <tr style="background: #fafafa;">
+                                        <td style="padding: 18px 25px; color: #555; border-bottom: 1px solid #eee;">Aporte Inicial Sugerido</td>
+                                        <td style="padding: 18px 25px; text-align: right; color: #333; border-bottom: 1px solid #eee;">${formatearDinero(cuotaInicialNum)}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 18px 25px; font-weight: 600; color: #111; border-bottom: 1px solid #eee;">Saldo a Financiar</td>
+                                        <td style="padding: 18px 25px; text-align: right; font-weight: 600; color: #111; border-bottom: 1px solid #eee;">${saldoFinanciarStr}</td>
+                                    </tr>
+                                    <tr style="background: #fafafa;">
+                                        <td style="padding: 18px 25px; color: #555; border-bottom: 1px solid #eee;">Plazo de Financiación Estimado</td>
+                                        <td style="padding: 18px 25px; text-align: right; color: #333; border-bottom: 1px solid #eee;">${meses} Meses</td>
+                                    </tr>
+                                    <tr style="background: #111;">
+                                        <td style="padding: 22px 25px; font-weight: 600; font-size: 16px; color: #fff; text-transform: uppercase; letter-spacing: 1px;">Inversión Mensual Estimada</td>
+                                        <td style="padding: 22px 25px; text-align: right; font-weight: 600; font-size: 22px; color: #D4AF37;">${cuotaMensualStr}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
 
-                        <div style="text-align: center; margin-top: 50px; font-size: 12px; color: #888; border-top: 1px solid #eee; padding-top: 20px;">
-                            <p>Esta cotización es de carácter informativo y no constituye una promesa de compraventa. Los valores pueden estar sujetos a cambios.</p>
-                            <p>Generado automáticamente por el sistema interactivo de <strong>${titleText}</strong>.</p>
+                        <!-- Pie de página -->
+                        <div style="text-align: center; font-size: 11px; color: #999; border-top: 1px solid #eee; padding-top: 25px; margin-top: auto;">
+                            <p style="margin: 0 0 5px 0; line-height: 1.4;">Este documento es de carácter informativo y no representa un compromiso legal ni una promesa de compraventa. <br>Los valores, áreas y condiciones están sujetos a verificación y posibles modificaciones sin previo aviso.</p>
+                            <p style="margin: 0; font-weight: 600; color: #666;">Generado interactivamente por el sistema de gestión de <strong>${titleText}</strong>.</p>
                         </div>
                     </div>
                 `;
