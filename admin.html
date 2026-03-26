@@ -130,6 +130,9 @@
     <div id="global-progress"></div>
 
     <div class="viewer-area">
+        <div id="btn-back-main" style="display:none; position: fixed; top: 60px; left: 20px; z-index: 100; cursor: pointer; background: rgba(17,17,17,0.7); backdrop-filter: blur(10px); border: 1px solid #D4AF37; color: #fff; padding: 10px 15px; border-radius: 8px; font-weight: bold; text-transform: uppercase; font-size: 0.8rem; box-shadow: 0 4px 15px rgba(0,0,0,0.5); align-items: center; gap: 8px; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" onclick="volverVistaPrincipal()">
+            <span style="font-size: 1.2rem;">⬅</span> Volver a Vista Principal
+        </div>
         <div class="header-premium">
             <div class="header-title" style="display: flex; align-items: center; gap: 10px;">
                 <img id="display-logo" style="height: 40px; border-radius: 4px; display: none;">
@@ -294,11 +297,12 @@
             <select id="poi-tipo-visual" class="input-select" onchange="cambiarTipoPOI(this.value)">
                 <option value="texto">Texto Simple</option>
                 <option value="imagen">Logo / Imagen</option>
+                <option value="vista360">Vista 360 Adicional</option>
             </select>
             <input type="text" id="poi-texto" class="input-text" placeholder="Texto (Ej: Zona Social)">
             
             <div id="poi-imagen-container" style="display: none; margin-bottom: 10px;">
-                <label class="btn btn-upload">
+                <label class="btn btn-upload" id="lbl-upload-poi-img">
                     Subir Imagen (PNG/JPG)
                     <input type="file" id="upload-poi-img" accept="image/png, image/jpeg" style="display:none;" onchange="cargarLogoPOI(event)">
                 </label>
@@ -306,7 +310,15 @@
                 <img id="poi-img-preview" style="max-width: 100%; max-height: 100px; display: none; margin-top: 10px; border-radius: 4px; border: 1px solid #333;" />
             </div>
 
-            <button class="btn btn-action" onclick="guardarPOI()">Guardar POI</button>
+            <div id="poi-vista360-container" style="display: none; margin-bottom: 10px;">
+                <label class="btn btn-upload" id="lbl-upload-poi-360">
+                    Subir Foto 360 (JPG original)
+                    <input type="file" id="upload-poi-360" accept="image/jpeg" style="display:none;" onchange="cargarVista360POI(event)">
+                </label>
+                <input type="hidden" id="poi-360-url">
+            </div>
+
+            <button class="btn btn-action" id="btn-guardar-poi" onclick="guardarPOI()">Guardar POI</button>
             <button class="btn btn-upload" style="border:none;" onclick="cerrarModales()">Cancelar</button>
         </div>
     </div>
@@ -452,6 +464,23 @@
                     }
                 });
                 viewer.addEventListener('click', handleMapClick);
+
+                markersPlugin.addEventListener('select-marker', (e) => {
+                    if (!isAddMode) {
+                        const marker = e.marker;
+                        if(marker.config.data && marker.config.data.type === 'link360') {
+                            window.mostrarProgreso(10);
+                            viewer.setPanorama(marker.config.data.url).then(() => {
+                                marcadoresOcultos = Object.keys(markersPlugin.markers);
+                                marcadoresOcultos.forEach(id => {
+                                    try { markersPlugin.hideMarker(id); } catch(err){}
+                                });
+                                document.getElementById('btn-back-main').style.display = 'flex';
+                                window.mostrarProgreso(100);
+                            });
+                        }
+                    }
+                });
 
             } catch (error) {
                 window.mostrarError("initApp", error);
@@ -1052,6 +1081,8 @@
                     const { error: updateError } = await supabaseClient.from('configuracion').update({ imagen_url: imageUrl }).eq('id', 1);
                     if (updateError) throw updateError;
                 }
+                
+                globalPanoUrl = imageUrl;
                 window.mostrarProgreso(100);
                 viewer.setPanorama(imageUrl);
                 btn.innerHTML = "¡Imagen Actualizada! ✅";
@@ -1060,6 +1091,24 @@
                 window.mostrarProgreso(100);
                 btn.innerHTML = originalText;
                 window.mostrarError("cambiarImagen", error);
+            }
+        }
+
+        let marcadoresOcultos = [];
+
+        window.volverVistaPrincipal = function() {
+            try {
+                window.mostrarProgreso(10);
+                viewer.setPanorama(globalPanoUrl).then(() => {
+                    marcadoresOcultos.forEach(id => {
+                        try { markersPlugin.showMarker(id); } catch(e){}
+                    });
+                    marcadoresOcultos = [];
+                    document.getElementById('btn-back-main').style.display = 'none';
+                    window.mostrarProgreso(100);
+                });
+            } catch (error) {
+                window.mostrarError("volverVistaPrincipal", error);
             }
         }
 
@@ -1214,10 +1263,51 @@
         }
 
         window.cambiarTipoPOI = function(tipo) {
+            document.getElementById('poi-imagen-container').style.display = 'none';
+            document.getElementById('poi-vista360-container').style.display = 'none';
+            
             if (tipo === 'imagen') {
                 document.getElementById('poi-imagen-container').style.display = 'block';
-            } else {
-                document.getElementById('poi-imagen-container').style.display = 'none';
+            } else if (tipo === 'vista360') {
+                document.getElementById('poi-vista360-container').style.display = 'block';
+            }
+        }
+        
+        window.cargarVista360POI = async function(event) {
+            const btn = document.getElementById('lbl-upload-poi-360');
+            const originalText = btn.innerHTML;
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            window.mostrarProgreso(10);
+            btn.innerHTML = "Subiendo 360... ⏳";
+            
+            try {
+                const fileExt = file.name.split('.').pop();
+                const fileName = `poi_360_${Math.random()}.${fileExt}`;
+                const filePath = `${fileName}`;
+
+                window.mostrarProgreso(40);
+                const { data: uploadData, error: uploadError } = await supabaseClient.storage
+                    .from('imagenes_360')
+                    .upload(filePath, file);
+
+                if (uploadError) throw uploadError;
+
+                window.mostrarProgreso(80);
+                const { data: publicUrlData } = supabaseClient.storage
+                    .from('imagenes_360')
+                    .getPublicUrl(filePath);
+
+                document.getElementById('poi-360-url').value = publicUrlData.publicUrl;
+                
+                window.mostrarProgreso(100);
+                btn.innerHTML = "¡Imagen 360 Lista! ✅";
+                setTimeout(() => { btn.innerHTML = originalText; }, 3000);
+            } catch (error) {
+                window.mostrarProgreso(100);
+                btn.innerHTML = originalText;
+                window.mostrarError("Cargar Vista 360 POI", error);
             }
         }
 
@@ -1243,12 +1333,23 @@
                 const texto = document.getElementById('poi-texto').value || 'Punto';
                 const idUnico = 'poi-' + Date.now();
                 const tipo = document.getElementById('poi-tipo-visual').value;
-                let imgData = null;
+                
+                let newContent = texto;
+                
                 if (tipo === 'imagen') {
-                    imgData = document.getElementById('poi-img-data').value;
+                    const imgData = document.getElementById('poi-img-data').value;
+                    if (imgData) {
+                        newContent = `IMG|${imgData}|TEXT|${texto}`;
+                    }
+                } else if (tipo === 'vista360') {
+                    const url360 = document.getElementById('poi-360-url').value;
+                    if (!url360) {
+                        alert("Por favor sube una imagen 360 antes de guardar.");
+                        return;
+                    }
+                    newContent = `LINK360|${url360}|TEXT|${texto}`;
                 }
-                const visualtype = imgData ? `IMG|${imgData}` : null;
-                const newContent = visualtype ? `${visualtype}|TEXT|${texto}` : texto;
+                
                 window.mostrarProgreso(50);
                 const { error } = await supabaseClient.from('pois').insert([{ id: idUnico, content: newContent, yaw: tempCoords.yaw, pitch: tempCoords.pitch }]);
                 if (error) throw error;
@@ -1265,23 +1366,50 @@
             try {
                 let displayText = content;
                 let displayVisualType = null;
+                let isLink360 = false;
+                let link360Url = null;
+
                 if (content && content.startsWith('IMG|')) {
                     const parts = content.split('|TEXT|');
                     displayVisualType = parts[0];
                     displayText = parts[1] || 'Punto';
+                } else if (content && content.startsWith('LINK360|')) {
+                    isLink360 = true;
+                    const parts = content.split('|TEXT|');
+                    link360Url = parts[0].substring(8); // quita 'LINK360|'
+                    displayText = parts[1] || 'Vista 360';
                 }
 
                 if (!markersPlugin.markers[id]) {
-                    let htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;"><div style="background:rgba(0,0,0,0.8);color:#fff;padding:4px 10px;border:1px solid #D4AF37;border-radius:4px;font-size:0.8rem;">${displayText}</div><div style="width:2px;height:30px;background:#fff;"></div><div style="width:12px;height:12px;background:#D4AF37;border-radius:50%;"></div></div>`;
-                    if (displayVisualType && displayVisualType.startsWith('IMG|')) {
+                    let htmlContent = '';
+                    if (isLink360) {
+                        htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;cursor:pointer;">
+                            <div style="background:rgba(17,17,17,0.85);backdrop-filter:blur(5px);color:#D4AF37;padding:6px 15px;border:1px solid #D4AF37;border-radius:20px;font-weight:bold;font-size:0.85rem;text-transform:uppercase;box-shadow:0 0 10px rgba(212,175,55,0.5);display:flex;align-items:center;gap:5px;">
+                                <span>👁️</span> ${displayText}
+                            </div>
+                            <div style="width:2px;height:20px;background:#D4AF37;box-shadow:0 0 5px #D4AF37;"></div>
+                            <div style="width:16px;height:16px;background:#D4AF37;border-radius:50%;box-shadow:0 0 10px #D4AF37;animation: pulse 2s infinite;"></div>
+                        </div>`;
+                    } else if (displayVisualType && displayVisualType.startsWith('IMG|')) {
                         let imgData = displayVisualType.substring(4);
                         htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;"><div><img src="${imgData}" style="max-width: 80px; max-height: 80px; object-fit: contain;"></div></div>`;
+                    } else {
+                        htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;"><div style="background:rgba(0,0,0,0.8);color:#fff;padding:4px 10px;border:1px solid #D4AF37;border-radius:4px;font-size:0.8rem;">${displayText}</div><div style="width:2px;height:30px;background:#fff;"></div><div style="width:12px;height:12px;background:#D4AF37;border-radius:50%;"></div></div>`;
                     }
 
-                    markersPlugin.addMarker({ id, position: { yaw, pitch }, html: htmlContent, size: { width: 100, height: 100 }, anchor: 'bottom center' });
+                    markersPlugin.addMarker({ 
+                        id, 
+                        position: { yaw, pitch }, 
+                        html: htmlContent, 
+                        size: { width: 120, height: 120 }, 
+                        anchor: 'bottom center',
+                        data: isLink360 ? { type: 'link360', url: link360Url, nombre: displayText } : null
+                    });
+                    
                     const lista = document.getElementById('inventory-list');
                     if(lista.innerHTML.includes('vacío')) lista.innerHTML = '';
-                    lista.insertAdjacentHTML('beforeend', `<div class="lot-item" id="item-${id}"><div><span style="color:#D4AF37">★</span> <strong>${displayText}</strong></div><button class="btn-delete" onclick="window.borrarElemento('pois', '${id}')">X</button></div>`);
+                    const iconList = isLink360 ? '👁️' : '★';
+                    lista.insertAdjacentHTML('beforeend', `<div class="lot-item" id="item-${id}"><div><span style="color:#D4AF37">${iconList}</span> <strong>${displayText}</strong></div><button class="btn-delete" onclick="window.borrarElemento('pois', '${id}')">X</button></div>`);
                 }
             } catch (error) {
                 window.mostrarError("renderPOI", error);
