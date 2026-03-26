@@ -505,7 +505,7 @@
 
             let cuotaSugerida = Math.round(valorTotal * (configuracionCuotaInicial / 100));
             cuotaSugerida = Math.round(cuotaSugerida / 500000) * 500000; // Round to nearest 500k
-
+            
             document.getElementById('sim-rango-cuota').value = cuotaSugerida;
             document.getElementById('sim-cuota-inicial').value = cuotaSugerida;
 
@@ -676,12 +676,12 @@
                         <!-- Detalles del Inmueble (Destacado y Elegante) -->
                         <div style="background: linear-gradient(135deg, #111 0%, #2a2a2a 100%); border-radius: 12px; padding: 30px; margin-bottom: 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); position: relative; overflow: hidden;">
                             <div style="position: absolute; top: -50%; right: -10%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(212,175,55,0.15) 0%, rgba(0,0,0,0) 70%); border-radius: 50%; pointer-events: none;"></div>
-
+                            
                             <div style="position: relative; z-index: 1;">
                                 <div style="font-size: 12px; color: #D4AF37; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px;">Especificación del Inmueble</div>
                                 <h2 style="margin: 0; color: #fff; font-size: 32px; font-weight: 600; letter-spacing: 1px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">${simuladorLoteActual.nombre}</h2>
                             </div>
-
+                            
                             <div style="text-align: right; background: rgba(212,175,55,0.1); padding: 15px 25px; border-radius: 8px; border: 1px solid rgba(212,175,55,0.3); position: relative; z-index: 1;">
                                 <div style="font-size: 11px; color: #eee; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px;">Área Total</div>
                                 <div style="font-size: 26px; color: #D4AF37; font-weight: 600;">${simuladorLoteActual.area}</div>
@@ -728,24 +728,22 @@
 
                 const element = document.createElement('div');
                 element.innerHTML = htmlTemplate;
-
-                // Attach temporarily to body to prevent html2canvas calculation crashes
-                element.style.position = 'absolute';
-                element.style.left = '-9999px';
-                element.style.top = '-9999px';
-                document.body.appendChild(element);
+                
+                // It's better to pass the raw string if we want html2pdf to handle the iframe creation,
+                // or if we must attach it, we can use a worker or hidden iframe mechanism, 
+                // but html2pdf typically handles detached elements/strings well if images are loaded. 
+                // Let's use string directly to let html2pdf handle the container logic internally.
 
                 const opt = {
                     margin:       0,
                     filename:     `Cotizacion_${simuladorLoteActual.nombre.replace(/\s+/g, '_')}_${cNombre.replace(/\s+/g, '_')}.pdf`,
                     image:        { type: 'jpeg', quality: 0.98 },
-                    html2canvas:  { scale: 2, useCORS: true, allowTaint: true },
+                    html2canvas:  { scale: 2, useCORS: true, allowTaint: true, logging: false },
                     jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
                 };
 
                 window.mostrarProgreso(50);
-                await html2pdf().set(opt).from(element).save();
-                document.body.removeChild(element);
+                await html2pdf().set(opt).from(htmlTemplate).save();
                 window.mostrarProgreso(100);
 
                 btn.innerText = "¡PDF Generado! ✅";
