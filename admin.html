@@ -26,7 +26,7 @@
         .viewer-area { position: absolute; top: 0; left: 0; width: 100vw; height: 50vh; }
         #viewer { width: 100%; height: 100%; }
         .header-premium { position: absolute; top: 0; left: 0; width: 100%; padding: 15px 20px; background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); z-index: 10; pointer-events: none; }
-        .header-title { font-size: 1.2rem; font-weight: 600; color: #D4AF37; letter-spacing: 2px; text-transform: uppercase; }
+        .header-title { font-size: 1.2rem; font-weight: 600; color: #D4AF37; letter-spacing: 2px; text-transform: uppercase; pointer-events: auto; }
         .admin-panel { position: absolute; bottom: 0; left: 0; width: 100vw; height: 50vh; background: #111; border-top: 3px solid #D4AF37; overflow-y: auto; padding: 15px; box-sizing: border-box; display: flex; flex-direction: column; gap: 15px; }
         @media (min-width: 768px) { .viewer-area { height: 60vh; } .admin-panel { height: 40vh; flex-direction: row; display: grid; grid-template-columns: repeat(3, 1fr); } }
         .control-group { background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #333; display: flex; flex-direction: column; }
@@ -47,6 +47,18 @@
         .modal-content { background: #1a1a1a; padding: 25px; border-radius: 12px; border: 1px solid #D4AF37; width: 90%; max-width: 320px; box-sizing: border-box; }
         .modal-content h3 { margin-top: 0; color: #D4AF37; font-size: 1.2rem; text-align: center; }
         input[type="file"] { display: none; }
+
+        .btn-edit-title { background: none; border: none; color: rgba(255,255,255,0.5); font-size: 0.9rem; cursor: pointer; transition: color 0.3s; padding: 0 5px; pointer-events: auto; }
+        .btn-edit-title:hover { color: #fff; }
+
+        /* Glassmorphism para el nuevo modal */
+        .modal-glass {
+            background: rgba(17, 17, 17, 0.65) !important;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
 
         #preloader { position: fixed; inset: 0; background: #050505; z-index: 10000; display: flex; justify-content: center; align-items: center; transition: opacity 0.8s ease; }
         .preloader-content { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 20px; }
@@ -73,6 +85,7 @@
             <div class="header-title" style="display: flex; align-items: center; gap: 10px;">
                 <img id="display-logo" style="height: 40px; border-radius: 4px; display: none;">
                 <span id="display-title">🔄 INICIANDO V3...</span>
+                <button id="btn-edit-title" class="btn-edit-title" onclick="abrirModalTitulo()">✎</button>
             </div>
         </div>
         <div id="viewer"></div>
@@ -131,6 +144,19 @@
             </select>
             <button class="btn btn-action" onclick="guardarLote()">Guardar Lote</button>
             <button class="btn btn-upload" style="border:none;" onclick="cerrarModales()">Cancelar</button>
+        </div>
+    </div>
+
+    <div id="titulo-modal" class="modal-overlay">
+        <div class="modal-content modal-glass">
+            <h3 style="color: #fff;">Editar Título</h3>
+            <input type="text" id="modal-input-title" class="input-text" placeholder="Nombre del proyecto" style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2);">
+
+            <label class="control-label" style="margin-top: 10px; display: block; color: #ddd;">Color del Título</label>
+            <input type="color" id="modal-input-color" class="input-text" style="height: 50px; padding: 5px; cursor: pointer; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2);">
+
+            <button class="btn btn-action" onclick="guardarTituloDesdeModal()" style="margin-top: 15px;">Guardar Título</button>
+            <button class="btn btn-upload" style="border:none; background: rgba(255,255,255,0.1); color: #fff;" onclick="cerrarModales()">Cancelar</button>
         </div>
     </div>
     <div id="poi-modal" class="modal-overlay">
@@ -204,6 +230,7 @@
         let supabaseClient, viewer, markersPlugin;
         let isAddMode = false; let currentMode = ''; let tempCoords = { yaw: 0, pitch: 0 };
         const fallbackImage = 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg';
+        let globalTituloColor = '#D4AF37';
 
         async function initApp() {
             let panoUrl = fallbackImage;
@@ -226,12 +253,18 @@
                             cuotaInicial = config.cuota_inicial;
                         }
                         if (config.titulo) {
-                            if (config.titulo.includes('|LOGO:')) {
-                                let parts = config.titulo.split('|LOGO:');
-                                titulo = parts[0];
+                            let tempTitulo = config.titulo;
+                            if (tempTitulo.includes('|LOGO:')) {
+                                let parts = tempTitulo.split('|LOGO:');
+                                tempTitulo = parts[0];
                                 logoUrl = parts[1];
+                            }
+                            if (tempTitulo.includes('|COLOR:')) {
+                                let partsColor = tempTitulo.split('|COLOR:');
+                                titulo = partsColor[0];
+                                globalTituloColor = partsColor[1];
                             } else {
-                                titulo = config.titulo;
+                                titulo = tempTitulo;
                             }
                         }
                     }
@@ -243,6 +276,7 @@
                 document.getElementById('input-title').value = titulo;
                 document.getElementById('input-cuota').value = cuotaInicial;
                 document.getElementById('display-title').innerText = titulo;
+                document.getElementById('display-title').style.color = globalTituloColor;
                 if (logoUrl) {
                     document.getElementById('logo-data').value = logoUrl;
                     document.getElementById('display-logo').src = logoUrl;
@@ -370,6 +404,39 @@
             }
         };
 
+        window.abrirModalTitulo = function() {
+            try {
+                document.getElementById('modal-input-title').value = document.getElementById('input-title').value;
+                document.getElementById('modal-input-color').value = globalTituloColor;
+                document.getElementById('titulo-modal').classList.add('active');
+            } catch (error) {
+                window.mostrarError("abrirModalTitulo", error);
+            }
+        };
+
+        window.guardarTituloDesdeModal = function() {
+            try {
+                const nuevoTitulo = document.getElementById('modal-input-title').value;
+                const nuevoColor = document.getElementById('modal-input-color').value;
+
+                if(!nuevoTitulo) {
+                    alert("El título no puede estar vacío");
+                    return;
+                }
+
+                document.getElementById('input-title').value = nuevoTitulo;
+                globalTituloColor = nuevoColor;
+
+                document.getElementById('display-title').innerText = nuevoTitulo;
+                document.getElementById('display-title').style.color = globalTituloColor;
+
+                window.cerrarModales();
+                window.guardarConfiguracion();
+            } catch (error) {
+                window.mostrarError("guardarTituloDesdeModal", error);
+            }
+        };
+
         window.guardarConfiguracion = async function() {
             try {
                 window.mostrarProgreso(10);
@@ -383,7 +450,11 @@
                 }
                 let logoData = document.getElementById('logo-data').value;
 
-                let tituloAguardar = logoData ? `${titulo}|LOGO:${logoData}` : titulo;
+                let tituloAguardar = titulo;
+                tituloAguardar += `|COLOR:${globalTituloColor}`;
+                if (logoData) {
+                    tituloAguardar += `|LOGO:${logoData}`;
+                }
 
                 document.getElementById('display-title').innerText = titulo;
                 if (logoData) {

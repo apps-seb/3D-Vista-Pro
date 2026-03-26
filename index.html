@@ -26,7 +26,7 @@
             box-shadow: 0 0 10px #D4AF37;
         }
         .header-premium { position: absolute; top: 0; left: 0; width: 100%; padding: 20px 30px; background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); color: white; z-index: 10; pointer-events: none; }
-        .header-title { font-size: 1.4rem; font-weight: 600; letter-spacing: 2px; color: #D4AF37; text-transform: uppercase; }
+        .header-title { font-size: 1.4rem; font-weight: 600; letter-spacing: 2px; color: #D4AF37; text-transform: uppercase; pointer-events: auto; }
 
         .inventory-bar { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 15px; background: rgba(0, 0, 0, 0.8); padding: 12px 25px; border-radius: 30px; border: 1px solid rgba(212, 175, 55, 0.4); z-index: 10; white-space: nowrap; box-shadow: 0 5px 20px rgba(0,0,0,0.8); }
         @media (max-width: 600px) { .inventory-bar { width: 90%; max-width: 350px; padding: 10px; gap: 10px; border-radius: 12px; overflow-x: auto; justify-content: flex-start; } .inv-item { font-size: 0.75rem; } }
@@ -258,6 +258,7 @@
         let viewer, markersPlugin;
         const fallbackImage = 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg';
         let configuracionCuotaInicial = 30; // Valor por defecto
+        let globalTituloColor = '#D4AF37';
 
         async function initClient() {
             let panoUrl = fallbackImage;
@@ -279,12 +280,18 @@
                             configuracionCuotaInicial = config.cuota_inicial;
                         }
                         if (config.titulo) {
-                            if (config.titulo.includes('|LOGO:')) {
-                                let parts = config.titulo.split('|LOGO:');
-                                titulo = parts[0];
+                            let tempTitulo = config.titulo;
+                            if (tempTitulo.includes('|LOGO:')) {
+                                let parts = tempTitulo.split('|LOGO:');
+                                tempTitulo = parts[0];
                                 logoUrl = parts[1];
+                            }
+                            if (tempTitulo.includes('|COLOR:')) {
+                                let partsColor = tempTitulo.split('|COLOR:');
+                                titulo = partsColor[0];
+                                globalTituloColor = partsColor[1];
                             } else {
-                                titulo = config.titulo;
+                                titulo = tempTitulo;
                             }
                         }
                     }
@@ -294,6 +301,7 @@
                 }
 
                 document.getElementById('display-title').innerText = titulo;
+                document.getElementById('display-title').style.color = globalTituloColor;
                 if (logoUrl) {
                     document.getElementById('display-logo').src = logoUrl;
                     document.getElementById('display-logo').style.display = 'block';
@@ -768,13 +776,27 @@
                     })
                     .on('postgres_changes', { event: '*', schema: 'public', table: 'configuracion' }, payload => {
                         if (payload.new && payload.new.titulo) {
-                            if (payload.new.titulo.includes('|LOGO:')) {
-                                let parts = payload.new.titulo.split('|LOGO:');
-                                document.getElementById('display-title').innerText = parts[0];
-                                document.getElementById('display-logo').src = parts[1];
+                            let tempTitulo = payload.new.titulo;
+                            let newLogoUrl = "";
+                            let newColor = "#D4AF37";
+                            if (tempTitulo.includes('|LOGO:')) {
+                                let parts = tempTitulo.split('|LOGO:');
+                                tempTitulo = parts[0];
+                                newLogoUrl = parts[1];
+                            }
+                            if (tempTitulo.includes('|COLOR:')) {
+                                let partsColor = tempTitulo.split('|COLOR:');
+                                tempTitulo = partsColor[0];
+                                newColor = partsColor[1];
+                            }
+
+                            document.getElementById('display-title').innerText = tempTitulo;
+                            document.getElementById('display-title').style.color = newColor;
+
+                            if (newLogoUrl) {
+                                document.getElementById('display-logo').src = newLogoUrl;
                                 document.getElementById('display-logo').style.display = 'block';
                             } else {
-                                document.getElementById('display-title').innerText = payload.new.titulo;
                                 document.getElementById('display-logo').style.display = 'none';
                             }
                         }
