@@ -27,7 +27,7 @@
         #viewer { width: 100%; height: 100%; }
         .header-premium { position: absolute; top: 0; left: 0; width: 100%; padding: 15px 20px; background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); z-index: 10; pointer-events: none; }
         .header-title { font-size: 1.2rem; font-weight: 600; color: #D4AF37; letter-spacing: 2px; text-transform: uppercase; pointer-events: auto; }
-        .admin-panel { position: absolute; bottom: 0; left: 0; width: 100vw; height: 50vh; background: #111; border-top: 3px solid #D4AF37; overflow-y: auto; padding: 15px; box-sizing: border-box; display: flex; flex-direction: column; gap: 15px; }
+        .admin-panel { position: absolute; bottom: 0; left: 0; width: 100vw; height: 50vh; background: #111; border-top: 3px solid #D4AF37; overflow-y: auto; padding: 15px; box-sizing: border-box; display: flex; flex-direction: column; gap: 15px; z-index: 20; }
         @media (min-width: 768px) { .viewer-area { height: 60vh; } .admin-panel { height: 40vh; flex-direction: row; display: grid; grid-template-columns: repeat(3, 1fr); } }
         .control-group { background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #333; display: flex; flex-direction: column; }
         .control-label { font-size: 0.8rem; color: #aaa; margin-bottom: 10px; text-transform: uppercase; font-weight: 600; }
@@ -49,7 +49,10 @@
         input[type="file"] { display: none; }
 
         .btn-edit-title { background: #D4AF37; border: none; color: #000; font-size: 0.9rem; cursor: pointer; transition: background 0.3s, transform 0.2s; padding: 5px 10px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-weight: bold; pointer-events: auto; }
-        .btn-edit-title:hover { background: #b5952f; transform: scale(1.05); }
+        @media (hover: hover) {
+            .btn-edit-title:hover { background: #b5952f; transform: scale(1.05); }
+        }
+        .btn-edit-title:active { background: #b5952f; transform: scale(0.95); }
 
         /* Glassmorphism para el nuevo modal */
         .modal-glass {
@@ -94,7 +97,7 @@
         <div class="control-group">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                 <span class="control-label" style="margin-bottom: 0;">1. Configuración Principal</span>
-                <button id="btn-edit-title" class="btn-edit-title" onclick="abrirModalTitulo()">✎ Editar</button>
+                <button type="button" id="btn-edit-title" class="btn-edit-title" onclick="abrirModalTitulo()">✎ Editar</button>
             </div>
             <input type="text" id="input-title" class="input-text" placeholder="Nombre del proyecto" disabled style="opacity: 0.5;">
             
