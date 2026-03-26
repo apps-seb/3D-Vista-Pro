@@ -729,23 +729,21 @@
                 const element = document.createElement('div');
                 element.innerHTML = htmlTemplate;
 
-                // Attach temporarily to body to prevent html2canvas calculation crashes
-                element.style.position = 'absolute';
-                element.style.left = '-9999px';
-                element.style.top = '-9999px';
-                document.body.appendChild(element);
+                // It's better to pass the raw string if we want html2pdf to handle the iframe creation,
+                // or if we must attach it, we can use a worker or hidden iframe mechanism,
+                // but html2pdf typically handles detached elements/strings well if images are loaded.
+                // Let's use string directly to let html2pdf handle the container logic internally.
 
                 const opt = {
                     margin:       0,
                     filename:     `Cotizacion_${simuladorLoteActual.nombre.replace(/\s+/g, '_')}_${cNombre.replace(/\s+/g, '_')}.pdf`,
                     image:        { type: 'jpeg', quality: 0.98 },
-                    html2canvas:  { scale: 2, useCORS: true, allowTaint: true },
+                    html2canvas:  { scale: 2, useCORS: true, allowTaint: true, logging: false },
                     jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
                 };
 
                 window.mostrarProgreso(50);
-                await html2pdf().set(opt).from(element).save();
-                document.body.removeChild(element);
+                await html2pdf().set(opt).from(htmlTemplate).save();
                 window.mostrarProgreso(100);
 
                 btn.innerText = "¡PDF Generado! ✅";
