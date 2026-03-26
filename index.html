@@ -259,6 +259,7 @@
         const fallbackImage = 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg';
         let configuracionCuotaInicial = 30; // Valor por defecto
         let globalTituloColor = '#D4AF37';
+        let globalTituloFont = 'Montserrat';
 
         async function initClient() {
             let panoUrl = fallbackImage;
@@ -286,6 +287,11 @@
                                 tempTitulo = parts[0];
                                 logoUrl = parts[1];
                             }
+                            if (tempTitulo.includes('|FONT:')) {
+                                let partsFont = tempTitulo.split('|FONT:');
+                                tempTitulo = partsFont[0];
+                                globalTituloFont = partsFont[1];
+                            }
                             if (tempTitulo.includes('|COLOR:')) {
                                 let partsColor = tempTitulo.split('|COLOR:');
                                 titulo = partsColor[0];
@@ -302,6 +308,7 @@
 
                 document.getElementById('display-title').innerText = titulo;
                 document.getElementById('display-title').style.color = globalTituloColor;
+                document.getElementById('display-title').style.fontFamily = globalTituloFont;
                 if (logoUrl) {
                     document.getElementById('display-logo').src = logoUrl;
                     document.getElementById('display-logo').style.display = 'block';
@@ -779,10 +786,16 @@
                             let tempTitulo = payload.new.titulo;
                             let newLogoUrl = "";
                             let newColor = "#D4AF37";
+                            let newFont = "Montserrat";
                             if (tempTitulo.includes('|LOGO:')) {
                                 let parts = tempTitulo.split('|LOGO:');
                                 tempTitulo = parts[0];
                                 newLogoUrl = parts[1];
+                            }
+                            if (tempTitulo.includes('|FONT:')) {
+                                let partsFont = tempTitulo.split('|FONT:');
+                                tempTitulo = partsFont[0];
+                                newFont = partsFont[1];
                             }
                             if (tempTitulo.includes('|COLOR:')) {
                                 let partsColor = tempTitulo.split('|COLOR:');
@@ -792,6 +805,7 @@
 
                             document.getElementById('display-title').innerText = tempTitulo;
                             document.getElementById('display-title').style.color = newColor;
+                            document.getElementById('display-title').style.fontFamily = newFont;
 
                             if (newLogoUrl) {
                                 document.getElementById('display-logo').src = newLogoUrl;
