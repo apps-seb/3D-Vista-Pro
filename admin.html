@@ -10,6 +10,52 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin@5.1.4/index.min.css" />
     
     <style>
+        /* CSS Editor de Polígonos */
+        #polygon-editor-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #111; z-index: 10000; display: none; flex-direction: column; overflow: hidden;
+        }
+        #polygon-editor-header {
+            display: flex; justify-content: space-between; align-items: center; padding: 10px 20px;
+            background: #000; border-bottom: 2px solid #D4AF37; z-index: 10;
+        }
+        #polygon-editor-header h2 { margin: 0; color: #D4AF37; font-size: 1.2rem; }
+        .editor-controls-bar {
+            display: flex; gap: 15px; background: #1a1a1a; padding: 10px 20px; z-index: 10;
+            border-bottom: 1px solid #333; align-items: center; flex-wrap: wrap;
+        }
+        .editor-btn {
+            background: #222; color: #D4AF37; border: 1px solid #D4AF37; padding: 8px 15px;
+            border-radius: 4px; cursor: pointer; font-family: 'Montserrat', sans-serif; font-weight: bold; font-size: 0.8rem;
+        }
+        .editor-btn:hover { background: #D4AF37; color: #000; }
+        .editor-btn.active-mode { background: #D4AF37; color: #000; }
+        .editor-btn.danger { background: #e74c3c; color: white; border-color: #e74c3c; }
+
+        #canvas-container {
+            position: relative; flex: 1; overflow: hidden; background: #050505;
+            cursor: grab; display: flex; justify-content: center; align-items: center;
+        }
+        #canvas-container:active { cursor: grabbing; }
+        #canvas-container.drawing-mode { cursor: crosshair; }
+        #polygon-canvas {
+            transform-origin: 0 0; box-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
+
+        .editor-panel-right {
+            position: absolute; right: 20px; top: 120px; width: 280px; background: rgba(17,17,17,0.85);
+            backdrop-filter: blur(10px); border: 1px solid #D4AF37; border-radius: 8px; padding: 15px;
+            z-index: 20; max-height: calc(100vh - 160px); overflow-y: auto;
+        }
+        .editor-panel-right h3 { color: #fff; margin-top: 0; font-size: 1rem; border-bottom: 1px solid #444; padding-bottom: 10px; }
+        .poly-tool-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; font-size: 0.85rem; }
+        .poly-tool-row label { color: #aaa; }
+        .poly-slider { width: 60%; }
+
+        .list-polygons { margin-top: 15px; border-top: 1px solid #444; padding-top: 10px; }
+        .list-poly-item { display: flex; justify-content: space-between; align-items: center; background: #000; padding: 8px; border-radius: 4px; margin-bottom: 5px; font-size: 0.8rem; border: 1px solid #333; }
+        .list-poly-item button { background: #e74c3c; border: none; color: white; border-radius: 3px; cursor: pointer; padding: 3px 8px; }
+
         #global-progress {
             position: fixed;
             top: 0;
@@ -123,7 +169,8 @@
 
         <div class="control-group">
             <span class="control-label">2. Herramientas de Mapa</span>
-            <button id="btn-add-lote" class="btn btn-action" onclick="activarModo('lote')">+ Crear Lote</button>
+            <button id="btn-add-lote" class="btn btn-action" onclick="activarModo('lote')">+ Crear Lote (Punto)</button>
+            <button id="btn-open-polygon-editor" class="btn btn-action" onclick="abrirEditorPoligonos()" style="background: #D4AF37; color: #000; border: 1px solid #D4AF37; font-weight: bold;">✏️ Dibujar Polígonos 2D</button>
             <button id="btn-add-poi" class="btn btn-action" onclick="activarModo('poi')" style="background: #222; color: #fff; border: 1px solid #444;">+ Crear Punto de Interés</button>
             <p style="font-size: 0.75rem; color: #D4AF37; text-align: center; margin-top: 10px; font-weight: bold;" id="add-helper">Selecciona una opción arriba</p>
         </div>
@@ -132,6 +179,71 @@
             <span class="control-label">3. Inventario en Vivo</span>
             <div id="inventory-list" class="inventory-list">
                 <p style="font-size: 0.8rem; color: #666;">Cargando inventario...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDITOR DE POLÍGONOS OVERLAY -->
+    <div id="polygon-editor-overlay">
+        <div id="polygon-editor-header">
+            <h2>Editor Profesional de Planos 2D</h2>
+            <div>
+                <button class="editor-btn danger" onclick="cerrarEditorPoligonos()">Cerrar Editor</button>
+            </div>
+        </div>
+        <div class="editor-controls-bar">
+            <span style="color:#D4AF37; font-size: 0.8rem; font-weight: bold; text-transform: uppercase;">1. Plano Guía:</span>
+            <label class="editor-btn">
+                Subir Plano
+                <input type="file" id="upload-plan-img" accept="image/png, image/jpeg" style="display:none;" onchange="cargarPlanoGuia(event)">
+            </label>
+            <button class="editor-btn" id="btn-mode-move" onclick="setPolyMode('move')" class="active-mode">✋ Mover / Ajustar Plano</button>
+
+            <span style="color:#D4AF37; font-size: 0.8rem; font-weight: bold; text-transform: uppercase; margin-left: 20px;">2. Dibujo:</span>
+            <button class="editor-btn" id="btn-mode-draw" onclick="setPolyMode('draw')">✏️ Dibujar Polígono</button>
+            <button class="editor-btn" onclick="undoPolyPoint()">↩️ Deshacer Punto</button>
+            <button class="editor-btn danger" onclick="clearPolyDraw()">Borrar Actual</button>
+        </div>
+
+        <div id="canvas-container">
+            <canvas id="polygon-canvas"></canvas>
+
+            <!-- Panel Lateral Derecho -->
+            <div class="editor-panel-right">
+                <div id="panel-ajustes-plano">
+                    <h3>Ajustes del Plano</h3>
+                    <div class="poly-tool-row">
+                        <label>Opacidad</label>
+                        <input type="range" id="plan-opacidad" class="poly-slider" min="0" max="1" step="0.1" value="0.6" oninput="renderCanvas()">
+                    </div>
+                    <div class="poly-tool-row">
+                        <label>Escala</label>
+                        <input type="range" id="plan-escala" class="poly-slider" min="0.1" max="5" step="0.05" value="1" oninput="renderCanvas()">
+                    </div>
+                    <div class="poly-tool-row">
+                        <label>Rotación</label>
+                        <input type="range" id="plan-rotacion" class="poly-slider" min="-180" max="180" step="1" value="0" oninput="renderCanvas()">
+                    </div>
+                    <div style="font-size: 0.75rem; color: #aaa; text-align: center; margin-top: 10px; background: rgba(0,0,0,0.5); padding: 5px; border-radius: 4px;">
+                        Usa las flechas del teclado o arrastra para mover el plano.
+                    </div>
+                </div>
+
+                <div id="panel-guardar-poligono" style="display: none; margin-top: 20px; border-top: 1px solid #444; padding-top: 15px;">
+                    <h3 style="color:#2ecc71;">Polígono Listo</h3>
+                    <p style="font-size: 0.8rem; color: #ddd; margin-bottom: 10px;">Asigna el polígono dibujado a un Lote:</p>
+                    <select id="poly-lote-select" class="input-select" style="background: rgba(0,0,0,0.8); border: 1px solid #D4AF37;">
+                        <option value="">-- Selecciona un Lote --</option>
+                    </select>
+                    <button class="editor-btn" style="width: 100%; background: #2ecc71; color: #000; margin-top: 10px; text-align: center;" onclick="guardarPoligonoLote()">Guardar en Lote</button>
+                </div>
+
+                <div class="list-polygons">
+                    <h3>Polígonos Guardados</h3>
+                    <div id="poly-list-container" style="max-height: 150px; overflow-y: auto;">
+                        <p style="font-size: 0.8rem; color: #666; text-align: center;">Cargando lotes...</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -247,6 +359,8 @@
         let supabaseClient, viewer, markersPlugin;
         let isAddMode = false; let currentMode = ''; let tempCoords = { yaw: 0, pitch: 0 };
         const fallbackImage = 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg';
+        let globalPanoUrl = fallbackImage;
+        let lotesDataEditor = []; // Para tener la lista de lotes en el editor 2D
         let globalTituloColor = '#D4AF37';
         let globalTituloFont = 'Montserrat';
 
@@ -266,7 +380,7 @@
                     const { data: config, error: configError } = await supabaseClient.from('configuracion').select('*').eq('id', 1).maybeSingle();
                     if (configError) throw new Error(configError.message);
                     if (config) {
-                        if (config.imagen_url) panoUrl = config.imagen_url;
+                        if (config.imagen_url) { panoUrl = config.imagen_url; globalPanoUrl = panoUrl; }
                         if (config.cuota_inicial !== undefined && config.cuota_inicial !== null) {
                             cuotaInicial = config.cuota_inicial;
                         }
@@ -351,7 +465,8 @@
                 lista.innerHTML = '';
                 const { data: lotes, error: lotesError } = await supabaseClient.from('lotes').select('*');
                 if (lotesError) throw lotesError;
-                if (lotes && lotes.length > 0) lotes.forEach(l => window.renderLote(l.id, l.nombre, l.area, l.precio, l.estado, l.yaw, l.pitch));
+                lotesDataEditor = lotes || [];
+                if (lotes && lotes.length > 0) lotes.forEach(l => window.renderLote(l.id, l.nombre, l.area, l.precio, l.estado, l.yaw, l.pitch, l.poligono));
                 const { data: pois, error: poisError } = await supabaseClient.from('pois').select('*');
                 if (poisError) throw poisError;
                 if (pois && pois.length > 0) pois.forEach(p => window.renderPOI(p.id, p.content, p.yaw, p.pitch));
@@ -464,6 +579,386 @@
                 window.mostrarError("guardarTituloDesdeModal", error);
             }
         };
+
+        // ---------------- EDITOR DE POLÍGONOS LÓGICA ---------------- //
+        let editorCanvas, ctx;
+        let bgImg = new Image();
+        let planImg = new Image();
+        let planImgLoaded = false;
+
+        // Ajustes del plano
+        let planX = 0, planY = 0;
+        let isDraggingPlan = false;
+        let dragStartX, dragStartY;
+        let planScale = 1;
+        let planRotation = 0;
+        let planOpacity = 0.6;
+
+        let editorMode = 'move'; // 'move' o 'draw'
+        let polygonPoints = [];
+        let viewScale = 1; // Para hacer zoom a todo el canvas si fuera necesario, por ahora lo mantenemos ajustado a pantalla
+        let imgOrigWidth = 0, imgOrigHeight = 0;
+
+        window.abrirEditorPoligonos = function() {
+            document.getElementById('polygon-editor-overlay').style.display = 'flex';
+            initEditorCanvas();
+            actualizarListaLotesEditor();
+        }
+
+        window.cerrarEditorPoligonos = function() {
+            document.getElementById('polygon-editor-overlay').style.display = 'none';
+        }
+
+        function initEditorCanvas() {
+            editorCanvas = document.getElementById('polygon-canvas');
+            ctx = editorCanvas.getContext('2d');
+
+            const container = document.getElementById('canvas-container');
+
+            bgImg.crossOrigin = "anonymous";
+            bgImg.src = globalPanoUrl;
+            bgImg.onload = function() {
+                imgOrigWidth = bgImg.width;
+                imgOrigHeight = bgImg.height;
+
+                // Ajustar tamaño del canvas para que encaje en el contenedor manteniendo proporción 2:1 (típica de equirrectangular)
+                const contW = container.clientWidth - 40;
+                const contH = container.clientHeight - 40;
+
+                let renderW = contW;
+                let renderH = contW * (imgOrigHeight / imgOrigWidth);
+
+                if(renderH > contH) {
+                    renderH = contH;
+                    renderW = contH * (imgOrigWidth / imgOrigHeight);
+                }
+
+                editorCanvas.width = renderW;
+                editorCanvas.height = renderH;
+
+                // Centrar plano inicialmente
+                if(!planImgLoaded) {
+                    planX = renderW / 2;
+                    planY = renderH / 2;
+                }
+
+                renderCanvas();
+            };
+
+            // Eventos del ratón para mover plano o dibujar
+            editorCanvas.onmousedown = onCanvasMouseDown;
+            editorCanvas.onmousemove = onCanvasMouseMove;
+            editorCanvas.onmouseup = onCanvasMouseUp;
+            editorCanvas.onmouseleave = onCanvasMouseUp;
+
+            // Teclado para flechas (mover plano finamente)
+            window.addEventListener('keydown', onKeyDown);
+        }
+
+        window.cargarPlanoGuia = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                planImg = new Image();
+                planImg.onload = function() {
+                    planImgLoaded = true;
+                    // Centrar plano al cargarlo
+                    planX = editorCanvas.width / 2;
+                    planY = editorCanvas.height / 2;
+                    planScale = 1;
+                    document.getElementById('plan-escala').value = 1;
+                    planRotation = 0;
+                    document.getElementById('plan-rotacion').value = 0;
+                    setPolyMode('move');
+                    renderCanvas();
+                }
+                planImg.src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
+
+        window.setPolyMode = function(mode) {
+            editorMode = mode;
+            document.getElementById('btn-mode-move').classList.remove('active-mode');
+            document.getElementById('btn-mode-draw').classList.remove('active-mode');
+            document.getElementById('btn-mode-' + mode).classList.add('active-mode');
+
+            const container = document.getElementById('canvas-container');
+            if(mode === 'draw') {
+                container.classList.add('drawing-mode');
+            } else {
+                container.classList.remove('drawing-mode');
+            }
+        }
+
+        function onCanvasMouseDown(e) {
+            const rect = editorCanvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            if(editorMode === 'move') {
+                isDraggingPlan = true;
+                dragStartX = mouseX - planX;
+                dragStartY = mouseY - planY;
+            } else if(editorMode === 'draw') {
+                polygonPoints.push({x: mouseX, y: mouseY});
+                renderCanvas();
+                verificarPoligonoTerminado();
+            }
+        }
+
+        function onCanvasMouseMove(e) {
+            if(!isDraggingPlan || editorMode !== 'move') return;
+            const rect = editorCanvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            planX = mouseX - dragStartX;
+            planY = mouseY - dragStartY;
+            renderCanvas();
+        }
+
+        function onCanvasMouseUp(e) {
+            isDraggingPlan = false;
+        }
+
+        function onKeyDown(e) {
+            if(document.getElementById('polygon-editor-overlay').style.display !== 'flex') return;
+            if(editorMode !== 'move' || !planImgLoaded) return;
+
+            const step = e.shiftKey ? 10 : 1;
+            switch(e.key) {
+                case 'ArrowUp': planY -= step; e.preventDefault(); break;
+                case 'ArrowDown': planY += step; e.preventDefault(); break;
+                case 'ArrowLeft': planX -= step; e.preventDefault(); break;
+                case 'ArrowRight': planX += step; e.preventDefault(); break;
+            }
+            renderCanvas();
+        }
+
+        window.renderCanvas = function() {
+            if(!ctx) return;
+            ctx.clearRect(0, 0, editorCanvas.width, editorCanvas.height);
+
+            // Dibujar 360 de fondo
+            if(bgImg.complete) {
+                ctx.drawImage(bgImg, 0, 0, editorCanvas.width, editorCanvas.height);
+            }
+
+            // Actualizar variables desde sliders
+            planOpacity = parseFloat(document.getElementById('plan-opacidad').value);
+            planScale = parseFloat(document.getElementById('plan-escala').value);
+            planRotation = parseFloat(document.getElementById('plan-rotacion').value);
+
+            // Dibujar plano
+            if(planImgLoaded && planImg.complete) {
+                ctx.save();
+                ctx.globalAlpha = planOpacity;
+                ctx.translate(planX, planY);
+                ctx.rotate(planRotation * Math.PI / 180);
+
+                const w = planImg.width * planScale;
+                const h = planImg.height * planScale;
+
+                ctx.drawImage(planImg, -w/2, -h/2, w, h);
+                ctx.restore();
+
+                // Dibujar cruz de centro del plano si estamos moviendo
+                if(editorMode === 'move') {
+                    ctx.save();
+                    ctx.strokeStyle = '#D4AF37';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(planX - 10, planY); ctx.lineTo(planX + 10, planY);
+                    ctx.moveTo(planX, planY - 10); ctx.lineTo(planX, planY + 10);
+                    ctx.stroke();
+                    ctx.restore();
+                }
+            }
+
+            // Dibujar Polígono actual
+            if(polygonPoints.length > 0) {
+                ctx.save();
+                ctx.fillStyle = 'rgba(46, 204, 113, 0.4)';
+                ctx.strokeStyle = '#2ecc71';
+                ctx.lineWidth = 2;
+
+                ctx.beginPath();
+                ctx.moveTo(polygonPoints[0].x, polygonPoints[0].y);
+                for(let i=1; i<polygonPoints.length; i++) {
+                    ctx.lineTo(polygonPoints[i].x, polygonPoints[i].y);
+                }
+
+                // Si hay 3 o más puntos, cerrar el camino visualmente
+                if(polygonPoints.length > 2) {
+                    ctx.closePath();
+                    ctx.fill();
+                }
+                ctx.stroke();
+
+                // Dibujar puntos (vértices)
+                ctx.fillStyle = '#fff';
+                for(let i=0; i<polygonPoints.length; i++) {
+                    ctx.beginPath();
+                    ctx.arc(polygonPoints[i].x, polygonPoints[i].y, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+        }
+
+        window.undoPolyPoint = function() {
+            if(polygonPoints.length > 0) {
+                polygonPoints.pop();
+                renderCanvas();
+                verificarPoligonoTerminado();
+            }
+        }
+
+        window.clearPolyDraw = function() {
+            polygonPoints = [];
+            renderCanvas();
+            verificarPoligonoTerminado();
+        }
+
+        function verificarPoligonoTerminado() {
+            const panel = document.getElementById('panel-guardar-poligono');
+            if(polygonPoints.length >= 3) {
+                panel.style.display = 'block';
+            } else {
+                panel.style.display = 'none';
+            }
+        }
+
+        function actualizarListaLotesEditor() {
+            const select = document.getElementById('poly-lote-select');
+            const listContainer = document.getElementById('poly-list-container');
+
+            select.innerHTML = '<option value="">-- Selecciona un Lote --</option>';
+            listContainer.innerHTML = '';
+
+            if(lotesDataEditor.length === 0) {
+                listContainer.innerHTML = '<p style="font-size: 0.8rem; color: #666; text-align: center;">No hay lotes creados.</p>';
+                return;
+            }
+
+            lotesDataEditor.forEach(l => {
+                // Agregar al select
+                const opt = document.createElement('option');
+                opt.value = l.id;
+                opt.text = l.nombre;
+                select.appendChild(opt);
+
+                // Mostrar en la lista si tiene polígono
+                if(l.poligono) {
+                    listContainer.insertAdjacentHTML('beforeend', `
+                        <div class="list-poly-item" id="list-poly-${l.id}">
+                            <span>✅ ${l.nombre}</span>
+                            <button onclick="borrarPoligonoLote('${l.id}')">Borrar Poly</button>
+                        </div>
+                    `);
+                }
+            });
+
+            if(listContainer.innerHTML === '') {
+                listContainer.innerHTML = '<p style="font-size: 0.8rem; color: #666; text-align: center;">Ningún lote tiene polígono aún.</p>';
+            }
+        }
+
+        // --- Matemáticas para convertir 2D a Esfera 360 ---
+        // La imagen equirrectangular mapea X de 0 a Ancho -> yaw de 0 a 2*PI
+        // y Y de 0 a Alto -> pitch de PI/2 (arriba) a -PI/2 (abajo)
+        function convertPointToSphere(x, y, width, height) {
+            // Yaw: izquierda(0) es 0, derecha(width) es 2PI (360deg)
+            // PhotoSphereViewer usa yaw=0 en el centro de la imagen.
+            // La fórmula estándar equirrectangular a PSV:
+            const yaw = (x / width) * 2 * Math.PI - Math.PI;
+
+            // Pitch: arriba(0) es PI/2, abajo(height) es -PI/2
+            const pitch = (0.5 - (y / height)) * Math.PI;
+
+            return [yaw, pitch]; // Formato [yaw, pitch] requerido por el plugin Polygon de PSV
+        }
+
+        window.guardarPoligonoLote = async function() {
+            const loteId = document.getElementById('poly-lote-select').value;
+            if(!loteId) {
+                alert("Selecciona un lote de la lista");
+                return;
+            }
+            if(polygonPoints.length < 3) {
+                alert("El polígono debe tener al menos 3 puntos");
+                return;
+            }
+
+            try {
+                window.mostrarProgreso(10);
+
+                // Convertir todos los puntos 2D a coordenadas esféricas
+                const cw = editorCanvas.width;
+                const ch = editorCanvas.height;
+                const esfericos = polygonPoints.map(p => convertPointToSphere(p.x, p.y, cw, ch));
+
+                const poligonoStr = JSON.stringify(esfericos);
+
+                window.mostrarProgreso(40);
+                // Guardar en Supabase
+                const { error } = await supabaseClient.from('lotes')
+                    .update({ poligono: poligonoStr })
+                    .eq('id', loteId);
+
+                if (error) throw error;
+
+                window.mostrarProgreso(80);
+
+                // Actualizar loteData local
+                const lote = lotesDataEditor.find(l => l.id === loteId);
+                if(lote) lote.poligono = poligonoStr;
+
+                // Actualizar visor 3D en vivo
+                if (lote) {
+                    window.renderLote(lote.id, lote.nombre, lote.area, lote.precio, lote.estado, lote.yaw, lote.pitch, lote.poligono);
+                }
+
+                // Limpiar editor
+                clearPolyDraw();
+                actualizarListaLotesEditor();
+
+                window.mostrarProgreso(100);
+                alert("Polígono guardado exitosamente");
+
+            } catch (error) {
+                window.mostrarError("guardarPoligonoLote", error);
+            }
+        }
+
+        window.borrarPoligonoLote = async function(loteId) {
+            if(!confirm("¿Seguro que deseas borrar el polígono de este lote?")) return;
+            try {
+                window.mostrarProgreso(20);
+                const { error } = await supabaseClient.from('lotes')
+                    .update({ poligono: null })
+                    .eq('id', loteId);
+                if(error) throw error;
+
+                window.mostrarProgreso(80);
+                const lote = lotesDataEditor.find(l => l.id === loteId);
+                if(lote) lote.poligono = null;
+
+                // Actualizar visor 3D en vivo
+                if (lote) {
+                    window.renderLote(lote.id, lote.nombre, lote.area, lote.precio, lote.estado, lote.yaw, lote.pitch, lote.poligono);
+                }
+
+                actualizarListaLotesEditor();
+                window.mostrarProgreso(100);
+            } catch (error) {
+                window.mostrarError("borrarPoligonoLote", error);
+            }
+        }
+        // ----------------------------------------------------------- //
 
         window.guardarConfiguracion = async function() {
             try {
@@ -618,8 +1113,13 @@
                 window.mostrarProgreso(50);
                 const { error } = await supabaseClient.from('lotes').insert([{ id: idUnico, nombre, area, precio, estado, yaw: tempCoords.yaw, pitch: tempCoords.pitch }]);
                 if (error) throw error;
+
+                // Actualizar lista local de editor
+                lotesDataEditor.push({ id: idUnico, nombre, area, precio, estado, yaw: tempCoords.yaw, pitch: tempCoords.pitch, poligono: null });
+                actualizarListaLotesEditor();
+
                 window.mostrarProgreso(80);
-                window.renderLote(idUnico, nombre, area, precio, estado, tempCoords.yaw, tempCoords.pitch);
+                window.renderLote(idUnico, nombre, area, precio, estado, tempCoords.yaw, tempCoords.pitch, null);
                 window.cerrarModales();
                 window.mostrarProgreso(100);
             } catch (error) {
@@ -627,17 +1127,59 @@
             }
         }
 
-        window.renderLote = function(id, nombre, area, precio, estado, yaw, pitch) {
+        window.renderLote = function(id, nombre, area, precio, estado, yaw, pitch, poligono) {
             try {
                 let color = estado === 'Vendido' ? '#e74c3c' : (estado === 'Reservado' ? '#f39c12' : '#2ecc71');
+                let colorRGBA = estado === 'Vendido' ? 'rgba(231,76,60,0.4)' : (estado === 'Reservado' ? 'rgba(243,156,18,0.4)' : 'rgba(46,204,113,0.4)');
                 let shortName = nombre.replace(/lote\s*/i, '').trim();
                 if(shortName.length > 4) shortName = shortName.substring(0, 4);
 
                 const html = `<div class="lote-marker" style="background:${color}; box-shadow: 0 0 10px ${color};">${shortName}</div>`;
-                if (markersPlugin.markers[id]) markersPlugin.updateMarker({ id, html });
-                else {
-                    markersPlugin.addMarker({ id, position: { yaw, pitch }, html, size: { width: 34, height: 34 }, anchor: 'center center', tooltip: { content: `<div style="text-align:center;"><strong style="color:#D4AF37">${nombre}</strong></div>`, position: 'top center' }, data: { nombre, area, precio, estado, yaw, pitch } });
+
+                let markerConfigHTML = {
+                    id: id,
+                    position: { yaw, pitch },
+                    html: html,
+                    size: { width: 34, height: 34 },
+                    anchor: 'center center',
+                    tooltip: { content: `<div style="text-align:center;"><strong style="color:#D4AF37">${nombre}</strong></div>`, position: 'top center' },
+                    data: { nombre, area, precio, estado, yaw, pitch, poligono }
+                };
+
+                if (markersPlugin.markers[id]) {
+                    markersPlugin.updateMarker(markerConfigHTML);
+                } else {
+                    markersPlugin.addMarker(markerConfigHTML);
                 }
+
+                let polyId = id + '_poly';
+                if (poligono) {
+                    try {
+                        const polyPoints = JSON.parse(poligono);
+                        if (Array.isArray(polyPoints) && polyPoints.length >= 3) {
+                            let markerConfigPoly = {
+                                id: polyId,
+                                polygon: polyPoints,
+                                svgStyle: {
+                                    fill: colorRGBA,
+                                    stroke: color,
+                                    strokeWidth: '2px'
+                                },
+                                data: { type: 'lote_poly', parentId: id }
+                            };
+                            if (markersPlugin.markers[polyId]) {
+                                markersPlugin.updateMarker(markerConfigPoly);
+                            } else {
+                                markersPlugin.addMarker(markerConfigPoly);
+                            }
+                        }
+                    } catch(e) { console.warn("Error parsing poligono in admin", e); }
+                } else {
+                    if (markersPlugin.markers[polyId]) {
+                        markersPlugin.removeMarker(polyId);
+                    }
+                }
+
                 const lista = document.getElementById('inventory-list');
                 if(lista.innerHTML.includes('vacío')) lista.innerHTML = '';
                 const existingItem = document.getElementById(`item-${id}`);
@@ -657,9 +1199,14 @@
                 window.mostrarProgreso(20);
                 const { error } = await supabaseClient.from('lotes').update({ estado: estado }).eq('id', id);
                 if (error) throw error;
+
+                // Actualizar loteData local
+                const loteEditor = lotesDataEditor.find(l => l.id === id);
+                if(loteEditor) loteEditor.estado = estado;
+
                 window.mostrarProgreso(80);
                 const marker = markersPlugin.markers[id];
-                if (marker) window.renderLote(id, marker.config.data.nombre, marker.config.data.area, marker.config.data.precio, estado, marker.config.data.yaw, marker.config.data.pitch);
+                if (marker) window.renderLote(id, marker.config.data.nombre, marker.config.data.area, marker.config.data.precio, estado, marker.config.data.yaw, marker.config.data.pitch, marker.config.data.poligono);
                 window.mostrarProgreso(100);
             } catch (error) {
                 window.mostrarError("actualizarEstado", error);

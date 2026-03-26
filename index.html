@@ -379,19 +379,48 @@
 
                         const htmlContent = `<div class="lote-marker" style="background:${bg}; box-shadow: 0 0 15px ${shadow}">${shortName}</div>`;
 
+                        let markerConfigHTML = {
+                            id: l.id,
+                            position: { yaw: l.yaw, pitch: l.pitch },
+                            html: htmlContent,
+                            size: { width: 34, height: 34 },
+                            anchor: 'center center',
+                            data: { type: 'lote', nombre: l.nombre, area: l.area + ' m²', precio: l.precio, estado: l.estado }
+                        };
+
                         if (markersPlugin.markers[l.id]) {
-                            markersPlugin.updateMarker({
-                                id: l.id,
-                                html: htmlContent,
-                                data: { type: 'lote', nombre: l.nombre, area: l.area + ' m²', precio: l.precio, estado: l.estado }
-                            });
+                            markersPlugin.updateMarker(markerConfigHTML);
                         } else {
-                            markersPlugin.addMarker({
-                                id: l.id, position: { yaw: l.yaw, pitch: l.pitch },
-                                html: htmlContent,
-                                size: { width: 34, height: 34 }, anchor: 'center center',
-                                data: { type: 'lote', nombre: l.nombre, area: l.area + ' m²', precio: l.precio, estado: l.estado }
-                            });
+                            markersPlugin.addMarker(markerConfigHTML);
+                        }
+
+                        let polyId = l.id + '_poly';
+                        if (l.poligono) {
+                            try {
+                                const polyPoints = JSON.parse(l.poligono);
+                                if (Array.isArray(polyPoints) && polyPoints.length >= 3) {
+                                    let markerConfigPoly = {
+                                        id: polyId,
+                                        polygon: polyPoints,
+                                        svgStyle: {
+                                            fill: bg.replace('0.9', '0.4'), // Más transparente
+                                            stroke: shadow,
+                                            strokeWidth: '2px'
+                                        },
+                                        data: { type: 'lote_poly', parentId: l.id }
+                                    };
+                                    if (markersPlugin.markers[polyId]) {
+                                        markersPlugin.updateMarker(markerConfigPoly);
+                                    } else {
+                                        markersPlugin.addMarker(markerConfigPoly);
+                                    }
+                                    activeMarkers.add(polyId);
+                                }
+                            } catch(e) { console.warn("Error parsing poligono for lote", l.id, e); }
+                        } else {
+                            if (markersPlugin.markers[polyId]) {
+                                markersPlugin.removeMarker(polyId);
+                            }
                         }
                     });
                 }
