@@ -331,7 +331,7 @@
                             titulo = tempTitulo;
                             
                             if (preloaderUrl) {
-                                const isVideo = preloaderUrl.match(/\.(mp4|webm|ogg)$/i);
+                                const isVideo = preloaderUrl.match(/\.(mp4|webm|ogg)(?:\?.*)?$/i);
                                 const preloaderImg = document.getElementById('preloader-bg-img');
                                 const preloaderVideo = document.getElementById('preloader-video');
                                 if (isVideo) {
@@ -456,10 +456,9 @@
                                         data: { type: 'lote_poly', parentId: l.id }
                                     };
                                     if (markersPlugin.markers[polyId]) {
-                                        markersPlugin.updateMarker(markerConfigPoly);
-                                    } else {
-                                        markersPlugin.addMarker(markerConfigPoly);
+                                        markersPlugin.removeMarker(polyId);
                                     }
+                                    markersPlugin.addMarker(markerConfigPoly);
                                     activeMarkers.add(polyId);
                                 }
                             } catch(e) { console.warn("Error parsing poligono for lote", l.id, e); }
@@ -998,7 +997,7 @@
                             document.getElementById('display-title').style.fontFamily = newFont;
 
                             if (newPreloaderUrl) {
-                                const isVideo = newPreloaderUrl.match(/\.(mp4|webm|ogg)$/i);
+                                const isVideo = newPreloaderUrl.match(/\.(mp4|webm|ogg)(?:\?.*)?$/i);
                                 const preloaderImg = document.getElementById('preloader-bg-img');
                                 const preloaderVideo = document.getElementById('preloader-video');
                                 if (preloaderImg && preloaderVideo) {
