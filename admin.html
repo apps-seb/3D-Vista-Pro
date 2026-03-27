@@ -204,24 +204,55 @@
     </div>
 
     <!-- UI FLOTANTE PARA DIBUJAR EN 360 -->
-    <div id="polygon-360-ui" style="display: none; position: fixed; top: 10px; right: 10px; background: rgba(17,17,17,0.85); backdrop-filter: blur(10px); padding: 15px; border-radius: 8px; border: 1px solid #D4AF37; z-index: 10000; color: #fff; width: 300px;">
-        <h3 style="margin-top: 0; color: #D4AF37; font-size: 1.1rem; border-bottom: 1px solid #444; padding-bottom: 5px;">Trazar Polígono 360</h3>
-        <p style="font-size: 0.8rem; color: #aaa;">Haz clic en el visor 360 para añadir puntos al polígono.</p>
+    <div id="polygon-360-ui" style="display: none; position: fixed; top: 10px; right: 10px; background: rgba(17,17,17,0.85); backdrop-filter: blur(10px); padding: 15px; border-radius: 8px; border: 1px solid #D4AF37; z-index: 10000; color: #fff; width: 320px; max-height: calc(100vh - 20px); overflow-y: auto;">
+        <h3 style="margin-top: 0; color: #D4AF37; font-size: 1.1rem; border-bottom: 1px solid #444; padding-bottom: 5px; display: flex; justify-content: space-between; align-items: center;">
+            <span>Trazar Polígonos 360</span>
+            <button class="editor-btn danger" style="padding: 2px 8px;" onclick="cerrarEditorPoligonos360()">X</button>
+        </h3>
         
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.85rem;">
-            <span>Puntos: <strong id="poly-360-count" style="color:#2ecc71;">0</strong></span>
-            <button class="editor-btn" onclick="undoPoly360Point()" style="padding: 4px 8px;">↩️ Deshacer</button>
+        <div id="poly-360-draw-mode" style="display: none; margin-bottom: 15px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; border: 1px dashed #D4AF37;">
+            <p style="font-size: 0.8rem; color: #D4AF37; font-weight: bold; margin-top: 0;">Modo Dibujo Activo</p>
+            <p style="font-size: 0.75rem; color: #aaa; margin-bottom: 10px;">Haz clic en el visor 360 para añadir puntos. Arrastra los puntos verdes para ajustarlos.</p>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.85rem;">
+                <span>Puntos: <strong id="poly-360-count" style="color:#2ecc71;">0</strong></span>
+                <button class="editor-btn" onclick="undoPoly360Point()" style="padding: 4px 8px;">↩️ Deshacer</button>
+            </div>
+
+            <div id="poly-360-save-panel" style="display: none; margin-top: 10px; border-top: 1px solid #444; padding-top: 10px;">
+                <input type="text" id="poly-360-nombre" class="input-text" placeholder="Nombre (Ej: Zona Verde)" style="padding: 8px; font-size: 0.8rem; margin-bottom: 8px;">
+
+                <div style="display: flex; gap: 10px; margin-bottom: 8px;">
+                    <div style="flex: 1;">
+                        <label style="font-size: 0.7rem; color: #aaa; display: block; margin-bottom: 2px;">Color Relleno</label>
+                        <input type="color" id="poly-360-color-fill" class="input-text" value="#2ecc71" style="height: 30px; padding: 2px; cursor: pointer;">
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="font-size: 0.7rem; color: #aaa; display: block; margin-bottom: 2px;">Color Borde</label>
+                        <input type="color" id="poly-360-color-border" class="input-text" value="#27ae60" style="height: 30px; padding: 2px; cursor: pointer;">
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 10px;">
+                    <label style="font-size: 0.7rem; color: #aaa; display: block; margin-bottom: 2px;">Tipo de renderizado</label>
+                    <select id="poly-360-tipo" class="input-select" style="padding: 6px; font-size: 0.8rem;">
+                        <option value="relleno">Con Relleno (Translúcido)</option>
+                        <option value="trazado">Solo Trazado (Línea)</option>
+                    </select>
+                </div>
+
+                <button class="editor-btn" style="width: 100%; background: #2ecc71; color: #000; margin-bottom: 5px; font-size: 0.9rem;" onclick="guardarNuevoPoligono360()">✅ Guardar Polígono</button>
+                <button class="editor-btn danger" style="width: 100%; font-size: 0.8rem;" onclick="cancelarDibujoPoly360()">Cancelar Dibujo</button>
+            </div>
         </div>
-        
-        <div id="poly-360-save-panel" style="display: none; margin-top: 15px; border-top: 1px solid #444; padding-top: 10px;">
-            <label style="font-size: 0.8rem; color: #ddd; display: block; margin-bottom: 5px;">Asignar a Lote:</label>
-            <select id="poly-360-lote-select" class="input-select" style="background: rgba(0,0,0,0.8); border: 1px solid #D4AF37; margin-bottom: 10px;">
-                <option value="">-- Selecciona un Lote --</option>
-            </select>
-            <button class="editor-btn" style="width: 100%; background: #2ecc71; color: #000; margin-bottom: 5px;" onclick="guardarPoligono360Lote()">✅ Guardar en Lote</button>
+
+        <button id="btn-start-draw-poly360" class="editor-btn" style="width: 100%; background: #D4AF37; color: #000; margin-bottom: 15px;" onclick="iniciarDibujoPoly360()">✏️ Crear Nuevo Polígono</button>
+
+        <div style="border-top: 1px solid #444; padding-top: 10px;">
+            <h4 style="margin: 0 0 10px 0; color: #fff; font-size: 0.9rem;">Inventario Polígonos 360 (<span id="count-polys-360">0</span>)</h4>
+            <div id="poly-360-list" style="max-height: 200px; overflow-y: auto;">
+                <p style="font-size: 0.8rem; color: #666; text-align: center;">Cargando...</p>
+            </div>
         </div>
-        
-        <button class="editor-btn danger" style="width: 100%; margin-top: 10px;" onclick="cerrarEditorPoligonos360()">❌ Cancelar / Salir</button>
     </div>
 
     <!-- EDITOR DE POLÍGONOS OVERLAY -->
@@ -553,7 +584,31 @@
                 });
                 viewer.addEventListener('click', handleMapClick);
 
+                viewer.addEventListener('mousedown', (e) => {
+                    if(isPoly360Mode && e.data.rightclick === false) {
+                        // Check if we clicked on a poly point to drag it
+                        let clickedPointIndex = -1;
+                        for (let markerId in markersPlugin.markers) {
+                            let marker = markersPlugin.markers[markerId];
+                            if (marker.config.data && marker.config.data.isPolyPoint) {
+                                // Calculate distance in pixels approx to see if clicked
+                                // PhotoSphereViewer markers click event handles this better, but mousedown helps dragging
+                            }
+                        }
+                    }
+                });
+
                 markersPlugin.addEventListener('select-marker', (e) => {
+                    if (isPoly360Mode) {
+                        const marker = e.marker;
+                        if(marker.config.data && marker.config.data.isPolyPoint) {
+                            poly360EditMode = true;
+                            draggedPointIndex = marker.config.data.index;
+                            document.querySelector('.psv-container').style.cursor = 'grabbing';
+                        }
+                        return;
+                    }
+
                     if (!isAddMode) {
                         const marker = e.marker;
                         if(marker.config.data && marker.config.data.type === 'link360') {
@@ -599,6 +654,17 @@
                 const { data: pois, error: poisError } = await supabaseClient.from('pois').select('*');
                 if (poisError) throw poisError;
                 if (pois && pois.length > 0) pois.forEach(p => window.renderPOI(p.id, p.content, p.yaw, p.pitch));
+
+                // Cargar también polígonos 360 si existen en la bd para el visor
+                try {
+                    const { data: polys360, error: polyError } = await supabaseClient.from('poligonos_360').select('*');
+                    if (!polyError && polys360 && polys360.length > 0) {
+                        polys360.forEach(p => renderPoly360(p));
+                    }
+                } catch(e) {
+                    console.log("No se pudieron cargar poligonos 360 (puede que la tabla aún no exista)");
+                }
+
                 if(lista.innerHTML === '') lista.innerHTML = '<p style="font-size:0.8rem;color:#666;">Inventario vacío.</p>';
             } catch (error) {
                 window.mostrarError("cargarInventario", error);
@@ -1011,32 +1077,53 @@
             return [yaw, pitch]; // Formato [yaw, pitch] requerido por el plugin Polygon de PSV
         }
 
-        window.abrirEditorPoligonos360 = function() {
-            isPoly360Mode = true;
-            poly360Points = [];
-            document.getElementById('polygon-360-ui').style.display = 'block';
-            document.getElementById('poly-360-count').innerText = '0';
-            document.getElementById('poly-360-save-panel').style.display = 'none';
+        let isEditingPoly360 = false;
+        let poly360EditMode = false; // flag to indicate we are moving a specific point
+        let draggedPointIndex = -1;
+        let polys360Data = [];
 
-            // Populate select list for 360 poly
-            const select = document.getElementById('poly-360-lote-select');
-            select.innerHTML = '<option value="">-- Selecciona un Lote --</option>';
-            lotesDataEditor.forEach(l => {
-                const opt = document.createElement('option');
-                opt.value = l.id;
-                opt.text = l.nombre;
-                select.appendChild(opt);
-            });
-            
-            actualizarPoly360Visual();
+        window.abrirEditorPoligonos360 = function() {
+            document.getElementById('polygon-360-ui').style.display = 'block';
+            cargarInventarioPolys360();
         }
 
         window.cerrarEditorPoligonos360 = function() {
-            isPoly360Mode = false;
+            cancelarDibujoPoly360();
             document.getElementById('polygon-360-ui').style.display = 'none';
+        }
+
+        window.iniciarDibujoPoly360 = function() {
+            isPoly360Mode = true;
+            poly360Points = [];
+            document.getElementById('poly-360-draw-mode').style.display = 'block';
+            document.getElementById('btn-start-draw-poly360').style.display = 'none';
+            document.getElementById('poly-360-count').innerText = '0';
+            document.getElementById('poly-360-save-panel').style.display = 'none';
+            
+            // Cursor crosshair general para el modo dibujo
+            const viewerContainer = document.querySelector('.psv-container');
+            if (viewerContainer) {
+                viewerContainer.style.cursor = 'crosshair';
+            }
+
+            actualizarPoly360Visual();
+        }
+
+        window.cancelarDibujoPoly360 = function() {
+            isPoly360Mode = false;
+            poly360Points = [];
+            document.getElementById('poly-360-draw-mode').style.display = 'none';
+            document.getElementById('btn-start-draw-poly360').style.display = 'block';
+
+            const viewerContainer = document.querySelector('.psv-container');
+            if (viewerContainer) {
+                viewerContainer.style.cursor = '';
+            }
+
             if (markersPlugin.markers[poly360TempId]) {
                 markersPlugin.removeMarker(poly360TempId);
             }
+            limpiarPuntosDraggables();
         }
 
         window.undoPoly360Point = function() {
@@ -1052,66 +1139,214 @@
             }
         }
 
+        function hexToRgbA(hex, alpha){
+            let c;
+            if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
+                c= hex.substring(1).split('');
+                if(c.length== 3){
+                    c= [c[0], c[0], c[1], c[1], c[2], c[2]];
+                }
+                c= '0x'+c.join('');
+                return 'rgba('+[(c>>16)&255, (c>>8)&255, c&255].join(',')+','+alpha+')';
+            }
+            return hex; // fallback
+        }
+
+        function limpiarPuntosDraggables() {
+            Object.keys(markersPlugin.markers).forEach(id => {
+                if(id.startsWith('poly-360-point-')) {
+                    markersPlugin.removeMarker(id);
+                }
+            });
+        }
+
         function actualizarPoly360Visual() {
             if (markersPlugin.markers[poly360TempId]) {
                 markersPlugin.removeMarker(poly360TempId);
             }
+            limpiarPuntosDraggables();
 
             if (poly360Points.length > 0) {
-                // If 1 or 2 points, draw polyline. Markers plugin polygon needs at least 3 points technically,
-                // but photo-sphere-viewer handles open polylines if points are < 3
+                let colorBorder = document.getElementById('poly-360-color-border').value || '#27ae60';
+                let colorFillHex = document.getElementById('poly-360-color-fill').value || '#2ecc71';
+                let tipo = document.getElementById('poly-360-tipo').value || 'relleno';
+
+                let fill = tipo === 'relleno' ? hexToRgbA(colorFillHex, 0.4) : 'transparent';
+
                 markersPlugin.addMarker({
                     id: poly360TempId,
                     polyline: poly360Points,
                     svgStyle: {
-                        stroke: '#2ecc71',
+                        stroke: colorBorder,
                         strokeWidth: '3px',
-                        fill: poly360Points.length >= 3 ? 'rgba(46, 204, 113, 0.4)' : 'transparent'
+                        fill: poly360Points.length >= 3 ? fill : 'transparent'
                     }
+                });
+
+                // Añadir marcadores draggables para editar los puntos
+                poly360Points.forEach((pt, index) => {
+                    markersPlugin.addMarker({
+                        id: 'poly-360-point-' + index,
+                        position: { yaw: pt[0], pitch: pt[1] },
+                        html: `<div style="width:12px; height:12px; background:${colorBorder}; border-radius:50%; border:2px solid #fff; cursor:move; box-shadow:0 0 5px rgba(0,0,0,0.5);"></div>`,
+                        size: { width: 16, height: 16 },
+                        anchor: 'center center',
+                        data: { isPolyPoint: true, index: index }
+                    });
                 });
             }
         }
 
-        window.guardarPoligono360Lote = async function() {
-            const loteId = document.getElementById('poly-360-lote-select').value;
-            if(!loteId) {
-                alert("Selecciona un lote de la lista");
-                return;
-            }
+        // Listeners del plugin para mover puntos
+        if(window.PhotoSphereViewer && window.PhotoSphereViewer.MarkersPlugin) {
+            // Este evento se captura en ready(), pero definimos la lógica de arrastre en Viewer Events
+        }
+
+        window.guardarNuevoPoligono360 = async function() {
             if(poly360Points.length < 3) {
                 alert("El polígono debe tener al menos 3 puntos");
                 return;
             }
 
+            const nombre = document.getElementById('poly-360-nombre').value;
+            if(!nombre) {
+                alert("Por favor ingresa un nombre para el polígono");
+                return;
+            }
+
             try {
                 window.mostrarProgreso(10);
+
+                const colorRelleno = document.getElementById('poly-360-color-fill').value;
+                const colorBorde = document.getElementById('poly-360-color-border').value;
+                const tipo = document.getElementById('poly-360-tipo').value;
+                const idUnico = 'poly360-' + Date.now();
                 const poligonoStr = JSON.stringify(poly360Points);
 
                 window.mostrarProgreso(40);
-                const { error } = await supabaseClient.from('lotes')
-                    .update({ poligono: poligonoStr })
-                    .eq('id', loteId);
+                const { error } = await supabaseClient.from('poligonos_360').insert([{
+                    id: idUnico,
+                    nombre: nombre,
+                    puntos: poligonoStr,
+                    color_relleno: colorRelleno,
+                    color_borde: colorBorde,
+                    tipo: tipo
+                }]);
 
-                if (error) throw error;
-
-                window.mostrarProgreso(80);
-                const lote = lotesDataEditor.find(l => l.id === loteId);
-                if(lote) lote.poligono = poligonoStr;
-
-                if (lote) {
-                    window.renderLote(lote.id, lote.nombre, lote.area, lote.precio, lote.estado, lote.yaw, lote.pitch, lote.poligono);
+                if (error) {
+                    if(error.message && error.message.includes('relation "public.poligonos_360" does not exist')) {
+                        alert("Error: La tabla 'poligonos_360' no existe en Supabase. Por favor, crea la tabla usando las instrucciones SQL.");
+                        throw error;
+                    }
+                    throw error;
                 }
 
-                actualizarListaLotesEditor();
-                cerrarEditorPoligonos360();
+                window.mostrarProgreso(80);
+
+                cancelarDibujoPoly360();
+                cargarInventarioPolys360();
 
                 window.mostrarProgreso(100);
                 alert("Polígono 360 guardado exitosamente");
 
             } catch (error) {
-                window.mostrarError("guardarPoligono360Lote", error);
+                window.mostrarError("guardarNuevoPoligono360", error);
             }
         }
+
+        window.cargarInventarioPolys360 = async function() {
+            try {
+                if(!supabaseClient) return;
+                const { data, error } = await supabaseClient.from('poligonos_360').select('*');
+                if (error) {
+                    if(error.code === '42P01') {
+                        document.getElementById('poly-360-list').innerHTML = '<p style="font-size: 0.8rem; color: #e74c3c;">Tabla "poligonos_360" no existe. Debes crearla en Supabase.</p>';
+                        return;
+                    }
+                    throw error;
+                }
+
+                polys360Data = data || [];
+                document.getElementById('count-polys-360').innerText = polys360Data.length;
+
+                const lista = document.getElementById('poly-360-list');
+                lista.innerHTML = '';
+
+                if(polys360Data.length === 0) {
+                    lista.innerHTML = '<p style="font-size: 0.8rem; color: #666; text-align: center;">No hay polígonos.</p>';
+                } else {
+                    polys360Data.forEach(p => {
+                        renderPoly360(p);
+
+                        let fillStyle = p.tipo === 'relleno' ? p.color_relleno : 'transparent';
+                        lista.insertAdjacentHTML('beforeend', `
+                            <div class="list-poly-item" style="border-left: 4px solid ${p.color_borde};">
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <div style="width:12px; height:12px; background:${fillStyle}; border:1px solid ${p.color_borde};"></div>
+                                    <span>${p.nombre}</span>
+                                </div>
+                                <div>
+                                    <button onclick="borrarPoly360('${p.id}')">X</button>
+                                </div>
+                            </div>
+                        `);
+                    });
+                }
+            } catch (error) {
+                console.warn("cargarInventarioPolys360 error:", error);
+            }
+        }
+
+        window.renderPoly360 = function(p) {
+            try {
+                if(markersPlugin.markers[p.id]) {
+                    markersPlugin.removeMarker(p.id);
+                }
+
+                const points = JSON.parse(p.puntos);
+                if(points && points.length >= 3) {
+                    let fill = p.tipo === 'relleno' ? hexToRgbA(p.color_relleno, 0.4) : 'transparent';
+
+                    markersPlugin.addMarker({
+                        id: p.id,
+                        polygon: points,
+                        svgStyle: {
+                            stroke: p.color_borde,
+                            strokeWidth: '2px',
+                            fill: fill
+                        },
+                        data: { isPoly360Db: true, nombre: p.nombre }
+                    });
+                }
+            } catch(e) {
+                console.error("Error al renderizar polígono 360", e);
+            }
+        }
+
+        window.borrarPoly360 = async function(id) {
+            if(!confirm("¿Seguro que deseas borrar este polígono 360?")) return;
+            try {
+                window.mostrarProgreso(20);
+                const { error } = await supabaseClient.from('poligonos_360').delete().eq('id', id);
+                if(error) throw error;
+
+                if(markersPlugin.markers[id]) {
+                    markersPlugin.removeMarker(id);
+                }
+
+                window.mostrarProgreso(80);
+                cargarInventarioPolys360();
+                window.mostrarProgreso(100);
+            } catch (error) {
+                window.mostrarError("borrarPoly360", error);
+            }
+        }
+
+        // Listeners live variables for colors
+        document.getElementById('poly-360-color-fill').addEventListener('input', () => { if(isPoly360Mode) actualizarPoly360Visual(); });
+        document.getElementById('poly-360-color-border').addEventListener('input', () => { if(isPoly360Mode) actualizarPoly360Visual(); });
+        document.getElementById('poly-360-tipo').addEventListener('change', () => { if(isPoly360Mode) actualizarPoly360Visual(); });
+
 
         window.guardarPoligonoLote = async function() {
             const loteId = document.getElementById('poly-lote-select').value;
@@ -1410,7 +1645,17 @@
         window.handleMapClick = function(e) {
             try {
                 if (isPoly360Mode) {
-                    poly360Points.push([e.data.yaw, e.data.pitch]);
+                    if(poly360EditMode && draggedPointIndex !== -1) {
+                        // We are finishing a drag operation
+                        poly360Points[draggedPointIndex] = [e.data.yaw, e.data.pitch];
+                        poly360EditMode = false;
+                        draggedPointIndex = -1;
+                        document.querySelector('.psv-container').style.cursor = 'crosshair';
+                    } else {
+                        // Adding a new point
+                        poly360Points.push([e.data.yaw, e.data.pitch]);
+                    }
+
                     document.getElementById('poly-360-count').innerText = poly360Points.length;
                     
                     if (poly360Points.length >= 3) {

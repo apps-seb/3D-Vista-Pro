@@ -557,6 +557,35 @@
                         }
                     });
                 }
+                // Cargar también polígonos 360
+                try {
+                    const { data: polys360, error: polyError } = await supabaseClient.from('poligonos_360').select('*');
+                    if (!polyError && polys360 && polys360.length > 0) {
+                        polys360.forEach(p => {
+                            activeMarkers.add(p.id);
+                            if(markersPlugin.markers[p.id]) {
+                                markersPlugin.removeMarker(p.id);
+                            }
+                            const points = JSON.parse(p.puntos);
+                            if(points && points.length >= 3) {
+                                let fill = p.tipo === 'relleno' ? hexToRgbA(p.color_relleno, 0.4) : 'transparent';
+                                markersPlugin.addMarker({
+                                    id: p.id,
+                                    polygon: points,
+                                    svgStyle: {
+                                        stroke: p.color_borde,
+                                        strokeWidth: '2px',
+                                        fill: fill
+                                    },
+                                    data: { isPoly360Db: true, nombre: p.nombre }
+                                });
+                            }
+                        });
+                    }
+                } catch(e) {
+                    console.log("No se pudieron cargar poligonos 360 (puede que la tabla aún no exista)");
+                }
+
                 window.mostrarProgreso(100);
 
                 Object.keys(markersPlugin.markers).forEach(markerId => {
@@ -567,6 +596,19 @@
             } catch (error) {
                 window.mostrarError("cargarDatosPublicos", error);
             }
+        }
+
+        function hexToRgbA(hex, alpha){
+            let c;
+            if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
+                c= hex.substring(1).split('');
+                if(c.length== 3){
+                    c= [c[0], c[0], c[1], c[1], c[2], c[2]];
+                }
+                c= '0x'+c.join('');
+                return 'rgba('+[(c>>16)&255, (c>>8)&255, c&255].join(',')+','+alpha+')';
+            }
+            return hex;
         }
 
         window.cerrarModal = function() {
@@ -951,6 +993,9 @@
                         cargarDatosPublicos();
                     })
                     .on('postgres_changes', { event: '*', schema: 'public', table: 'pois' }, payload => {
+                        cargarDatosPublicos();
+                    })
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'poligonos_360' }, payload => {
                         cargarDatosPublicos();
                     })
                     .on('postgres_changes', { event: '*', schema: 'public', table: 'configuracion' }, payload => {
