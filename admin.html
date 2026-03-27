@@ -201,12 +201,12 @@
     <div id="polygon-360-ui" style="display: none; position: fixed; top: 10px; right: 10px; background: rgba(17,17,17,0.85); backdrop-filter: blur(10px); padding: 15px; border-radius: 8px; border: 1px solid #D4AF37; z-index: 10000; color: #fff; width: 300px;">
         <h3 style="margin-top: 0; color: #D4AF37; font-size: 1.1rem; border-bottom: 1px solid #444; padding-bottom: 5px;">Trazar Polígono 360</h3>
         <p style="font-size: 0.8rem; color: #aaa;">Haz clic en el visor 360 para añadir puntos al polígono.</p>
-
+        
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.85rem;">
             <span>Puntos: <strong id="poly-360-count" style="color:#2ecc71;">0</strong></span>
             <button class="editor-btn" onclick="undoPoly360Point()" style="padding: 4px 8px;">↩️ Deshacer</button>
         </div>
-
+        
         <div id="poly-360-save-panel" style="display: none; margin-top: 15px; border-top: 1px solid #444; padding-top: 10px;">
             <label style="font-size: 0.8rem; color: #ddd; display: block; margin-bottom: 5px;">Asignar a Lote:</label>
             <select id="poly-360-lote-select" class="input-select" style="background: rgba(0,0,0,0.8); border: 1px solid #D4AF37; margin-bottom: 10px;">
@@ -214,7 +214,7 @@
             </select>
             <button class="editor-btn" style="width: 100%; background: #2ecc71; color: #000; margin-bottom: 5px;" onclick="guardarPoligono360Lote()">✅ Guardar en Lote</button>
         </div>
-
+        
         <button class="editor-btn danger" style="width: 100%; margin-top: 10px;" onclick="cerrarEditorPoligonos360()">❌ Cancelar / Salir</button>
     </div>
 
@@ -441,30 +441,44 @@
                         }
                         if (config.titulo) {
                             let tempTitulo = config.titulo;
-                            if (tempTitulo.includes('|PRELOADER:')) {
-                                let parts = tempTitulo.split('|PRELOADER:');
-                                tempTitulo = parts[0];
-                                preloaderUrl = parts[1];
+
+                            const extractValue = (str, prefix) => {
+                                if (str.includes(`|${prefix}:`)) {
+                                    let parts = str.split(`|${prefix}:`);
+                                    let val = parts[1];
+                                    if (val.includes('|')) {
+                                        val = val.split('|')[0];
+                                    }
+                                    return val;
+                                }
+                                return "";
+                            };
+
+                            const removeValue = (str, prefix) => {
+                                if (str.includes(`|${prefix}:`)) {
+                                    let regex = new RegExp(`\\|${prefix}:[^\\|]*`);
+                                    return str.replace(regex, '');
+                                }
+                                return str;
+                            };
+
+                            preloaderUrl = extractValue(tempTitulo, "PRELOADER");
+                            if (preloaderUrl) {
                                 document.getElementById('preloader-data').value = preloaderUrl;
                             }
-                            if (tempTitulo.includes('|LOGO:')) {
-                                let parts = tempTitulo.split('|LOGO:');
-                                tempTitulo = parts[0];
-                                logoUrl = parts[1];
-                            }
-                            if (tempTitulo.includes('|FONT:')) {
-                                let partsFont = tempTitulo.split('|FONT:');
-                                tempTitulo = partsFont[0];
-                                globalTituloFont = partsFont[1];
-                            }
-                            if (tempTitulo.includes('|COLOR:')) {
-                                let partsColor = tempTitulo.split('|COLOR:');
-                                titulo = partsColor[0];
-                                globalTituloColor = partsColor[1];
-                            } else {
-                                titulo = tempTitulo;
-                            }
+                            tempTitulo = removeValue(tempTitulo, "PRELOADER");
 
+                            logoUrl = extractValue(tempTitulo, "LOGO");
+                            tempTitulo = removeValue(tempTitulo, "LOGO");
+
+                            globalTituloFont = extractValue(tempTitulo, "FONT");
+                            tempTitulo = removeValue(tempTitulo, "FONT");
+
+                            globalTituloColor = extractValue(tempTitulo, "COLOR");
+                            tempTitulo = removeValue(tempTitulo, "COLOR");
+
+                            titulo = tempTitulo;
+                            
                             if (preloaderUrl) {
                                 const isVideo = preloaderUrl.match(/\.(mp4|webm|ogg)$/i);
                                 const preloaderImg = document.getElementById('preloader-bg-img');
@@ -1004,7 +1018,7 @@
                 opt.text = l.nombre;
                 select.appendChild(opt);
             });
-
+            
             actualizarPoly360Visual();
         }
 
@@ -1364,7 +1378,7 @@
                 if (isPoly360Mode) {
                     poly360Points.push([e.data.yaw, e.data.pitch]);
                     document.getElementById('poly-360-count').innerText = poly360Points.length;
-
+                    
                     if (poly360Points.length >= 3) {
                         document.getElementById('poly-360-save-panel').style.display = 'block';
                     } else {
