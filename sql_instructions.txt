@@ -1,0 +1,17 @@
+CREATE TABLE public.poligonos_360 (
+    id TEXT PRIMARY KEY,
+    nombre TEXT NOT NULL,
+    puntos TEXT NOT NULL,
+    color_relleno TEXT,
+    color_borde TEXT,
+    tipo TEXT
+);
+
+-- Habilitar RLS
+ALTER TABLE public.poligonos_360 ENABLE ROW LEVEL SECURITY;
+
+-- Crear políticas para permitir acceso público (como el resto de las tablas en este proyecto)
+CREATE POLICY "Permitir select en poligonos_360" ON public.poligonos_360 FOR SELECT USING (true);
+CREATE POLICY "Permitir insert en poligonos_360" ON public.poligonos_360 FOR INSERT WITH CHECK (true);
+CREATE POLICY "Permitir update en poligonos_360" ON public.poligonos_360 FOR UPDATE USING (true);
+CREATE POLICY "Permitir delete en poligonos_360" ON public.poligonos_360 FOR DELETE USING (true);
