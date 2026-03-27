@@ -295,34 +295,40 @@
                         if (config.titulo) {
                             let tempTitulo = config.titulo;
                             let preloaderUrl = "";
-                            if (tempTitulo.includes('|PRELOADER:')) {
-                                let parts = tempTitulo.split('|PRELOADER:');
-                                tempTitulo = parts[0];
-                                preloaderUrl = parts[1];
-                            }
-                            let newPreloaderUrl = "";
-                            if (tempTitulo.includes('|PRELOADER:')) {
-                                let parts = tempTitulo.split('|PRELOADER:');
-                                tempTitulo = parts[0];
-                                newPreloaderUrl = parts[1];
-                            }
-                            if (tempTitulo.includes('|LOGO:')) {
-                                let parts = tempTitulo.split('|LOGO:');
-                                tempTitulo = parts[0];
-                                logoUrl = parts[1];
-                            }
-                            if (tempTitulo.includes('|FONT:')) {
-                                let partsFont = tempTitulo.split('|FONT:');
-                                tempTitulo = partsFont[0];
-                                globalTituloFont = partsFont[1];
-                            }
-                            if (tempTitulo.includes('|COLOR:')) {
-                                let partsColor = tempTitulo.split('|COLOR:');
-                                titulo = partsColor[0];
-                                globalTituloColor = partsColor[1];
-                            } else {
-                                titulo = tempTitulo;
-                            }
+
+                            const extractValue = (str, prefix) => {
+                                if (str.includes(`|${prefix}:`)) {
+                                    let parts = str.split(`|${prefix}:`);
+                                    let val = parts[1];
+                                    if (val.includes('|')) {
+                                        val = val.split('|')[0];
+                                    }
+                                    return val;
+                                }
+                                return "";
+                            };
+
+                            const removeValue = (str, prefix) => {
+                                if (str.includes(`|${prefix}:`)) {
+                                    let regex = new RegExp(`\\|${prefix}:[^\\|]*`);
+                                    return str.replace(regex, '');
+                                }
+                                return str;
+                            };
+
+                            preloaderUrl = extractValue(tempTitulo, "PRELOADER");
+                            tempTitulo = removeValue(tempTitulo, "PRELOADER");
+
+                            logoUrl = extractValue(tempTitulo, "LOGO");
+                            tempTitulo = removeValue(tempTitulo, "LOGO");
+
+                            globalTituloFont = extractValue(tempTitulo, "FONT");
+                            tempTitulo = removeValue(tempTitulo, "FONT");
+
+                            globalTituloColor = extractValue(tempTitulo, "COLOR");
+                            tempTitulo = removeValue(tempTitulo, "COLOR");
+
+                            titulo = tempTitulo;
 
                             if (preloaderUrl) {
                                 const isVideo = preloaderUrl.match(/\.(mp4|webm|ogg)$/i);
@@ -951,21 +957,41 @@
                             let newLogoUrl = "";
                             let newColor = "#D4AF37";
                             let newFont = "Montserrat";
-                            if (tempTitulo.includes('|LOGO:')) {
-                                let parts = tempTitulo.split('|LOGO:');
-                                tempTitulo = parts[0];
-                                newLogoUrl = parts[1];
-                            }
-                            if (tempTitulo.includes('|FONT:')) {
-                                let partsFont = tempTitulo.split('|FONT:');
-                                tempTitulo = partsFont[0];
-                                newFont = partsFont[1];
-                            }
-                            if (tempTitulo.includes('|COLOR:')) {
-                                let partsColor = tempTitulo.split('|COLOR:');
-                                tempTitulo = partsColor[0];
-                                newColor = partsColor[1];
-                            }
+                            let newPreloaderUrl = "";
+
+                            const extractValue = (str, prefix) => {
+                                if (str.includes(`|${prefix}:`)) {
+                                    let parts = str.split(`|${prefix}:`);
+                                    let val = parts[1];
+                                    if (val.includes('|')) {
+                                        val = val.split('|')[0];
+                                    }
+                                    return val;
+                                }
+                                return "";
+                            };
+
+                            const removeValue = (str, prefix) => {
+                                if (str.includes(`|${prefix}:`)) {
+                                    let regex = new RegExp(`\\|${prefix}:[^\\|]*`);
+                                    return str.replace(regex, '');
+                                }
+                                return str;
+                            };
+
+                            newPreloaderUrl = extractValue(tempTitulo, "PRELOADER");
+                            tempTitulo = removeValue(tempTitulo, "PRELOADER");
+
+                            newLogoUrl = extractValue(tempTitulo, "LOGO");
+                            tempTitulo = removeValue(tempTitulo, "LOGO");
+
+                            let extractedFont = extractValue(tempTitulo, "FONT");
+                            if (extractedFont) newFont = extractedFont;
+                            tempTitulo = removeValue(tempTitulo, "FONT");
+
+                            let extractedColor = extractValue(tempTitulo, "COLOR");
+                            if (extractedColor) newColor = extractedColor;
+                            tempTitulo = removeValue(tempTitulo, "COLOR");
 
                             document.getElementById('display-title').innerText = tempTitulo;
                             document.getElementById('display-title').style.color = newColor;
