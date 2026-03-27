@@ -55,6 +55,7 @@
         .list-polygons { margin-top: 15px; border-top: 1px solid #444; padding-top: 10px; }
         .list-poly-item { display: flex; justify-content: space-between; align-items: center; background: #000; padding: 8px; border-radius: 4px; margin-bottom: 5px; font-size: 0.8rem; border: 1px solid #333; }
         .list-poly-item button { background: #e74c3c; border: none; color: white; border-radius: 3px; cursor: pointer; padding: 3px 8px; }
+        .list-poly-item button.edit { background: #f39c12; margin-right: 5px; }
 
         #global-progress {
             position: fixed;
@@ -1078,6 +1079,7 @@
         }
 
         let isEditingPoly360 = false;
+        let editingPoly360Id = null;
         let poly360EditMode = false; // flag to indicate we are moving a specific point
         let draggedPointIndex = -1;
         let polys360Data = [];
@@ -1094,16 +1096,46 @@
 
         window.iniciarDibujoPoly360 = function() {
             isPoly360Mode = true;
+            isEditingPoly360 = false;
+            editingPoly360Id = null;
             poly360Points = [];
             document.getElementById('poly-360-draw-mode').style.display = 'block';
             document.getElementById('btn-start-draw-poly360').style.display = 'none';
             document.getElementById('poly-360-count').innerText = '0';
             document.getElementById('poly-360-save-panel').style.display = 'none';
+            document.getElementById('poly-360-nombre').value = '';
             
             // Cursor crosshair general para el modo dibujo
             const viewerContainer = document.querySelector('.psv-container');
             if (viewerContainer) {
-                viewerContainer.style.cursor = 'crosshair';
+                viewerContainer.style.cursor = "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%23D4AF37\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><line x1=\"12\" y1=\"2\" x2=\"12\" y2=\"22\"></line><line x1=\"2\" y1=\"12\" x2=\"22\" y2=\"12\"></line></svg>') 12 12, crosshair";
+            }
+
+            actualizarPoly360Visual();
+        }
+
+        window.editarPoly360 = function(id) {
+            const poly = polys360Data.find(p => p.id === id);
+            if (!poly) return;
+
+            isPoly360Mode = true;
+            isEditingPoly360 = true;
+            editingPoly360Id = id;
+            poly360Points = JSON.parse(poly.puntos);
+
+            document.getElementById('poly-360-draw-mode').style.display = 'block';
+            document.getElementById('btn-start-draw-poly360').style.display = 'none';
+            document.getElementById('poly-360-count').innerText = poly360Points.length;
+            document.getElementById('poly-360-save-panel').style.display = 'block';
+
+            document.getElementById('poly-360-nombre').value = poly.nombre;
+            document.getElementById('poly-360-color-fill').value = poly.color_relleno;
+            document.getElementById('poly-360-color-border').value = poly.color_borde;
+            document.getElementById('poly-360-tipo').value = poly.tipo;
+
+            const viewerContainer = document.querySelector('.psv-container');
+            if (viewerContainer) {
+                viewerContainer.style.cursor = "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%23D4AF37\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><line x1=\"12\" y1=\"2\" x2=\"12\" y2=\"22\"></line><line x1=\"2\" y1=\"12\" x2=\"22\" y2=\"12\"></line></svg>') 12 12, crosshair";
             }
 
             actualizarPoly360Visual();
@@ -1111,6 +1143,8 @@
 
         window.cancelarDibujoPoly360 = function() {
             isPoly360Mode = false;
+            isEditingPoly360 = false;
+            editingPoly360Id = null;
             poly360Points = [];
             document.getElementById('poly-360-draw-mode').style.display = 'none';
             document.getElementById('btn-start-draw-poly360').style.display = 'block';
@@ -1173,22 +1207,25 @@
 
                 let fill = tipo === 'relleno' ? hexToRgbA(colorFillHex, 0.4) : 'transparent';
 
-                markersPlugin.addMarker({
-                    id: poly360TempId,
-                    polyline: poly360Points,
-                    svgStyle: {
-                        stroke: colorBorder,
-                        strokeWidth: '3px',
-                        fill: poly360Points.length >= 3 ? fill : 'transparent'
-                    }
-                });
+                if (poly360Points.length >= 2) {
+                    markersPlugin.addMarker({
+                        id: poly360TempId,
+                        polyline: poly360Points,
+                        svgStyle: {
+                            stroke: colorBorder,
+                            strokeWidth: '3px',
+                            fill: poly360Points.length >= 3 ? fill : 'transparent',
+                            pointerEvents: 'none'
+                        }
+                    });
+                }
 
                 // Añadir marcadores draggables para editar los puntos
                 poly360Points.forEach((pt, index) => {
                     markersPlugin.addMarker({
                         id: 'poly-360-point-' + index,
                         position: { yaw: pt[0], pitch: pt[1] },
-                        html: `<div style="width:12px; height:12px; background:${colorBorder}; border-radius:50%; border:2px solid #fff; cursor:move; box-shadow:0 0 5px rgba(0,0,0,0.5);"></div>`,
+                        html: `<div style="width:16px; height:16px; background:${colorBorder}; border-radius:50%; border:2px solid #fff; cursor:move; box-shadow:0 0 5px rgba(0,0,0,0.5);"></div>`,
                         size: { width: 16, height: 16 },
                         anchor: 'center center',
                         data: { isPolyPoint: true, index: index }
@@ -1220,18 +1257,32 @@
                 const colorRelleno = document.getElementById('poly-360-color-fill').value;
                 const colorBorde = document.getElementById('poly-360-color-border').value;
                 const tipo = document.getElementById('poly-360-tipo').value;
-                const idUnico = 'poly360-' + Date.now();
+                const idUnico = isEditingPoly360 && editingPoly360Id ? editingPoly360Id : 'poly360-' + Date.now();
                 const poligonoStr = JSON.stringify(poly360Points);
 
                 window.mostrarProgreso(40);
-                const { error } = await supabaseClient.from('poligonos_360').insert([{
-                    id: idUnico,
-                    nombre: nombre,
-                    puntos: poligonoStr,
-                    color_relleno: colorRelleno,
-                    color_borde: colorBorde,
-                    tipo: tipo
-                }]);
+
+                let error;
+                if (isEditingPoly360 && editingPoly360Id) {
+                    const res = await supabaseClient.from('poligonos_360').update({
+                        nombre: nombre,
+                        puntos: poligonoStr,
+                        color_relleno: colorRelleno,
+                        color_borde: colorBorde,
+                        tipo: tipo
+                    }).eq('id', idUnico);
+                    error = res.error;
+                } else {
+                    const res = await supabaseClient.from('poligonos_360').insert([{
+                        id: idUnico,
+                        nombre: nombre,
+                        puntos: poligonoStr,
+                        color_relleno: colorRelleno,
+                        color_borde: colorBorde,
+                        tipo: tipo
+                    }]);
+                    error = res.error;
+                }
 
                 if (error) {
                     if(error.message && error.message.includes('relation "public.poligonos_360" does not exist')) {
@@ -1286,6 +1337,7 @@
                                     <span>${p.nombre}</span>
                                 </div>
                                 <div>
+                                    <button class="edit" onclick="editarPoly360('${p.id}')">✏️</button>
                                     <button onclick="borrarPoly360('${p.id}')">X</button>
                                 </div>
                             </div>
@@ -1313,7 +1365,8 @@
                         svgStyle: {
                             stroke: p.color_borde,
                             strokeWidth: '2px',
-                            fill: fill
+                            fill: fill,
+                            pointerEvents: 'none'
                         },
                         data: { isPoly360Db: true, nombre: p.nombre }
                     });
@@ -1650,7 +1703,7 @@
                         poly360Points[draggedPointIndex] = [e.data.yaw, e.data.pitch];
                         poly360EditMode = false;
                         draggedPointIndex = -1;
-                        document.querySelector('.psv-container').style.cursor = 'crosshair';
+                        document.querySelector('.psv-container').style.cursor = "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%23D4AF37\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><line x1=\"12\" y1=\"2\" x2=\"12\" y2=\"22\"></line><line x1=\"2\" y1=\"12\" x2=\"22\" y2=\"12\"></line></svg>') 12 12, crosshair";
                     } else {
                         // Adding a new point
                         poly360Points.push([e.data.yaw, e.data.pitch]);
@@ -1754,7 +1807,8 @@
                                 svgStyle: {
                                     fill: colorRGBA,
                                     stroke: color,
-                                    strokeWidth: '2px'
+                                    strokeWidth: '2px',
+                                    pointerEvents: 'none'
                                 },
                                 data: { type: 'lote_poly', parentId: id }
                             };
