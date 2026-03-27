@@ -122,7 +122,7 @@
 <body>
     <div id="preloader">
         <video id="preloader-video" autoplay loop muted playsinline style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; display: none;"></video>
-        <img id="preloader-bg-img" src="https://mungbffwwjobinfcympd.supabase.co/storage/v1/object/public/imagenes_360/LOTES%20EN%20VENTA_Mesa%20de%20trabajo%201.png" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1;">
+        <img id="preloader-bg-img" src="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; display: none;">
         <div class="preloader-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.6); z-index: 0;"></div>
         <div class="preloader-content" style="position: relative; z-index: 1;">
             <img id="preloader-logo" src="" alt="Logo" style="display:none;">
@@ -172,6 +172,12 @@
                 Subir Foto 360 (JPG)
                 <input type="file" id="upload-360" accept="image/jpeg" style="display:none;" onchange="cambiarImagen(event)">
             </label>
+
+            <div id="preloader-preview-container" style="display: none; margin-top: 10px; margin-bottom: 10px; text-align: center;">
+                <span class="control-label" style="display: block; margin-bottom: 5px;">Vista Previa Preloader</span>
+                <img id="admin-preloader-img" style="max-height: 50px; border-radius: 4px; border: 1px solid #444; display: none;" />
+                <video id="admin-preloader-video" autoplay loop muted playsinline style="max-height: 50px; border-radius: 4px; border: 1px solid #444; display: none;"></video>
+            </div>
 
             <label class="btn btn-upload" id="btn-upload-preloader-lbl" style="margin-top: 10px;">
                 Subir Preloader (Img/Video)
@@ -422,7 +428,7 @@
             let panoUrl = fallbackImage;
             let titulo = "Rincón de Baviera";
             let logoUrl = "";
-            let preloaderUrl = "";
+            let preloaderUrl = "https://mungbffwwjobinfcympd.supabase.co/storage/v1/object/public/imagenes_360/LOTES%20EN%20VENTA_Mesa%20de%20trabajo%201.png"; // Default image
             let cuotaInicial = 30;
 
             try {
@@ -462,9 +468,11 @@
                                 return str;
                             };
 
-                            preloaderUrl = extractValue(tempTitulo, "PRELOADER");
-                            if (preloaderUrl) {
+                            const loadedPreloader = extractValue(tempTitulo, "PRELOADER");
+                            if (loadedPreloader) {
+                                preloaderUrl = loadedPreloader;
                                 document.getElementById('preloader-data').value = preloaderUrl;
+                                if (window.mostrarVistaPreviaPreloader) window.mostrarVistaPreviaPreloader(preloaderUrl);
                             }
                             tempTitulo = removeValue(tempTitulo, "PRELOADER");
 
@@ -479,25 +487,26 @@
 
                             titulo = tempTitulo;
                             
-                            if (preloaderUrl) {
-                                const isVideo = preloaderUrl.match(/\.(mp4|webm|ogg)$/i);
-                                const preloaderImg = document.getElementById('preloader-bg-img');
-                                const preloaderVideo = document.getElementById('preloader-video');
-                                if (isVideo) {
-                                    preloaderImg.style.display = 'none';
-                                    preloaderVideo.src = preloaderUrl;
-                                    preloaderVideo.style.display = 'block';
-                                } else {
-                                    preloaderVideo.style.display = 'none';
-                                    preloaderImg.src = preloaderUrl;
-                                    preloaderImg.style.display = 'block';
-                                }
-                            }
                         }
                     }
                 } catch (dbError) {
                     console.warn("No se pudo cargar la configuración de Supabase. Usando valores por defecto.", dbError);
                     window.mostrarError("Conexión BD", dbError);
+                }
+
+                if (preloaderUrl) {
+                    const isVideo = preloaderUrl.match(/\.(mp4|webm|ogg)(?:\?.*)?$/i);
+                    const preloaderImg = document.getElementById('preloader-bg-img');
+                    const preloaderVideo = document.getElementById('preloader-video');
+                    if (isVideo) {
+                        preloaderImg.style.display = 'none';
+                        preloaderVideo.src = preloaderUrl;
+                        preloaderVideo.style.display = 'block';
+                    } else {
+                        preloaderVideo.style.display = 'none';
+                        preloaderImg.src = preloaderUrl;
+                        preloaderImg.style.display = 'block';
+                    }
                 }
 
                 document.getElementById('input-title').value = titulo;
@@ -1182,6 +1191,30 @@
         }
         // ----------------------------------------------------------- //
 
+        window.mostrarVistaPreviaPreloader = function(url) {
+            const container = document.getElementById('preloader-preview-container');
+            const imgPreview = document.getElementById('admin-preloader-img');
+            const videoPreview = document.getElementById('admin-preloader-video');
+            
+            if (!url) {
+                container.style.display = 'none';
+                return;
+            }
+
+            container.style.display = 'block';
+            const isVideo = url.match(/\.(mp4|webm|ogg)(?:\?.*)?$/i);
+            
+            if (isVideo) {
+                imgPreview.style.display = 'none';
+                videoPreview.src = url;
+                videoPreview.style.display = 'inline-block';
+            } else {
+                videoPreview.style.display = 'none';
+                imgPreview.src = url;
+                imgPreview.style.display = 'inline-block';
+            }
+        };
+
         window.cambiarPreloader = async function(event) {
             const btn = document.getElementById('btn-upload-preloader-lbl');
             const originalText = btn.innerHTML;
@@ -1209,6 +1242,7 @@
 
                 const mediaUrl = publicUrlData.publicUrl;
                 document.getElementById('preloader-data').value = mediaUrl;
+                if (window.mostrarVistaPreviaPreloader) window.mostrarVistaPreviaPreloader(mediaUrl);
 
                 window.mostrarProgreso(100);
                 btn.innerHTML = "¡Preloader Cargado! ✅ (Recuerda Guardar)";
@@ -1460,10 +1494,9 @@
                 };
 
                 if (markersPlugin.markers[id]) {
-                    markersPlugin.updateMarker(markerConfigHTML);
-                } else {
-                    markersPlugin.addMarker(markerConfigHTML);
+                    markersPlugin.removeMarker(id);
                 }
+                markersPlugin.addMarker(markerConfigHTML);
 
                 let polyId = id + '_poly';
                 if (poligono) {
@@ -1481,10 +1514,9 @@
                                 data: { type: 'lote_poly', parentId: id }
                             };
                             if (markersPlugin.markers[polyId]) {
-                                markersPlugin.updateMarker(markerConfigPoly);
-                            } else {
-                                markersPlugin.addMarker(markerConfigPoly);
+                                markersPlugin.removeMarker(polyId);
                             }
+                            markersPlugin.addMarker(markerConfigPoly);
                         }
                     } catch(e) { console.warn("Error parsing poligono in admin", e); }
                 } else {
