@@ -117,7 +117,7 @@
 <body>
     <div id="preloader">
         <video id="preloader-video" autoplay loop muted playsinline style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; display: none;"></video>
-        <img id="preloader-bg-img" src="https://mungbffwwjobinfcympd.supabase.co/storage/v1/object/public/imagenes_360/LOTES%20EN%20VENTA_Mesa%20de%20trabajo%201.png" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1;">
+        <img id="preloader-bg-img" src="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; display: none;">
         <div class="preloader-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.6); z-index: 0;"></div>
         <div class="preloader-content" style="position: relative; z-index: 1;">
             <img id="preloader-logo" src="" alt="Logo" style="display:none;">
@@ -274,6 +274,7 @@
             let panoUrl = fallbackImage;
             let titulo = "Rincón de Baviera";
             let logoUrl = "";
+            let preloaderUrl = "https://mungbffwwjobinfcympd.supabase.co/storage/v1/object/public/imagenes_360/LOTES%20EN%20VENTA_Mesa%20de%20trabajo%201.png"; // Default image
 
             try {
                 if (!window.supabase) throw new Error("Base de datos no cargada");
@@ -316,7 +317,10 @@
                                 return str;
                             };
 
-                            preloaderUrl = extractValue(tempTitulo, "PRELOADER");
+                            const loadedPreloader = extractValue(tempTitulo, "PRELOADER");
+                            if (loadedPreloader) {
+                                preloaderUrl = loadedPreloader;
+                            }
                             tempTitulo = removeValue(tempTitulo, "PRELOADER");
 
                             logoUrl = extractValue(tempTitulo, "LOGO");
@@ -330,25 +334,26 @@
                             
                             titulo = tempTitulo;
                             
-                            if (preloaderUrl) {
-                                const isVideo = preloaderUrl.match(/\.(mp4|webm|ogg)(?:\?.*)?$/i);
-                                const preloaderImg = document.getElementById('preloader-bg-img');
-                                const preloaderVideo = document.getElementById('preloader-video');
-                                if (isVideo) {
-                                    preloaderImg.style.display = 'none';
-                                    preloaderVideo.src = preloaderUrl;
-                                    preloaderVideo.style.display = 'block';
-                                } else {
-                                    preloaderVideo.style.display = 'none';
-                                    preloaderImg.src = preloaderUrl;
-                                    preloaderImg.style.display = 'block';
-                                }
-                            }
                         }
                     }
                 } catch (dbError) {
                     console.warn("No se pudo cargar la configuración de Supabase. Usando valores por defecto.", dbError);
                     window.mostrarError("Conexión BD", dbError);
+                }
+
+                if (preloaderUrl) {
+                    const isVideo = preloaderUrl.match(/\.(mp4|webm|ogg)(?:\?.*)?$/i);
+                    const preloaderImg = document.getElementById('preloader-bg-img');
+                    const preloaderVideo = document.getElementById('preloader-video');
+                    if (isVideo) {
+                        preloaderImg.style.display = 'none';
+                        preloaderVideo.src = preloaderUrl;
+                        preloaderVideo.style.display = 'block';
+                    } else {
+                        preloaderVideo.style.display = 'none';
+                        preloaderImg.src = preloaderUrl;
+                        preloaderImg.style.display = 'block';
+                    }
                 }
 
                 document.getElementById('display-title').innerText = titulo;
@@ -435,10 +440,9 @@
                         };
 
                         if (markersPlugin.markers[l.id]) {
-                            markersPlugin.updateMarker(markerConfigHTML);
-                        } else {
-                            markersPlugin.addMarker(markerConfigHTML);
+                            markersPlugin.removeMarker(l.id);
                         }
+                        markersPlugin.addMarker(markerConfigHTML);
 
                         let polyId = l.id + '_poly';
                         if (l.poligono) {
