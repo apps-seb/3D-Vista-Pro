@@ -121,7 +121,10 @@
 </head>
 <body>
     <div id="preloader">
-        <div class="preloader-content">
+        <video id="preloader-video" autoplay loop muted playsinline style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; display: none;"></video>
+        <img id="preloader-bg-img" src="https://mungbffwwjobinfcympd.supabase.co/storage/v1/object/public/imagenes_360/LOTES%20EN%20VENTA_Mesa%20de%20trabajo%201.png" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1;">
+        <div class="preloader-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.6); z-index: 0;"></div>
+        <div class="preloader-content" style="position: relative; z-index: 1;">
             <img id="preloader-logo" src="" alt="Logo" style="display:none;">
             <div class="spinner"></div>
             <div class="preloader-text">Cargando Administrador...</div>
@@ -169,12 +172,19 @@
                 Subir Foto 360 (JPG)
                 <input type="file" id="upload-360" accept="image/jpeg" style="display:none;" onchange="cambiarImagen(event)">
             </label>
+
+            <label class="btn btn-upload" id="btn-upload-preloader-lbl" style="margin-top: 10px;">
+                Subir Preloader (Img/Video)
+                <input type="file" id="upload-preloader" accept="image/*,video/mp4,video/webm" style="display:none;" onchange="cambiarPreloader(event)">
+            </label>
+            <input type="hidden" id="preloader-data">
         </div>
 
         <div class="control-group">
             <span class="control-label">2. Herramientas de Mapa</span>
             <button id="btn-add-lote" class="btn btn-action" onclick="activarModo('lote')">+ Crear Lote (Punto)</button>
             <button id="btn-open-polygon-editor" class="btn btn-action" onclick="abrirEditorPoligonos()" style="background: #D4AF37; color: #000; border: 1px solid #D4AF37; font-weight: bold;">✏️ Dibujar Polígonos 2D</button>
+            <button id="btn-open-polygon-360" class="btn btn-action" onclick="abrirEditorPoligonos360()" style="background: #D4AF37; color: #000; border: 1px solid #D4AF37; font-weight: bold;">✏️ Trazar Polígono 360</button>
             <button id="btn-add-poi" class="btn btn-action" onclick="activarModo('poi')" style="background: #222; color: #fff; border: 1px solid #444;">+ Crear Punto de Interés</button>
             <p style="font-size: 0.75rem; color: #D4AF37; text-align: center; margin-top: 10px; font-weight: bold;" id="add-helper">Selecciona una opción arriba</p>
         </div>
@@ -185,6 +195,27 @@
                 <p style="font-size: 0.8rem; color: #666;">Cargando inventario...</p>
             </div>
         </div>
+    </div>
+
+    <!-- UI FLOTANTE PARA DIBUJAR EN 360 -->
+    <div id="polygon-360-ui" style="display: none; position: fixed; top: 10px; right: 10px; background: rgba(17,17,17,0.85); backdrop-filter: blur(10px); padding: 15px; border-radius: 8px; border: 1px solid #D4AF37; z-index: 10000; color: #fff; width: 300px;">
+        <h3 style="margin-top: 0; color: #D4AF37; font-size: 1.1rem; border-bottom: 1px solid #444; padding-bottom: 5px;">Trazar Polígono 360</h3>
+        <p style="font-size: 0.8rem; color: #aaa;">Haz clic en el visor 360 para añadir puntos al polígono.</p>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.85rem;">
+            <span>Puntos: <strong id="poly-360-count" style="color:#2ecc71;">0</strong></span>
+            <button class="editor-btn" onclick="undoPoly360Point()" style="padding: 4px 8px;">↩️ Deshacer</button>
+        </div>
+
+        <div id="poly-360-save-panel" style="display: none; margin-top: 15px; border-top: 1px solid #444; padding-top: 10px;">
+            <label style="font-size: 0.8rem; color: #ddd; display: block; margin-bottom: 5px;">Asignar a Lote:</label>
+            <select id="poly-360-lote-select" class="input-select" style="background: rgba(0,0,0,0.8); border: 1px solid #D4AF37; margin-bottom: 10px;">
+                <option value="">-- Selecciona un Lote --</option>
+            </select>
+            <button class="editor-btn" style="width: 100%; background: #2ecc71; color: #000; margin-bottom: 5px;" onclick="guardarPoligono360Lote()">✅ Guardar en Lote</button>
+        </div>
+
+        <button class="editor-btn danger" style="width: 100%; margin-top: 10px;" onclick="cerrarEditorPoligonos360()">❌ Cancelar / Salir</button>
     </div>
 
     <!-- EDITOR DE POLÍGONOS OVERLAY -->
@@ -378,6 +409,9 @@
         
         let supabaseClient, viewer, markersPlugin;
         let isAddMode = false; let currentMode = ''; let tempCoords = { yaw: 0, pitch: 0 };
+        let isPoly360Mode = false;
+        let poly360Points = [];
+        let poly360TempId = 'temp_poly_360';
         const fallbackImage = 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg';
         let globalPanoUrl = fallbackImage;
         let lotesDataEditor = []; // Para tener la lista de lotes en el editor 2D
@@ -388,6 +422,7 @@
             let panoUrl = fallbackImage;
             let titulo = "Rincón de Baviera";
             let logoUrl = "";
+            let preloaderUrl = "";
             let cuotaInicial = 30;
 
             try {
@@ -406,6 +441,12 @@
                         }
                         if (config.titulo) {
                             let tempTitulo = config.titulo;
+                            if (tempTitulo.includes('|PRELOADER:')) {
+                                let parts = tempTitulo.split('|PRELOADER:');
+                                tempTitulo = parts[0];
+                                preloaderUrl = parts[1];
+                                document.getElementById('preloader-data').value = preloaderUrl;
+                            }
                             if (tempTitulo.includes('|LOGO:')) {
                                 let parts = tempTitulo.split('|LOGO:');
                                 tempTitulo = parts[0];
@@ -422,6 +463,21 @@
                                 globalTituloColor = partsColor[1];
                             } else {
                                 titulo = tempTitulo;
+                            }
+
+                            if (preloaderUrl) {
+                                const isVideo = preloaderUrl.match(/\.(mp4|webm|ogg)$/i);
+                                const preloaderImg = document.getElementById('preloader-bg-img');
+                                const preloaderVideo = document.getElementById('preloader-video');
+                                if (isVideo) {
+                                    preloaderImg.style.display = 'none';
+                                    preloaderVideo.src = preloaderUrl;
+                                    preloaderVideo.style.display = 'block';
+                                } else {
+                                    preloaderVideo.style.display = 'none';
+                                    preloaderImg.src = preloaderUrl;
+                                    preloaderImg.style.display = 'block';
+                                }
                             }
                         }
                     }
@@ -932,6 +988,108 @@
             return [yaw, pitch]; // Formato [yaw, pitch] requerido por el plugin Polygon de PSV
         }
 
+        window.abrirEditorPoligonos360 = function() {
+            isPoly360Mode = true;
+            poly360Points = [];
+            document.getElementById('polygon-360-ui').style.display = 'block';
+            document.getElementById('poly-360-count').innerText = '0';
+            document.getElementById('poly-360-save-panel').style.display = 'none';
+
+            // Populate select list for 360 poly
+            const select = document.getElementById('poly-360-lote-select');
+            select.innerHTML = '<option value="">-- Selecciona un Lote --</option>';
+            lotesDataEditor.forEach(l => {
+                const opt = document.createElement('option');
+                opt.value = l.id;
+                opt.text = l.nombre;
+                select.appendChild(opt);
+            });
+
+            actualizarPoly360Visual();
+        }
+
+        window.cerrarEditorPoligonos360 = function() {
+            isPoly360Mode = false;
+            document.getElementById('polygon-360-ui').style.display = 'none';
+            if (markersPlugin.markers[poly360TempId]) {
+                markersPlugin.removeMarker(poly360TempId);
+            }
+        }
+
+        window.undoPoly360Point = function() {
+            if (poly360Points.length > 0) {
+                poly360Points.pop();
+                document.getElementById('poly-360-count').innerText = poly360Points.length;
+                if (poly360Points.length >= 3) {
+                    document.getElementById('poly-360-save-panel').style.display = 'block';
+                } else {
+                    document.getElementById('poly-360-save-panel').style.display = 'none';
+                }
+                actualizarPoly360Visual();
+            }
+        }
+
+        function actualizarPoly360Visual() {
+            if (markersPlugin.markers[poly360TempId]) {
+                markersPlugin.removeMarker(poly360TempId);
+            }
+
+            if (poly360Points.length > 0) {
+                // If 1 or 2 points, draw polyline. Markers plugin polygon needs at least 3 points technically,
+                // but photo-sphere-viewer handles open polylines if points are < 3
+                markersPlugin.addMarker({
+                    id: poly360TempId,
+                    polyline: poly360Points,
+                    svgStyle: {
+                        stroke: '#2ecc71',
+                        strokeWidth: '3px',
+                        fill: poly360Points.length >= 3 ? 'rgba(46, 204, 113, 0.4)' : 'transparent'
+                    }
+                });
+            }
+        }
+
+        window.guardarPoligono360Lote = async function() {
+            const loteId = document.getElementById('poly-360-lote-select').value;
+            if(!loteId) {
+                alert("Selecciona un lote de la lista");
+                return;
+            }
+            if(poly360Points.length < 3) {
+                alert("El polígono debe tener al menos 3 puntos");
+                return;
+            }
+
+            try {
+                window.mostrarProgreso(10);
+                const poligonoStr = JSON.stringify(poly360Points);
+
+                window.mostrarProgreso(40);
+                const { error } = await supabaseClient.from('lotes')
+                    .update({ poligono: poligonoStr })
+                    .eq('id', loteId);
+
+                if (error) throw error;
+
+                window.mostrarProgreso(80);
+                const lote = lotesDataEditor.find(l => l.id === loteId);
+                if(lote) lote.poligono = poligonoStr;
+
+                if (lote) {
+                    window.renderLote(lote.id, lote.nombre, lote.area, lote.precio, lote.estado, lote.yaw, lote.pitch, lote.poligono);
+                }
+
+                actualizarListaLotesEditor();
+                cerrarEditorPoligonos360();
+
+                window.mostrarProgreso(100);
+                alert("Polígono 360 guardado exitosamente");
+
+            } catch (error) {
+                window.mostrarError("guardarPoligono360Lote", error);
+            }
+        }
+
         window.guardarPoligonoLote = async function() {
             const loteId = document.getElementById('poly-lote-select').value;
             if(!loteId) {
@@ -1010,6 +1168,44 @@
         }
         // ----------------------------------------------------------- //
 
+        window.cambiarPreloader = async function(event) {
+            const btn = document.getElementById('btn-upload-preloader-lbl');
+            const originalText = btn.innerHTML;
+            try {
+                const file = event.target.files[0];
+                if (!file) return;
+                window.mostrarProgreso(10);
+                btn.innerHTML = "Subiendo Preloader... ⏳";
+
+                const fileExt = file.name.split('.').pop();
+                const fileName = `preloader_${Math.random()}.${fileExt}`;
+                const filePath = `${fileName}`;
+
+                window.mostrarProgreso(30);
+                const { data: uploadData, error: uploadError } = await supabaseClient.storage
+                    .from('imagenes_360')
+                    .upload(filePath, file);
+
+                if (uploadError) throw uploadError;
+
+                window.mostrarProgreso(60);
+                const { data: publicUrlData } = supabaseClient.storage
+                    .from('imagenes_360')
+                    .getPublicUrl(filePath);
+
+                const mediaUrl = publicUrlData.publicUrl;
+                document.getElementById('preloader-data').value = mediaUrl;
+
+                window.mostrarProgreso(100);
+                btn.innerHTML = "¡Preloader Cargado! ✅ (Recuerda Guardar)";
+                setTimeout(() => { btn.innerHTML = originalText; }, 3000);
+            } catch (error) {
+                window.mostrarProgreso(100);
+                btn.innerHTML = originalText;
+                window.mostrarError("cambiarPreloader", error);
+            }
+        };
+
         window.guardarConfiguracion = async function() {
             try {
                 window.mostrarProgreso(10);
@@ -1022,8 +1218,12 @@
                     return;
                 }
                 let logoData = document.getElementById('logo-data').value;
+                let preloaderData = document.getElementById('preloader-data').value;
 
                 let tituloAguardar = titulo;
+                if (preloaderData) {
+                    tituloAguardar += `|PRELOADER:${preloaderData}`;
+                }
                 tituloAguardar += `|COLOR:${globalTituloColor}`;
                 tituloAguardar += `|FONT:${globalTituloFont}`;
                 if (logoData) {
@@ -1161,6 +1361,20 @@
 
         window.handleMapClick = function(e) {
             try {
+                if (isPoly360Mode) {
+                    poly360Points.push([e.data.yaw, e.data.pitch]);
+                    document.getElementById('poly-360-count').innerText = poly360Points.length;
+
+                    if (poly360Points.length >= 3) {
+                        document.getElementById('poly-360-save-panel').style.display = 'block';
+                    } else {
+                        document.getElementById('poly-360-save-panel').style.display = 'none';
+                    }
+
+                    actualizarPoly360Visual();
+                    return;
+                }
+
                 if (!isAddMode) return;
                 tempCoords = { yaw: e.data.yaw, pitch: e.data.pitch };
                 isAddMode = false;
