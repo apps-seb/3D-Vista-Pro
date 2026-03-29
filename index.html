@@ -145,6 +145,20 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Volver a Vista Principal
     </div>
 
+    <div id="btn-gyro" style="display:flex; position: fixed; top: 80px; right: 20px; z-index: 100; cursor: pointer; background: rgba(17,17,17,0.7); backdrop-filter: blur(10px); border: 1px solid #D4AF37; color: #fff; padding: 10px 15px; border-radius: 8px; font-weight: bold; text-transform: uppercase; font-size: 0.8rem; box-shadow: 0 4px 15px rgba(0,0,0,0.5); align-items: center; justify-content: center; gap: 8px; transition: transform 0.2s, background 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" onclick="toggleGyroscope()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+            <line x1="12" y1="18" x2="12.01" y2="18"></line>
+        </svg> <span class="hide-mobile">Giroscopio</span>
+    </div>
+
+    <style>
+        @media (max-width: 600px) {
+            #btn-gyro .hide-mobile { display: none; }
+            #btn-gyro { padding: 10px; border-radius: 50%; }
+        }
+    </style>
+
     <div id="viewer"></div>
 
     <div id="premium-modal" class="modal-overlay">
@@ -218,6 +232,7 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core@5.1.4/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin@5.1.4/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/gyroscope-plugin@5.1.4/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
@@ -263,7 +278,7 @@
         const supabaseKey = 'sb_publishable_yW5gsHp1w8ElbWRTeoMJYw_ZC-u0j9e';
         
         let supabaseClient;
-        let viewer, markersPlugin;
+        let viewer, markersPlugin, gyroscopePlugin;
         const fallbackImage = 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg';
         let globalPanoUrl = fallbackImage;
         let configuracionCuotaInicial = 30; // Valor por defecto
@@ -377,10 +392,14 @@
                     defaultYaw: '0deg', defaultPitch: '0deg',
                     defaultZoomLvl: 0,
                     navbar: false,
-                    plugins: [ [PhotoSphereViewer.MarkersPlugin, { markers: [] }] ]
+                    plugins: [
+                        [PhotoSphereViewer.MarkersPlugin, { markers: [] }],
+                        [PhotoSphereViewer.GyroscopePlugin]
+                    ]
                 });
 
                 markersPlugin = viewer.getPlugin(PhotoSphereViewer.MarkersPlugin);
+                gyroscopePlugin = viewer.getPlugin(PhotoSphereViewer.GyroscopePlugin);
 
                 viewer.addEventListener('ready', async () => {
                     await cargarDatosPublicos();
@@ -620,6 +639,42 @@
         }
 
         let marcadoresOcultos = [];
+
+        window.toggleGyroscope = function() {
+            try {
+                if (!gyroscopePlugin) {
+                    window.mostrarError("Giroscopio", "El plugin no está inicializado.");
+                    return;
+                }
+
+                // Gyroscope API in mobile browsers requires user interaction
+                // isSupported will resolve to true if device orientation is supported
+                gyroscopePlugin.isSupported().then(supported => {
+                    if (supported) {
+                        const btn = document.getElementById('btn-gyro');
+                        const isEnabled = gyroscopePlugin.isEnabled();
+                        if (isEnabled) {
+                            gyroscopePlugin.stop();
+                            btn.style.background = 'rgba(17,17,17,0.7)';
+                            btn.style.color = '#fff';
+                        } else {
+                            gyroscopePlugin.start().then(() => {
+                                btn.style.background = 'rgba(212, 175, 55, 0.3)';
+                                btn.style.color = '#D4AF37';
+                            }).catch(err => {
+                                window.mostrarError("Giroscopio", "No se pudo iniciar el giroscopio. Por favor, asegúrese de otorgar los permisos necesarios.");
+                            });
+                        }
+                    } else {
+                        window.mostrarError("Giroscopio", "Su dispositivo no soporta el giroscopio o los permisos fueron denegados.");
+                    }
+                }).catch(err => {
+                    window.mostrarError("Giroscopio", "Error al verificar el soporte: " + err);
+                });
+            } catch (error) {
+                window.mostrarError("toggleGyroscope", error);
+            }
+        }
 
         window.volverVistaPrincipal = function() {
             try {
