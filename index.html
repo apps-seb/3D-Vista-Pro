@@ -105,6 +105,32 @@
         }
         .btn-whatsapp { display: block; padding: 15px; background: #25D366; color: white; text-decoration: none; font-weight: bold; border-radius: 8px; margin-top: 15px; text-transform: uppercase; font-size: 0.9rem; }
 
+        .btn-flotante-whatsapp {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #25D366;
+            color: white;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            z-index: 1000;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        .btn-flotante-whatsapp:hover {
+            transform: scale(1.1);
+        }
+        .btn-flotante-whatsapp svg {
+            width: 35px;
+            height: 35px;
+            fill: white;
+        }
+
         #preloader { position: fixed; inset: 0; background: #050505; z-index: 10000; display: flex; justify-content: center; align-items: center; transition: opacity 0.8s ease; }
         .preloader-content { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 20px; }
         #preloader-logo { max-height: 120px; max-width: 80vw; object-fit: contain; animation: logo-pulse 2s infinite; border-radius: 8px; }
@@ -156,8 +182,16 @@
         @media (max-width: 600px) {
             #btn-gyro .hide-mobile { display: none; }
             #btn-gyro { padding: 10px; border-radius: 50%; }
+            .btn-flotante-whatsapp { bottom: 80px; } /* Evita tapar barra de inventario */
         }
     </style>
+
+    <a href="https://wa.me/573217399818" target="_blank" class="btn-flotante-whatsapp" title="Contáctanos por WhatsApp">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+            <!-- Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+            <path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-23.1-115-65-157zM223.9 413.2c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 334.1l-4.4-7.1c-18.9-30-28.9-64.8-28.9-100.9 0-104 84.7-188.8 188.9-188.8 55.2 0 107.1 21.5 146.2 60.6 39.1 39.1 60.7 91.2 60.7 146.4 0 104.1-84.8 188.9-188.9 188.9zm103.6-141.6c-5.7-2.8-33.7-16.6-38.9-18.5-5.2-1.9-9-2.8-12.8 2.8-3.8 5.7-14.7 18.5-18 22.3-3.3 3.8-6.6 4.3-12.3 1.4-5.7-2.8-24.1-8.9-45.8-28.3-16.9-15.2-28.3-34-31.6-39.7-3.3-5.7-.4-8.8 2.5-11.6 2.6-2.6 5.7-6.6 8.5-10 2.8-3.3 3.8-5.7 5.7-9.5 1.9-3.8.9-7.1-.5-9.9-1.4-2.8-12.8-30.9-17.5-42.3-4.6-11.2-9.2-9.7-12.8-9.9-3.3-.2-7.1-.2-10.9-.2-3.8 0-10 1.4-15.2 7.1-5.2 5.7-19.9 19.4-19.9 47.4 0 28 20.4 55.1 23.2 58.8 2.8 3.8 40.2 61.3 97.4 85.9 13.6 5.8 24.2 9.3 32.5 11.9 13.7 4.3 26.1 3.7 35.9 2.2 11-1.7 33.7-13.8 38.4-27 4.7-13.3 4.7-24.6 3.3-27-1.4-2.5-5.2-3.9-10.9-6.7z"/>
+        </svg>
+    </a>
 
     <div id="viewer"></div>
 
@@ -180,12 +214,6 @@
             <h3 id="sim-lote-nombre" style="margin-top: 5px; color: #fff; font-size: 1.1rem;">Lote</h3>
             <div class="info-box" style="margin-bottom: 20px;">
                 Valor Total: <strong id="sim-valor-total" style="color: #D4AF37; font-size: 1.2rem;">$0</strong>
-            </div>
-
-            <div style="text-align: left; font-size: 0.85rem; margin-bottom: 15px;">
-                <label style="color: #ddd; font-weight: 600; margin-bottom: 5px; display: block;">Datos del Asesor (Autoguardado)</label>
-                <input type="text" id="sim-asesor-nombre" class="input-glass" placeholder="Tu Nombre (Asesor)" style="margin-bottom: 8px;" onchange="guardarDatosAsesor()">
-                <input type="text" id="sim-asesor-tel" class="input-glass" placeholder="Tu Celular (Asesor)" style="margin-bottom: 5px;" onchange="guardarDatosAsesor()">
             </div>
 
             <div style="text-align: left; font-size: 0.85rem; margin-bottom: 15px;">
@@ -226,6 +254,19 @@
             </div>
 
             <button class="btn-whatsapp" style="background: #e74c3c; color: white; border: none; width: 100%; cursor: pointer;" onclick="generarPDF()">Generar PDF (Cotización)</button>
+        </div>
+    </div>
+
+    <!-- Modal Enviar PDF -->
+    <div id="enviar-pdf-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="btn-close" onclick="cerrarModalEnviarPDF()">&times;</button>
+            <h2 class="modal-title" style="font-size: 1.3rem;">Enviar Cotización</h2>
+            <p style="font-size: 0.85rem; color: #ddd; margin-bottom: 15px;">Ingresa el número de WhatsApp del cliente para enviarle el PDF generado.</p>
+
+            <input type="text" id="pdf-cliente-tel" class="input-glass" placeholder="Número de WhatsApp (Ej: 573001234567)" style="margin-bottom: 15px;">
+
+            <button class="btn-whatsapp" style="background: #25D366; color: white; border: none; width: 100%; cursor: pointer;" onclick="enviarPDFWhatsApp()">Enviar por WhatsApp</button>
         </div>
     </div>
 
@@ -284,6 +325,8 @@
         let configuracionCuotaInicial = 30; // Valor por defecto
         let globalTituloColor = '#D4AF37';
         let globalTituloFont = 'Montserrat';
+        let globalAsesorNombre = "";
+        let globalAsesorTel = "";
 
         async function initClient() {
             let panoUrl = fallbackImage;
@@ -336,6 +379,12 @@
                                 preloaderUrl = loadedPreloader;
                             }
                             tempTitulo = removeValue(tempTitulo, "PRELOADER");
+
+                            globalAsesorTel = extractValue(tempTitulo, "ASESOR_TEL");
+                            tempTitulo = removeValue(tempTitulo, "ASESOR_TEL");
+
+                            globalAsesorNombre = extractValue(tempTitulo, "ASESOR_NOMBRE");
+                            tempTitulo = removeValue(tempTitulo, "ASESOR_NOMBRE");
 
                             logoUrl = extractValue(tempTitulo, "LOGO");
                             tempTitulo = removeValue(tempTitulo, "LOGO");
@@ -773,14 +822,6 @@
             document.getElementById('sim-lote-nombre').innerText = loteData.nombre;
             document.getElementById('sim-valor-total').innerText = formatearDinero(parsearDinero(loteData.precio));
 
-            // Cargar datos asesor guardados
-            const asesorGuardado = localStorage.getItem('rb_asesor');
-            if(asesorGuardado) {
-                const data = JSON.parse(asesorGuardado);
-                document.getElementById('sim-asesor-nombre').value = data.nombre || '';
-                document.getElementById('sim-asesor-tel').value = data.tel || '';
-            }
-
             // Inicializar sliders e inputs con valores por defecto basados en configuración
             const valorTotal = parsearDinero(loteData.precio);
 
@@ -850,12 +891,6 @@
             document.getElementById('simulador-modal').classList.remove('active');
         }
 
-        function guardarDatosAsesor() {
-            const nombre = document.getElementById('sim-asesor-nombre').value;
-            const tel = document.getElementById('sim-asesor-tel').value;
-            localStorage.setItem('rb_asesor', JSON.stringify({ nombre, tel }));
-        }
-
         function parsearDinero(textoDinero) {
             if(!textoDinero) return 0;
             const soloNumeros = String(textoDinero).replace(/[^\d.-]/g, '');
@@ -888,6 +923,9 @@
             document.getElementById('sim-cuota-mensual').innerText = formatearDinero(valorCuotaMensual);
         }
 
+        let pdfBlobGlobal = null;
+        let pdfFilenameGlobal = "";
+
         async function generarPDF() {
             const btn = document.querySelector('#simulador-modal .btn-whatsapp');
             const originalText = btn.innerText;
@@ -900,8 +938,8 @@
                 const cEmail = document.getElementById('sim-cliente-email').value || 'N/A';
                 const cDir = document.getElementById('sim-cliente-dir').value || 'N/A';
 
-                const aNombre = document.getElementById('sim-asesor-nombre').value || 'Asesor';
-                const aTel = document.getElementById('sim-asesor-tel').value || 'N/A';
+                const aNombre = globalAsesorNombre || 'Asesor';
+                const aTel = globalAsesorTel || 'N/A';
 
                 const valorTotalStr = document.getElementById('sim-valor-total').innerText;
                 const valorTotalNum = parsearDinero(simuladorLoteActual.precio);
@@ -1027,16 +1065,84 @@
                 };
 
                 window.mostrarProgreso(50);
-                await html2pdf().set(opt).from(htmlTemplate).save();
+
+                pdfFilenameGlobal = opt.filename;
+                // Generar Blob en lugar de descargar directamente
+                pdfBlobGlobal = await html2pdf().set(opt).from(htmlTemplate).output('blob');
+
                 window.mostrarProgreso(100);
 
                 btn.innerText = "¡PDF Generado! ✅";
-                setTimeout(() => { btn.innerText = originalText; }, 3000);
+                setTimeout(() => {
+                    btn.innerText = originalText;
+
+                    // Pre-llenar el modal con el teléfono si lo ingresó
+                    const telCliente = document.getElementById('sim-cliente-tel').value;
+                    if(telCliente) {
+                        document.getElementById('pdf-cliente-tel').value = telCliente.replace(/\D/g, '');
+                    }
+
+                    // Abrir el modal de envío
+                    document.getElementById('simulador-modal').classList.remove('active');
+                    document.getElementById('enviar-pdf-modal').classList.add('active');
+                }, 1500);
 
             } catch (error) {
                 window.mostrarProgreso(100);
                 btn.innerText = originalText;
                 window.mostrarError("generarPDF", error);
+            }
+        }
+
+        function cerrarModalEnviarPDF() {
+            document.getElementById('enviar-pdf-modal').classList.remove('active');
+        }
+
+        async function enviarPDFWhatsApp() {
+            if (!pdfBlobGlobal) {
+                alert("Primero debes generar el PDF.");
+                return;
+            }
+
+            const tel = document.getElementById('pdf-cliente-tel').value.replace(/\D/g, '');
+            if (!tel) {
+                alert("Por favor ingresa el número de WhatsApp del cliente.");
+                return;
+            }
+
+            const file = new File([pdfBlobGlobal], pdfFilenameGlobal, { type: 'application/pdf' });
+
+            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        files: [file],
+                        title: 'Cotización',
+                        text: 'Adjunto la cotización solicitada.'
+                    });
+                    cerrarModalEnviarPDF();
+                } catch (err) {
+                    console.log("Error al compartir (o cancelado):", err);
+                    // Si falla el share (ej. cancelado), no hacemos el fallback para no descargar duplicado si solo canceló
+                }
+            } else {
+                // Fallback para escritorio u navegadores no soportados
+                alert("Tu navegador no soporta envío directo. El archivo se descargará y se abrirá WhatsApp Web.");
+
+                // 1. Descargar el archivo
+                const url = URL.createObjectURL(pdfBlobGlobal);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = pdfFilenameGlobal;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                // 2. Abrir WhatsApp
+                const mensaje = `Hola, te envío la cotización solicitada. (El archivo PDF se descargó en mi dispositivo y te lo enviaré a continuación).`;
+                window.open(`https://wa.me/${tel}?text=${encodeURIComponent(mensaje)}`, '_blank');
+
+                cerrarModalEnviarPDF();
             }
         }
 
@@ -1083,6 +1189,12 @@
 
                             newPreloaderUrl = extractValue(tempTitulo, "PRELOADER");
                             tempTitulo = removeValue(tempTitulo, "PRELOADER");
+
+                            globalAsesorTel = extractValue(tempTitulo, "ASESOR_TEL");
+                            tempTitulo = removeValue(tempTitulo, "ASESOR_TEL");
+
+                            globalAsesorNombre = extractValue(tempTitulo, "ASESOR_NOMBRE");
+                            tempTitulo = removeValue(tempTitulo, "ASESOR_NOMBRE");
 
                             newLogoUrl = extractValue(tempTitulo, "LOGO");
                             tempTitulo = removeValue(tempTitulo, "LOGO");
