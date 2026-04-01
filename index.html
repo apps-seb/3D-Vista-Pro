@@ -171,17 +171,18 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Volver a Vista Principal
     </div>
 
-    <div id="btn-gyro" style="display:flex; position: fixed; top: 80px; right: 20px; z-index: 100; cursor: pointer; background: rgba(17,17,17,0.7); backdrop-filter: blur(10px); border: 1px solid #D4AF37; color: #fff; padding: 10px 15px; border-radius: 8px; font-weight: bold; text-transform: uppercase; font-size: 0.8rem; box-shadow: 0 4px 15px rgba(0,0,0,0.5); align-items: center; justify-content: center; gap: 8px; transition: transform 0.2s, background 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" onclick="toggleGyroscope()">
+    <a id="btn-conoce-mas" href="https://www.proyectaconstructora.com" target="_blank" style="text-decoration: none; display:flex; position: fixed; top: 80px; right: 20px; z-index: 100; cursor: pointer; background: rgba(17,17,17,0.7); backdrop-filter: blur(10px); border: 1px solid #D4AF37; color: #fff; padding: 10px 15px; border-radius: 8px; font-weight: bold; text-transform: uppercase; font-size: 0.8rem; box-shadow: 0 4px 15px rgba(0,0,0,0.5); align-items: center; justify-content: center; gap: 8px; transition: transform 0.2s, background 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
-            <line x1="12" y1="18" x2="12.01" y2="18"></line>
-        </svg> <span class="hide-mobile">Giroscopio</span>
-    </div>
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <line x1="10" y1="14" x2="21" y2="3"></line>
+        </svg> <span class="hide-mobile">Conoce más</span>
+    </a>
 
     <style>
         @media (max-width: 600px) {
-            #btn-gyro .hide-mobile { display: none; }
-            #btn-gyro { padding: 10px; border-radius: 50%; }
+            #btn-conoce-mas .hide-mobile { display: none; }
+            #btn-conoce-mas { padding: 10px; border-radius: 50%; }
             .btn-flotante-whatsapp { bottom: 80px; } /* Evita tapar barra de inventario */
         }
     </style>
@@ -234,6 +235,28 @@
     </div>
 
     <!-- Modal Simulador -->
+    <!-- Modal de Bienvenida (Giroscopio) -->
+    <div id="welcome-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 350px;">
+            <h2 class="modal-title" style="font-size: 1.5rem; margin-bottom: 15px;">¡Bienvenido!</h2>
+            <p style="font-size: 0.95rem; color: #ddd; margin-bottom: 25px;">Explora el entorno 360 moviendo tu dispositivo o arrastrando con el dedo en la pantalla.</p>
+            <button class="btn-whatsapp" style="background: #D4AF37; color: #000; border: none; width: 100%; cursor: pointer;" onclick="entrarYActivarGiroscopio()">Ingresar</button>
+        </div>
+    </div>
+
+    <!-- Modal Enviar PDF -->
+    <div id="pdf-send-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 350px;">
+            <button class="btn-close" onclick="cerrarPdfSendModal()">&times;</button>
+            <h2 class="modal-title" style="font-size: 1.3rem;">¡Cotización Generada!</h2>
+            <p style="font-size: 0.85rem; color: #ddd; margin-bottom: 15px;">¿Deseas enviar el PDF directamente al cliente por WhatsApp?</p>
+            <p style="font-size: 0.95rem; font-weight: bold; color: #fff; margin-bottom: 20px;">Tel: <span id="pdf-send-tel" style="color: #D4AF37;"></span></p>
+
+            <button class="btn-whatsapp" style="background: #25D366; color: white; border: none; width: 100%; cursor: pointer; margin-bottom: 10px;" onclick="enviarPdfWhatsapp()">Enviar por WhatsApp</button>
+            <button class="btn-whatsapp" style="background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.3); width: 100%; cursor: pointer;" onclick="descargarPdfLocal()">Solo Descargar</button>
+        </div>
+    </div>
+
     <div id="simulador-modal" class="modal-overlay">
         <div class="modal-content" style="max-width: 400px; max-height: 90vh; overflow-y: auto;">
             <button class="btn-close" onclick="cerrarSimulador()">&times;</button>
@@ -470,18 +493,12 @@
                     const preloader = document.getElementById('preloader');
                     if (preloader) {
                         preloader.style.opacity = '0';
-                        setTimeout(() => preloader.style.display = 'none', 800);
+                        setTimeout(() => {
+                            preloader.style.display = 'none';
+                            // Mostrar el modal de bienvenida al terminar de cargar
+                            document.getElementById('welcome-modal').classList.add('active');
+                        }, 800);
                     }
-
-                    // Auto-rotación inicial
-                    viewer.animate({
-                        yaw: viewer.getPosition().yaw + 0.5,
-                        pitch: viewer.getPosition().pitch,
-                        speed: "1rpm"
-                    }).then(() => {
-                        // Se detiene al llegar o si el usuario interactúa
-                    });
-
                 });
 
             } catch (error) {
@@ -704,39 +721,33 @@
 
         let marcadoresOcultos = [];
 
-        window.toggleGyroscope = function() {
+        window.entrarYActivarGiroscopio = function() {
+            document.getElementById('welcome-modal').classList.remove('active');
             try {
-                if (!gyroscopePlugin) {
-                    window.mostrarError("Giroscopio", "El plugin no está inicializado.");
-                    return;
-                }
-
-                // Gyroscope API in mobile browsers requires user interaction
-                // isSupported will resolve to true if device orientation is supported
-                gyroscopePlugin.isSupported().then(supported => {
-                    if (supported) {
-                        const btn = document.getElementById('btn-gyro');
-                        const isEnabled = gyroscopePlugin.isEnabled();
-                        if (isEnabled) {
-                            gyroscopePlugin.stop();
-                            btn.style.background = 'rgba(17,17,17,0.7)';
-                            btn.style.color = '#fff';
-                        } else {
-                            gyroscopePlugin.start().then(() => {
-                                btn.style.background = 'rgba(212, 175, 55, 0.3)';
-                                btn.style.color = '#D4AF37';
-                            }).catch(err => {
-                                window.mostrarError("Giroscopio", "No se pudo iniciar el giroscopio. Por favor, asegúrese de otorgar los permisos necesarios.");
+                if (gyroscopePlugin) {
+                    gyroscopePlugin.isSupported().then(supported => {
+                        if (supported) {
+                            gyroscopePlugin.start().catch(err => {
+                                console.warn("No se pudo auto-iniciar el giroscopio:", err);
                             });
                         }
-                    } else {
-                        window.mostrarError("Giroscopio", "Su dispositivo no soporta el giroscopio o los permisos fueron denegados.");
-                    }
-                }).catch(err => {
-                    window.mostrarError("Giroscopio", "Error al verificar el soporte: " + err);
-                });
+                    }).catch(err => {
+                        console.warn("Error al verificar el soporte del giroscopio:", err);
+                    });
+                }
+
+                // Auto-rotación inicial
+                if (viewer) {
+                    viewer.animate({
+                        yaw: viewer.getPosition().yaw + 0.5,
+                        pitch: viewer.getPosition().pitch,
+                        speed: "1rpm"
+                    }).then(() => {
+                        // Se detiene al llegar o si el usuario interactúa
+                    });
+                }
             } catch (error) {
-                window.mostrarError("toggleGyroscope", error);
+                console.warn("Error en entrarYActivarGiroscopio:", error);
             }
         }
 
@@ -999,12 +1010,14 @@
 
         let pdfBlobGlobal = null;
         let pdfFilenameGlobal = "";
+        let pdfClientTelGlobal = "";
+        let pdfClientNombreGlobal = "";
 
         async function generarPDF() {
             const cTelInput = document.getElementById('sim-cliente-tel').value;
             const telFormateado = cTelInput ? cTelInput.replace(/\D/g, '') : '';
             if (!telFormateado) {
-                alert("Por favor ingresa el celular del cliente en la sección 'Datos del Cliente' antes de generar y enviar el PDF.");
+                alert("Por favor ingresa el celular del cliente en la sección 'Datos del Cliente' antes de generar el PDF.");
                 return;
             }
 
@@ -1155,36 +1168,14 @@
 
                 btn.innerText = "¡PDF Generado! ✅";
 
-                const file = new File([pdfBlobGlobal], pdfFilenameGlobal, { type: 'application/pdf' });
+                pdfClientTelGlobal = telFormateado;
+                pdfClientNombreGlobal = cNombre;
 
-                if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                    try {
-                        await navigator.share({
-                            files: [file],
-                            title: 'Cotización',
-                            text: 'Adjunto la cotización solicitada.'
-                        });
-                    } catch (err) {
-                        console.log("Error al compartir (o cancelado):", err);
-                    }
-                } else {
-                    // Fallback para escritorio u navegadores no soportados
-                    alert("Tu navegador no soporta envío directo de archivos. El documento se descargará y luego se abrirá WhatsApp para que se lo adjuntes manualmente al cliente.");
+                document.getElementById('pdf-send-tel').innerText = cTelInput;
 
-                    // 1. Descargar el archivo
-                    const url = URL.createObjectURL(pdfBlobGlobal);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = pdfFilenameGlobal;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                    
-                    // 2. Abrir WhatsApp con un mensaje predefinido
-                    const mensaje = `Hola ${cNombre}, a continuación te adjuntaré la cotización solicitada sobre el lote ${simuladorLoteActual.nombre}.`;
-                    window.open(`https://wa.me/${telFormateado}?text=${encodeURIComponent(mensaje)}`, '_blank');
-                }
+                // Mostrar modal de envío de PDF
+                cerrarSimulador();
+                document.getElementById('pdf-send-modal').classList.add('active');
 
                 setTimeout(() => {
                     btn.innerText = originalText;
@@ -1195,6 +1186,50 @@
                 btn.innerText = originalText;
                 window.mostrarError("generarPDF", error);
             }
+        }
+
+        function cerrarPdfSendModal() {
+            document.getElementById('pdf-send-modal').classList.remove('active');
+        }
+
+        async function enviarPdfWhatsapp() {
+            if (!pdfBlobGlobal) return;
+            const file = new File([pdfBlobGlobal], pdfFilenameGlobal, { type: 'application/pdf' });
+            const mensaje = `Hola ${pdfClientNombreGlobal}, a continuación te adjunto la cotización solicitada sobre el lote ${simuladorLoteActual.nombre}.`;
+
+            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        files: [file],
+                        title: 'Cotización',
+                        text: mensaje
+                    });
+                    cerrarPdfSendModal();
+                } catch (err) {
+                    console.log("Error al compartir (o cancelado):", err);
+                }
+            } else {
+                // Fallback para escritorio u navegadores no soportados
+                alert("Tu navegador no soporta envío directo de archivos. El documento se descargará y luego se abrirá WhatsApp para que se lo adjuntes manualmente al cliente.");
+
+                descargarPdfLocal();
+
+                window.open(`https://wa.me/${pdfClientTelGlobal}?text=${encodeURIComponent(mensaje)}`, '_blank');
+                cerrarPdfSendModal();
+            }
+        }
+
+        function descargarPdfLocal() {
+            if (!pdfBlobGlobal) return;
+            const url = URL.createObjectURL(pdfBlobGlobal);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = pdfFilenameGlobal;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            cerrarPdfSendModal();
         }
 
         function setupRealtimeSubscription() {
