@@ -168,6 +168,10 @@
             <label class="control-label" style="margin-top: 10px; display: block;">% Cuota Inicial (Por defecto)</label>
             <input type="number" id="input-cuota" class="input-text" placeholder="Ej: 30" min="0" max="100">
 
+            <label class="control-label" style="margin-top: 10px; display: block;">Datos del Asesor (Cotizador)</label>
+            <input type="text" id="input-asesor-nombre" class="input-text" placeholder="Nombre del Asesor">
+            <input type="text" id="input-asesor-tel" class="input-text" placeholder="WhatsApp Asesor (Ej: 573001234567)">
+
             <button class="btn btn-action" onclick="guardarConfiguracion()">Guardar Configuración General</button>
             <label class="btn btn-upload" id="btn-upload-lbl">
                 Subir Foto 360 (JPG)
@@ -455,6 +459,8 @@
         let lotesDataEditor = []; // Para tener la lista de lotes en el editor 2D
         let globalTituloColor = '#D4AF37';
         let globalTituloFont = 'Montserrat';
+        let globalAsesorNombre = "";
+        let globalAsesorTel = "";
 
         async function initApp() {
             let panoUrl = fallbackImage;
@@ -508,6 +514,12 @@
                             }
                             tempTitulo = removeValue(tempTitulo, "PRELOADER");
 
+                            globalAsesorTel = extractValue(tempTitulo, "ASESOR_TEL");
+                            tempTitulo = removeValue(tempTitulo, "ASESOR_TEL");
+
+                            globalAsesorNombre = extractValue(tempTitulo, "ASESOR_NOMBRE");
+                            tempTitulo = removeValue(tempTitulo, "ASESOR_NOMBRE");
+
                             logoUrl = extractValue(tempTitulo, "LOGO");
                             tempTitulo = removeValue(tempTitulo, "LOGO");
 
@@ -543,6 +555,8 @@
 
                 document.getElementById('input-title').value = titulo;
                 document.getElementById('input-cuota').value = cuotaInicial;
+                document.getElementById('input-asesor-nombre').value = globalAsesorNombre;
+                document.getElementById('input-asesor-tel').value = globalAsesorTel;
                 document.getElementById('display-title').innerText = titulo;
                 document.getElementById('display-title').style.color = globalTituloColor;
                 document.getElementById('display-title').style.fontFamily = globalTituloFont;
@@ -1548,6 +1562,8 @@
                 let titulo = document.getElementById('input-title').value;
                 let cuota = parseInt(document.getElementById('input-cuota').value);
                 if(isNaN(cuota)) cuota = 30; // valor por defecto si está vacío
+                let asesorNombre = document.getElementById('input-asesor-nombre').value;
+                let asesorTel = document.getElementById('input-asesor-tel').value;
 
                 if(!titulo) {
                     window.mostrarProgreso(100);
@@ -1559,6 +1575,12 @@
                 let tituloAguardar = titulo;
                 if (preloaderData) {
                     tituloAguardar += `|PRELOADER:${preloaderData}`;
+                }
+                if (asesorNombre) {
+                    tituloAguardar += `|ASESOR_NOMBRE:${asesorNombre}`;
+                }
+                if (asesorTel) {
+                    tituloAguardar += `|ASESOR_TEL:${asesorTel}`;
                 }
                 tituloAguardar += `|COLOR:${globalTituloColor}`;
                 tituloAguardar += `|FONT:${globalTituloFont}`;
