@@ -171,7 +171,7 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Volver a Vista Principal
     </div>
 
-    <a id="btn-conoce-mas" href="https://www.proyectaconstructora.com" target="_blank" class="btn-flotante-conoce-mas" title="Conoce más del proyecto" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+    <a id="btn-conoce-mas" onclick="abrirConoceMasModal()" class="btn-flotante-conoce-mas" title="Conoce más del proyecto" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
             <circle cx="12" cy="12" r="3"></circle>
@@ -251,6 +251,26 @@
         </div>
     </div>
 
+    <!-- Modal Conoce Más -->
+    <div id="conoce-mas-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 400px;">
+            <button class="btn-close" onclick="cerrarConoceMasModal()">&times;</button>
+            <img id="conoce-mas-logo" src="" alt="Logo Proyecto" style="max-height: 80px; margin-bottom: 20px; border-radius: 4px; display: none;">
+            <h2 class="modal-title" style="font-size: 1.5rem; margin-bottom: 10px;">Descubre Rincón de Baviera</h2>
+            <p style="font-size: 0.95rem; color: #ddd; margin-bottom: 25px; line-height: 1.5;">
+                Un espacio diseñado pensando en tu bienestar y el de tu familia. Conoce más sobre nuestro proyecto, amenidades y beneficios de invertir con nosotros.
+            </p>
+            <a href="https://www.proyectaconstructora.com" target="_blank" class="btn-whatsapp" style="background: #D4AF37; color: #000; text-decoration: none; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                Ir al Sitio Web
+            </a>
+            <button class="btn-whatsapp" style="background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.3); width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="cerrarConoceMasModal(); abrirModalWhatsapp()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                Contactar a un Asesor
+            </button>
+        </div>
+    </div>
+
     <!-- Modal Simulador -->
     <!-- Modal de Bienvenida (Giroscopio) -->
     <div id="welcome-modal" class="modal-overlay">
@@ -266,10 +286,13 @@
         <div class="modal-content" style="max-width: 350px;">
             <button class="btn-close" onclick="cerrarPdfSendModal()">&times;</button>
             <h2 class="modal-title" style="font-size: 1.3rem;">¡Cotización Generada!</h2>
-            <p style="font-size: 0.85rem; color: #ddd; margin-bottom: 15px;">¿Deseas enviar el PDF directamente al cliente por WhatsApp?</p>
-            <p style="font-size: 0.95rem; font-weight: bold; color: #fff; margin-bottom: 20px;">Tel: <span id="pdf-send-tel" style="color: #D4AF37;"></span></p>
+            <p style="font-size: 0.85rem; color: #ddd; margin-bottom: 15px;">La cotización está lista para ser compartida.</p>
+            <p style="font-size: 0.95rem; font-weight: bold; color: #fff; margin-bottom: 20px;">Cliente: <span id="pdf-send-nombre" style="color: #D4AF37;"></span></p>
 
-            <button class="btn-whatsapp" style="background: #25D366; color: white; border: none; width: 100%; cursor: pointer; margin-bottom: 10px;" onclick="enviarPdfWhatsapp()">Enviar por WhatsApp</button>
+            <button class="btn-whatsapp" style="background: #25D366; color: white; border: none; width: 100%; cursor: pointer; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="compartirPdfNativo()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                Compartir PDF
+            </button>
             <button class="btn-whatsapp" style="background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.3); width: 100%; cursor: pointer;" onclick="descargarPdfLocal()">Solo Descargar</button>
         </div>
     </div>
@@ -484,6 +507,11 @@
                     if (plogo) {
                         plogo.src = logoUrl;
                         plogo.style.display = 'block';
+                    }
+                    const clogo = document.getElementById('conoce-mas-logo');
+                    if (clogo) {
+                        clogo.src = logoUrl;
+                        clogo.style.display = 'block';
                     }
                 } else {
                     document.getElementById('display-logo').style.display = 'none';
@@ -1188,7 +1216,7 @@
                 pdfClientTelGlobal = telFormateado;
                 pdfClientNombreGlobal = cNombre;
 
-                document.getElementById('pdf-send-tel').innerText = cTelInput;
+                document.getElementById('pdf-send-nombre').innerText = cNombre;
 
                 // Mostrar modal de envío de PDF
                 cerrarSimulador();
@@ -1209,21 +1237,33 @@
             document.getElementById('pdf-send-modal').classList.remove('active');
         }
 
-        async function enviarPdfWhatsapp() {
+        async function compartirPdfNativo() {
             if (!pdfBlobGlobal) return;
             const mensaje = `Hola ${pdfClientNombreGlobal}, a continuación te adjunto la cotización solicitada sobre el lote ${simuladorLoteActual.nombre}.`;
+            const file = new File([pdfBlobGlobal], pdfFilenameGlobal, { type: 'application/pdf' });
 
-            alert("El documento se descargará y luego se abrirá WhatsApp para que se lo adjuntes manualmente al cliente.");
-
-            descargarPdfLocal();
-
-            let tel = pdfClientTelGlobal.replace(/\D/g, '');
-            if (tel.length === 10 && !tel.startsWith('57')) {
-                tel = '57' + tel;
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        title: 'Cotización Lote - Rincón de Baviera',
+                        text: mensaje,
+                        files: [file]
+                    });
+                    console.log('PDF compartido exitosamente');
+                    cerrarPdfSendModal();
+                } catch (error) {
+                    console.error('Error al compartir el PDF:', error);
+                    // Fallback to simple download if share is canceled or fails
+                    if (error.name !== 'AbortError') {
+                        alert('No se pudo compartir el archivo automáticamente. El archivo se descargará ahora.');
+                        descargarPdfLocal();
+                    }
+                }
+            } else {
+                // Fallback for browsers that don't support file sharing
+                alert("Tu navegador no soporta compartir archivos directamente. El documento se descargará para que lo envíes manualmente.");
+                descargarPdfLocal();
             }
-
-            window.open(`https://wa.me/${tel}?text=${encodeURIComponent(mensaje)}`, '_blank');
-            cerrarPdfSendModal();
         }
 
         function descargarPdfLocal() {
@@ -1237,6 +1277,19 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
             cerrarPdfSendModal();
+        }
+
+        function abrirConoceMasModal() {
+            const tituloProyecto = document.getElementById('display-title').innerText || 'Rincón de Baviera';
+            const tituloModal = document.querySelector('#conoce-mas-modal .modal-title');
+            if (tituloModal) {
+                tituloModal.innerText = `Descubre ${tituloProyecto}`;
+            }
+            document.getElementById('conoce-mas-modal').classList.add('active');
+        }
+
+        function cerrarConoceMasModal() {
+            document.getElementById('conoce-mas-modal').classList.remove('active');
         }
 
         function setupRealtimeSubscription() {
@@ -1324,8 +1377,17 @@
                             if (newLogoUrl) {
                                 document.getElementById('display-logo').src = newLogoUrl;
                                 document.getElementById('display-logo').style.display = 'block';
+                                const clogo = document.getElementById('conoce-mas-logo');
+                                if (clogo) {
+                                    clogo.src = newLogoUrl;
+                                    clogo.style.display = 'block';
+                                }
                             } else {
                                 document.getElementById('display-logo').style.display = 'none';
+                                const clogo = document.getElementById('conoce-mas-logo');
+                                if (clogo) {
+                                    clogo.style.display = 'none';
+                                }
                             }
                         }
                         if (payload.new && payload.new.imagen_url && viewer) {
