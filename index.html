@@ -1188,45 +1188,57 @@
                     </div>
                 `;
 
-                const element = document.createElement('div');
-                element.innerHTML = htmlTemplate;
-                
-                // It's better to pass the raw string if we want html2pdf to handle the iframe creation,
-                // or if we must attach it, we can use a worker or hidden iframe mechanism, 
-                // but html2pdf typically handles detached elements/strings well if images are loaded. 
-                // Let's use string directly to let html2pdf handle the container logic internally.
+                const printContainer = document.createElement('div');
+                printContainer.style.width = '800px';
+                printContainer.style.height = '1040px';
+                printContainer.style.position = 'absolute';
+                printContainer.style.left = '-9999px';
+                printContainer.style.top = '-9999px';
+                printContainer.style.overflow = 'hidden';
+                printContainer.innerHTML = htmlTemplate;
+                document.body.appendChild(printContainer);
 
                 const opt = {
                     margin:       0,
                     filename:     `Cotizacion_${simuladorLoteActual.nombre.replace(/\s+/g, '_')}_${cNombre.replace(/\s+/g, '_')}.pdf`,
                     image:        { type: 'jpeg', quality: 0.98 },
-                    html2canvas:  { scale: 2, useCORS: true, allowTaint: true, logging: false },
-                    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+                    html2canvas:  { scale: 2, useCORS: true, allowTaint: true, logging: false, windowWidth: 800 },
+                    jsPDF:        { unit: 'px', format: [800, 1040], orientation: 'portrait' }
                 };
 
                 window.mostrarProgreso(50);
                 
                 pdfFilenameGlobal = opt.filename;
                 // Generar Blob en lugar de descargar directamente
-                pdfBlobGlobal = await html2pdf().set(opt).from(htmlTemplate).output('blob');
-                
-                window.mostrarProgreso(100);
+                try {
+                    pdfBlobGlobal = await html2pdf().set(opt).from(printContainer).output('blob');
 
-                btn.innerText = "¡PDF Generado! ✅";
+                    window.mostrarProgreso(100);
 
-                pdfClientTelGlobal = telFormateado;
-                pdfClientNombreGlobal = cNombre;
+                    btn.innerText = "¡PDF Generado! ✅";
 
-                document.getElementById('pdf-send-nombre').innerText = cNombre;
+                    pdfClientTelGlobal = telFormateado;
+                    pdfClientNombreGlobal = cNombre;
 
-                // Mostrar modal de envío de PDF
-                cerrarSimulador();
-                document.getElementById('pdf-send-modal').classList.add('active');
+                    document.getElementById('pdf-send-nombre').innerText = cNombre;
 
-                setTimeout(() => {
+                    // Mostrar modal de envío de PDF
+                    cerrarSimulador();
+                    document.getElementById('pdf-send-modal').classList.add('active');
+
+                    setTimeout(() => {
+                        btn.innerText = originalText;
+                    }, 1500);
+
+                } catch (error) {
+                    window.mostrarProgreso(100);
                     btn.innerText = originalText;
-                }, 1500);
-
+                    window.mostrarError("generarPDF", error);
+                } finally {
+                    if (printContainer && printContainer.parentNode) {
+                        printContainer.parentNode.removeChild(printContainer);
+                    }
+                }
             } catch (error) {
                 window.mostrarProgreso(100);
                 btn.innerText = originalText;
