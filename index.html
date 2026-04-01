@@ -42,15 +42,16 @@
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 50; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
         .modal-overlay.active { display: flex; }
         .modal-content {
-            background: rgba(17, 17, 17, 0.65);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            background: rgba(17, 17, 17, 0.45);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(212, 175, 55, 0.3);
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
             border-radius: 16px;
             padding: 25px;
             width: 85%;
             max-width: 320px;
+            box-sizing: border-box;
             color: white;
             text-align: center;
             position: relative;
@@ -103,7 +104,7 @@
             border-color: #D4AF37;
             background: rgba(0, 0, 0, 0.5);
         }
-        .btn-whatsapp { display: block; padding: 15px; background: #25D366; color: white; text-decoration: none; font-weight: bold; border-radius: 8px; margin-top: 15px; text-transform: uppercase; font-size: 0.9rem; }
+        .btn-whatsapp { display: block; padding: 15px; background: #25D366; color: white; text-decoration: none; font-weight: bold; border-radius: 8px; margin-top: 15px; text-transform: uppercase; font-size: 0.9rem; box-sizing: border-box; }
 
         .btn-flotante-whatsapp {
             position: fixed;
@@ -253,7 +254,7 @@
 
     <!-- Modal Conoce Más -->
     <div id="conoce-mas-modal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-content" style="max-width: 320px;">
             <button class="btn-close" onclick="cerrarConoceMasModal()">&times;</button>
             <img id="conoce-mas-logo" src="" alt="Logo Proyecto" style="max-height: 80px; margin-bottom: 20px; border-radius: 4px; display: none;">
             <h2 class="modal-title" style="font-size: 1.5rem; margin-bottom: 10px;">Descubre Rincón de Baviera</h2>
