@@ -171,18 +171,35 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Volver a Vista Principal
     </div>
 
-    <a id="btn-conoce-mas" href="https://www.proyectaconstructora.com" target="_blank" style="text-decoration: none; display:flex; position: fixed; top: 80px; right: 20px; z-index: 100; cursor: pointer; background: rgba(17,17,17,0.7); backdrop-filter: blur(10px); border: 1px solid #D4AF37; color: #fff; padding: 10px 15px; border-radius: 8px; font-weight: bold; text-transform: uppercase; font-size: 0.8rem; box-shadow: 0 4px 15px rgba(0,0,0,0.5); align-items: center; justify-content: center; gap: 8px; transition: transform 0.2s, background 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-            <polyline points="15 3 21 3 21 9"></polyline>
-            <line x1="10" y1="14" x2="21" y2="3"></line>
-        </svg> <span class="hide-mobile">Conoce más</span>
+    <a id="btn-conoce-mas" href="https://www.proyectaconstructora.com" target="_blank" class="btn-flotante-conoce-mas" title="Conoce más del proyecto" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+        </svg>
     </a>
 
     <style>
+        .btn-flotante-conoce-mas {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            background-color: rgba(17,17,17,0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid #D4AF37;
+            color: #D4AF37;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            z-index: 1000;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
         @media (max-width: 600px) {
-            #btn-conoce-mas .hide-mobile { display: none; }
-            #btn-conoce-mas { padding: 10px; border-radius: 50%; }
+            .btn-flotante-conoce-mas { bottom: 150px; }
             .btn-flotante-whatsapp { bottom: 80px; } /* Evita tapar barra de inventario */
         }
     </style>
@@ -890,8 +907,8 @@
                 mensaje += `\n\nEstoy interesado específicamente en el lote: ${simuladorLoteActual.nombre} (Precio: ${formatearDinero(parsearDinero(simuladorLoteActual.precio))}).`;
             }
 
-            // Fallback en caso de que globalAsesorTel no esté cargado
-            let numeroAsesor = globalAsesorTel || "573217399818";
+            // Siempre enviar al número especificado por el usuario
+            let numeroAsesor = "573217399818";
 
             window.open(`https://wa.me/${numeroAsesor}?text=${encodeURIComponent(mensaje)}`, '_blank');
             cerrarModalWhatsapp();
@@ -1194,29 +1211,19 @@
 
         async function enviarPdfWhatsapp() {
             if (!pdfBlobGlobal) return;
-            const file = new File([pdfBlobGlobal], pdfFilenameGlobal, { type: 'application/pdf' });
             const mensaje = `Hola ${pdfClientNombreGlobal}, a continuación te adjunto la cotización solicitada sobre el lote ${simuladorLoteActual.nombre}.`;
 
-            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                try {
-                    await navigator.share({
-                        files: [file],
-                        title: 'Cotización',
-                        text: mensaje
-                    });
-                    cerrarPdfSendModal();
-                } catch (err) {
-                    console.log("Error al compartir (o cancelado):", err);
-                }
-            } else {
-                // Fallback para escritorio u navegadores no soportados
-                alert("Tu navegador no soporta envío directo de archivos. El documento se descargará y luego se abrirá WhatsApp para que se lo adjuntes manualmente al cliente.");
+            alert("El documento se descargará y luego se abrirá WhatsApp para que se lo adjuntes manualmente al cliente.");
 
-                descargarPdfLocal();
+            descargarPdfLocal();
 
-                window.open(`https://wa.me/${pdfClientTelGlobal}?text=${encodeURIComponent(mensaje)}`, '_blank');
-                cerrarPdfSendModal();
+            let tel = pdfClientTelGlobal.replace(/\D/g, '');
+            if (tel.length === 10 && !tel.startsWith('57')) {
+                tel = '57' + tel;
             }
+
+            window.open(`https://wa.me/${tel}?text=${encodeURIComponent(mensaje)}`, '_blank');
+            cerrarPdfSendModal();
         }
 
         function descargarPdfLocal() {
