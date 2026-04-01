@@ -1096,120 +1096,131 @@
 
                 // Plantilla HTML para el PDF (Diseño Elegante y Profesional)
                 const htmlTemplate = `
-                    <div style="font-family: 'Montserrat', sans-serif; color: #222; padding: 50px; background: #fff; max-width: 800px; margin: 0 auto; line-height: 1.6; position: relative;">
+                    <div style="font-family: 'Montserrat', 'ITC Blair', sans-serif; color: #222; padding: 40px; background: #fff; width: 800px; height: 1040px; box-sizing: border-box; margin: 0; line-height: 1.5; position: relative; overflow: hidden; display: flex; flex-direction: column;">
 
                         <!-- Fondo Decorativo -->
-                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 10px; background: linear-gradient(90deg, #f26522, #ff8c00);"></div>
+                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 12px; background: linear-gradient(90deg, #f26522, #ff8c00);"></div>
 
                         <!-- Cabecera -->
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #eee; padding-bottom: 30px; margin-bottom: 40px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #eee; padding-bottom: 20px; margin-bottom: 25px;">
                             <div style="max-width: 50%;">
                                 ${logoDisplay}
-                                <h1 style="color: #111; margin: 15px 0 5px 0; font-size: 20px; text-transform: uppercase; letter-spacing: 2px; font-weight: 600;">${titleText}</h1>
-                                <p style="color: #777; margin: 0; font-size: 12px;">Propuesta Comercial de Inversión</p>
+                                <h1 style="color: #111; margin: 15px 0 5px 0; font-size: 22px; text-transform: uppercase; letter-spacing: 2px; font-weight: 600;">${titleText}</h1>
+                                <p style="color: #777; margin: 0; font-size: 13px;">Propuesta Comercial de Inversión</p>
                             </div>
                             <div style="text-align: right;">
                                 <div style="font-size: 28px; font-weight: 300; color: #f26522; margin-bottom: 8px; letter-spacing: 1px;">COTIZACIÓN</div>
-                                <div style="font-size: 13px; color: #555;"><strong>Fecha:</strong> ${fechaStr}</div>
-                                <div style="font-size: 13px; color: #555; margin-top: 3px;"><strong>Ref:</strong> ${refText}</div>
+                                <div style="font-size: 14px; color: #555;"><strong>Fecha:</strong> ${fechaStr}</div>
+                                <div style="font-size: 14px; color: #555; margin-top: 3px;"><strong>Ref:</strong> ${refText}</div>
                             </div>
                         </div>
 
                         <!-- Detalles de las Partes -->
-                        <div style="display: flex; gap: 40px; margin-bottom: 40px;">
-                            <div style="flex: 1;">
-                                <h3 style="font-size: 12px; color: #f26522; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; border-bottom: 1px solid #f26522; padding-bottom: 5px; display: inline-block;">Datos del Inversor</h3>
-                                <div style="font-size: 14px; color: #333;">
+                        <div style="display: flex; gap: 30px; margin-bottom: 30px;">
+                            <div style="flex: 1; background: #fdfdfd; padding: 15px; border-radius: 8px; border: 1px solid #f0f0f0;">
+                                <h3 style="font-size: 13px; color: #f26522; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; border-bottom: 1px solid #ffe0cc; padding-bottom: 5px; display: inline-block;">Datos del Inversor</h3>
+                                <div style="font-size: 14px; color: #444;">
                                     <div style="margin-bottom: 6px;"><strong>Nombre:</strong> ${cNombre}</div>
                                     <div style="margin-bottom: 6px;"><strong>Teléfono:</strong> ${cTel}</div>
                                     <div style="margin-bottom: 6px;"><strong>Email:</strong> ${cEmail}</div>
-                                    <div style="margin-bottom: 6px;"><strong>Dirección:</strong> ${cDir}</div>
+                                    <div style="margin-bottom: 0;"><strong>Dirección:</strong> ${cDir}</div>
                                 </div>
                             </div>
-                            <div style="flex: 1;">
-                                <h3 style="font-size: 12px; color: #f26522; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; border-bottom: 1px solid #f26522; padding-bottom: 5px; display: inline-block;">Asesor Comercial</h3>
-                                <div style="font-size: 14px; color: #333;">
+                            <div style="flex: 1; background: #fdfdfd; padding: 15px; border-radius: 8px; border: 1px solid #f0f0f0;">
+                                <h3 style="font-size: 13px; color: #f26522; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; border-bottom: 1px solid #ffe0cc; padding-bottom: 5px; display: inline-block;">Asesor Comercial</h3>
+                                <div style="font-size: 14px; color: #444;">
                                     <div style="margin-bottom: 6px;"><strong>Nombre:</strong> ${aNombre}</div>
-                                    <div style="margin-bottom: 6px;"><strong>Teléfono:</strong> ${aTel}</div>
+                                    <div style="margin-bottom: 0;"><strong>Teléfono:</strong> ${aTel}</div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Detalles del Inmueble (Destacado y Elegante) -->
-                        <div style="background: linear-gradient(135deg, #111 0%, #2a2a2a 100%); border-radius: 12px; padding: 30px; margin-bottom: 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); position: relative; overflow: hidden;">
-                            <div style="position: absolute; top: -50%; right: -10%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(242,101,34,0.15) 0%, rgba(0,0,0,0) 70%); border-radius: 50%; pointer-events: none;"></div>
+                        <div style="background: linear-gradient(135deg, #f8f8f8 0%, #fff 100%); border-radius: 12px; padding: 25px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e0e0e0; position: relative; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
+                            <div style="position: absolute; top: -50%; right: -10%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(242,101,34,0.05) 0%, rgba(0,0,0,0) 70%); border-radius: 50%; pointer-events: none;"></div>
                             
                             <div style="position: relative; z-index: 1;">
                                 <div style="font-size: 12px; color: #f26522; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px;">Especificación del Inmueble</div>
-                                <h2 style="margin: 0; color: #fff; font-size: 32px; font-weight: 600; letter-spacing: 1px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">${simuladorLoteActual.nombre}</h2>
+                                <h2 style="margin: 0; color: #111; font-size: 30px; font-weight: 600; letter-spacing: 1px;">${simuladorLoteActual.nombre}</h2>
                             </div>
                             
-                            <div style="text-align: right; background: rgba(242,101,34,0.1); padding: 15px 25px; border-radius: 8px; border: 1px solid rgba(242,101,34,0.3); position: relative; z-index: 1;">
-                                <div style="font-size: 11px; color: #eee; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px;">Área Total</div>
-                                <div style="font-size: 26px; color: #f26522; font-weight: 600;">${simuladorLoteActual.area}</div>
+                            <div style="text-align: right; background: #fff; padding: 12px 20px; border-radius: 8px; border: 1px solid rgba(242,101,34,0.2); position: relative; z-index: 1;">
+                                <div style="font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4px;">Área Total</div>
+                                <div style="font-size: 24px; color: #f26522; font-weight: 600;">${simuladorLoteActual.area}</div>
                             </div>
                         </div>
 
                         <!-- Resumen Financiero -->
-                        <h3 style="font-size: 14px; color: #111; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; text-align: center;">Proyección Financiera</h3>
+                        <h3 style="font-size: 15px; color: #222; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; text-align: center;">Proyección Financiera</h3>
 
-                        <div style="border: 1px solid #eee; border-radius: 8px; overflow: hidden; margin-bottom: 50px;">
+                        <div style="border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; margin-bottom: 30px;">
                             <table style="width: 100%; border-collapse: collapse; font-size: 15px;">
                                 <tbody>
                                     <tr>
-                                        <td style="padding: 18px 25px; color: #555; border-bottom: 1px solid #eee;">Valor Total del Inmueble</td>
-                                        <td style="padding: 18px 25px; text-align: right; font-weight: 600; font-size: 18px; color: #111; border-bottom: 1px solid #eee;">${formatearDinero(valorTotalNum)}</td>
+                                        <td style="padding: 16px 25px; color: #555; border-bottom: 1px solid #eee;">Valor Total del Inmueble</td>
+                                        <td style="padding: 16px 25px; text-align: right; font-weight: 600; font-size: 17px; color: #111; border-bottom: 1px solid #eee;">${formatearDinero(valorTotalNum)}</td>
                                     </tr>
                                     <tr style="background: #fafafa;">
-                                        <td style="padding: 18px 25px; color: #555; border-bottom: 1px solid #eee;">Aporte Inicial Sugerido</td>
-                                        <td style="padding: 18px 25px; text-align: right; color: #333; border-bottom: 1px solid #eee;">${formatearDinero(cuotaInicialNum)}</td>
+                                        <td style="padding: 16px 25px; color: #555; border-bottom: 1px solid #eee;">Aporte Inicial Sugerido</td>
+                                        <td style="padding: 16px 25px; text-align: right; font-weight: 500; color: #333; border-bottom: 1px solid #eee;">${formatearDinero(cuotaInicialNum)}</td>
                                     </tr>
                                     <tr>
-                                        <td style="padding: 18px 25px; font-weight: 600; color: #111; border-bottom: 1px solid #eee;">Saldo a Financiar</td>
-                                        <td style="padding: 18px 25px; text-align: right; font-weight: 600; color: #111; border-bottom: 1px solid #eee;">${saldoFinanciarStr}</td>
+                                        <td style="padding: 16px 25px; font-weight: 600; color: #111; border-bottom: 1px solid #eee;">Saldo a Financiar</td>
+                                        <td style="padding: 16px 25px; text-align: right; font-weight: 600; color: #111; border-bottom: 1px solid #eee;">${saldoFinanciarStr}</td>
                                     </tr>
                                     <tr style="background: #fafafa;">
-                                        <td style="padding: 18px 25px; color: #555; border-bottom: 1px solid #eee;">Plazo de Financiación Estimado</td>
-                                        <td style="padding: 18px 25px; text-align: right; color: #333; border-bottom: 1px solid #eee;">${meses} Meses</td>
+                                        <td style="padding: 16px 25px; color: #555; border-bottom: 1px solid #eee;">Plazo de Financiación Estimado</td>
+                                        <td style="padding: 16px 25px; text-align: right; font-weight: 500; color: #333; border-bottom: 1px solid #eee;">${meses} Meses</td>
                                     </tr>
-                                    <tr style="background: #111;">
-                                        <td style="padding: 22px 25px; font-weight: 600; font-size: 16px; color: #fff; text-transform: uppercase; letter-spacing: 1px;">Inversión Mensual Estimada</td>
-                                        <td style="padding: 22px 25px; text-align: right; font-weight: 600; font-size: 22px; color: #f26522;">${cuotaMensualStr}</td>
+                                    <tr style="background: linear-gradient(90deg, #fffcfb 0%, #fff6f0 100%);">
+                                        <td style="padding: 20px 25px; font-weight: 600; font-size: 16px; color: #333; text-transform: uppercase; letter-spacing: 1px; border-top: 2px solid #f26522;">Inversión Mensual Estimada</td>
+                                        <td style="padding: 20px 25px; text-align: right; font-weight: 700; font-size: 22px; color: #f26522; border-top: 2px solid #f26522;">${cuotaMensualStr}</td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
 
                         <!-- Pie de página -->
-                        <div style="text-align: center; font-size: 11px; color: #999; border-top: 1px solid #eee; padding-top: 25px; margin-top: auto;">
+                        <div style="text-align: center; font-size: 11px; color: #888; border-top: 1px solid #eee; padding-top: 15px; margin-top: auto;">
                             <p style="margin: 0 0 5px 0; line-height: 1.4;">Este documento es de carácter informativo y no representa un compromiso legal ni una promesa de compraventa. <br>Los valores, áreas y condiciones están sujetos a verificación y posibles modificaciones sin previo aviso.</p>
-                            <p style="margin: 0; font-weight: 600; color: #666;">Generado interactivamente por el sistema de gestión de <strong>${titleText}</strong>.</p>
+                            <p style="margin: 0; font-weight: 600; color: #555;">Generado interactivamente por el sistema de gestión de <strong>${titleText}</strong>.</p>
                         </div>
                     </div>
                 `;
 
-                const element = document.createElement('div');
-                element.innerHTML = htmlTemplate;
-                
-                // It's better to pass the raw string if we want html2pdf to handle the iframe creation,
-                // or if we must attach it, we can use a worker or hidden iframe mechanism, 
-                // but html2pdf typically handles detached elements/strings well if images are loaded. 
-                // Let's use string directly to let html2pdf handle the container logic internally.
+                // Wrapper para fijar el tamaño
+                const printContainer = document.createElement('div');
+                printContainer.style.width = '800px';
+                printContainer.style.height = '1040px';
+                printContainer.style.position = 'absolute';
+                printContainer.style.top = '-9999px';
+                printContainer.style.left = '-9999px';
+                printContainer.style.background = '#fff';
+                printContainer.innerHTML = htmlTemplate;
+                document.body.appendChild(printContainer);
 
                 const opt = {
                     margin:       0,
                     filename:     `Cotizacion_${simuladorLoteActual.nombre.replace(/\s+/g, '_')}_${cNombre.replace(/\s+/g, '_')}.pdf`,
                     image:        { type: 'jpeg', quality: 0.98 },
-                    html2canvas:  { scale: 2, useCORS: true, allowTaint: true, logging: false },
-                    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+                    html2canvas:  { scale: 2, useCORS: true, allowTaint: true, logging: false, windowWidth: 800 },
+                    jsPDF:        { unit: 'px', format: [800, 1040], orientation: 'portrait' }
                 };
 
                 window.mostrarProgreso(50);
                 
                 pdfFilenameGlobal = opt.filename;
-                // Generar Blob en lugar de descargar directamente
-                pdfBlobGlobal = await html2pdf().set(opt).from(htmlTemplate).output('blob');
                 
+                try {
+                    // Generar Blob en lugar de descargar directamente
+                    pdfBlobGlobal = await html2pdf().set(opt).from(printContainer).output('blob');
+                } finally {
+                    // Cleanup print container
+                    if (document.body.contains(printContainer)) {
+                        document.body.removeChild(printContainer);
+                    }
+                }
+
                 window.mostrarProgreso(100);
 
                 btn.innerText = "¡PDF Generado! ✅";
