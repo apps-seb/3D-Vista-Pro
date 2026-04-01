@@ -18,17 +18,17 @@
             top: 0;
             left: 0;
             height: 4px;
-            background: #D4AF37;
+            background: #f26522;
             width: 0%;
             z-index: 9999;
             transition: width 0.3s, opacity 0.3s;
             opacity: 0;
-            box-shadow: 0 0 10px #D4AF37;
+            box-shadow: 0 0 10px #f26522;
         }
         .header-premium { position: absolute; top: 0; left: 0; width: 100%; padding: 20px 30px; background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); color: white; z-index: 10; pointer-events: none; }
-        .header-title { font-size: 1.4rem; font-weight: 600; letter-spacing: 2px; color: #D4AF37; text-transform: uppercase; pointer-events: auto; }
+        .header-title { font-size: 1.4rem; font-weight: 600; letter-spacing: 2px; color: #f26522; text-transform: uppercase; pointer-events: auto; }
 
-        .inventory-bar { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 15px; background: rgba(0, 0, 0, 0.8); padding: 12px 25px; border-radius: 30px; border: 1px solid rgba(212, 175, 55, 0.4); z-index: 10; white-space: nowrap; box-shadow: 0 5px 20px rgba(0,0,0,0.8); }
+        .inventory-bar { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 15px; background: rgba(0, 0, 0, 0.8); padding: 12px 25px; border-radius: 30px; border: 1px solid rgba(242, 101, 34, 0.4); z-index: 10; white-space: nowrap; box-shadow: 0 5px 20px rgba(0,0,0,0.8); }
         @media (max-width: 600px) { .inventory-bar { width: 90%; max-width: 350px; padding: 10px; gap: 10px; border-radius: 12px; overflow-x: auto; justify-content: flex-start; } .inv-item { font-size: 0.75rem; } }
         
         .inv-item { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; color: #fff; }
@@ -45,7 +45,7 @@
             background: rgba(17, 17, 17, 0.45);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(212, 175, 55, 0.3);
+            border: 1px solid rgba(242, 101, 34, 0.3);
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
             border-radius: 16px;
             padding: 25px;
@@ -59,7 +59,7 @@
         .btn-close { position: absolute; top: 10px; right: 15px; background: none; border: none; color: #aaa; font-size: 1.5rem; cursor: pointer; transition: color 0.3s; }
         .btn-close:hover { color: #fff; }
 
-        .modal-title { font-size: 1.5rem; color: #D4AF37; margin: 0 0 5px 0; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .modal-title { font-size: 1.5rem; color: #f26522; margin: 0 0 5px 0; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
         .modal-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
         
         .info-box { background: rgba(34, 34, 34, 0.5); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 10px; text-align: center; }
@@ -74,10 +74,10 @@
             height: 20px;
             width: 20px;
             border-radius: 50%;
-            background: #D4AF37;
+            background: #f26522;
             cursor: pointer;
             margin-top: -8px;
-            box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+            box-shadow: 0 0 10px rgba(242, 101, 34, 0.5);
         }
         input[type=range]::-webkit-slider-runnable-track {
             width: 100%;
@@ -101,7 +101,7 @@
         }
         .input-glass:focus {
             outline: none;
-            border-color: #D4AF37;
+            border-color: #f26522;
             background: rgba(0, 0, 0, 0.5);
         }
         .btn-whatsapp { display: block; padding: 15px; background: #25D366; color: white; text-decoration: none; font-weight: bold; border-radius: 8px; margin-top: 15px; text-transform: uppercase; font-size: 0.9rem; box-sizing: border-box; }
@@ -135,8 +135,8 @@
         #preloader { position: fixed; inset: 0; background: #050505; z-index: 10000; display: flex; justify-content: center; align-items: center; transition: opacity 0.8s ease; }
         .preloader-content { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 20px; }
         #preloader-logo { max-height: 120px; max-width: 80vw; object-fit: contain; animation: logo-pulse 2s infinite; border-radius: 8px; }
-        .spinner { width: 50px; height: 50px; border: 4px solid rgba(212, 175, 55, 0.3); border-top-color: #D4AF37; border-radius: 50%; animation: spin 1s linear infinite; }
-        .preloader-text { color: #D4AF37; font-size: 1.1rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; animation: logo-pulse 2s infinite; }
+        .spinner { width: 50px; height: 50px; border: 4px solid rgba(242, 101, 34, 0.3); border-top-color: #f26522; border-radius: 50%; animation: spin 1s linear infinite; }
+        .preloader-text { color: #f26522; font-size: 1.1rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; animation: logo-pulse 2s infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes logo-pulse { 0% { opacity: 0.7; transform: scale(0.98); } 50% { opacity: 1; transform: scale(1.02); } 100% { opacity: 0.7; transform: scale(0.98); } }
     </style>
@@ -168,8 +168,8 @@
         <div class="inv-item"><span class="inv-dot" style="background:#e74c3c"></span> Vend: <span class="inv-count" id="count-vend">0</span></div>
     </div>
 
-    <div id="btn-back-main" style="display:none; position: fixed; top: 80px; left: 20px; z-index: 100; cursor: pointer; background: rgba(17,17,17,0.7); backdrop-filter: blur(10px); border: 1px solid #D4AF37; color: #fff; padding: 10px 15px; border-radius: 8px; font-weight: bold; text-transform: uppercase; font-size: 0.8rem; box-shadow: 0 4px 15px rgba(0,0,0,0.5); align-items: center; gap: 8px; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" onclick="volverVistaPrincipal()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Volver a Vista Principal
+    <div id="btn-back-main" style="display:none; position: fixed; top: 80px; left: 20px; z-index: 100; cursor: pointer; background: rgba(17,17,17,0.7); backdrop-filter: blur(10px); border: 1px solid #f26522; color: #fff; padding: 10px 15px; border-radius: 8px; font-weight: bold; text-transform: uppercase; font-size: 0.8rem; box-shadow: 0 4px 15px rgba(0,0,0,0.5); align-items: center; gap: 8px; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" onclick="volverVistaPrincipal()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f26522" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Volver a Vista Principal
     </div>
 
     <a id="btn-conoce-mas" onclick="abrirConoceMasModal()" class="btn-flotante-conoce-mas" title="Conoce más del proyecto" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
@@ -186,8 +186,8 @@
             right: 20px;
             background-color: rgba(17,17,17,0.7);
             backdrop-filter: blur(10px);
-            border: 1px solid #D4AF37;
-            color: #D4AF37;
+            border: 1px solid #f26522;
+            color: #f26522;
             border-radius: 50%;
             width: 60px;
             height: 60px;
@@ -219,7 +219,7 @@
             <h2 class="modal-title" id="m-titulo">Lote</h2>
             <div class="modal-badge" id="m-estado">Estado</div>
             <div class="info-box">Área: <strong id="m-area">0</strong><br>Precio: <strong id="m-precio">0</strong></div>
-            <button class="btn-whatsapp" style="background: #D4AF37; color: #000; border: none; width: 100%; cursor: pointer;" id="m-simular">Simular Financiamiento</button>
+            <button class="btn-whatsapp" style="background: #f26522; color: #000; border: none; width: 100%; cursor: pointer;" id="m-simular">Simular Financiamiento</button>
             <button class="btn-whatsapp" style="border: none; width: 100%; cursor: pointer;" id="m-whatsapp" onclick="abrirModalWhatsapp(true)">Contactar por WhatsApp</button>
         </div>
     </div>
@@ -261,7 +261,7 @@
             <p style="font-size: 0.95rem; color: #ddd; margin-bottom: 25px; line-height: 1.5;">
                 Un espacio diseñado pensando en tu bienestar y el de tu familia. Conoce más sobre nuestro proyecto, amenidades y beneficios de invertir con nosotros.
             </p>
-            <a href="https://www.proyectaconstructora.com" target="_blank" class="btn-whatsapp" style="background: #D4AF37; color: #000; text-decoration: none; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px;">
+            <a href="https://www.proyectaconstructora.com" target="_blank" class="btn-whatsapp" style="background: #f26522; color: #000; text-decoration: none; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
                 Ir al Sitio Web
             </a>
@@ -278,7 +278,7 @@
         <div class="modal-content" style="max-width: 350px;">
             <h2 class="modal-title" style="font-size: 1.5rem; margin-bottom: 15px;">¡Bienvenido!</h2>
             <p style="font-size: 0.95rem; color: #ddd; margin-bottom: 25px;">Explora el entorno 360 moviendo tu dispositivo o arrastrando con el dedo en la pantalla.</p>
-            <button class="btn-whatsapp" style="background: #D4AF37; color: #000; border: none; width: 100%; cursor: pointer;" onclick="entrarYActivarGiroscopio()">Ingresar</button>
+            <button class="btn-whatsapp" style="background: #f26522; color: #000; border: none; width: 100%; cursor: pointer;" onclick="entrarYActivarGiroscopio()">Ingresar</button>
         </div>
     </div>
 
@@ -288,7 +288,7 @@
             <button class="btn-close" onclick="cerrarPdfSendModal()">&times;</button>
             <h2 class="modal-title" style="font-size: 1.3rem;">¡Cotización Generada!</h2>
             <p style="font-size: 0.85rem; color: #ddd; margin-bottom: 15px;">La cotización está lista para ser compartida.</p>
-            <p style="font-size: 0.95rem; font-weight: bold; color: #fff; margin-bottom: 20px;">Cliente: <span id="pdf-send-nombre" style="color: #D4AF37;"></span></p>
+            <p style="font-size: 0.95rem; font-weight: bold; color: #fff; margin-bottom: 20px;">Cliente: <span id="pdf-send-nombre" style="color: #f26522;"></span></p>
 
             <button class="btn-whatsapp" style="background: #25D366; color: white; border: none; width: 100%; cursor: pointer; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="compartirPdfNativo()">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
@@ -304,7 +304,7 @@
             <h2 class="modal-title" style="font-size: 1.3rem;">Simulador de Pagos</h2>
             <h3 id="sim-lote-nombre" style="margin-top: 5px; color: #fff; font-size: 1.1rem;">Lote</h3>
             <div class="info-box" style="margin-bottom: 20px;">
-                Valor Total: <strong id="sim-valor-total" style="color: #D4AF37; font-size: 1.2rem;">$0</strong>
+                Valor Total: <strong id="sim-valor-total" style="color: #f26522; font-size: 1.2rem;">$0</strong>
             </div>
 
             <div style="text-align: left; font-size: 0.85rem; margin-bottom: 15px;">
@@ -315,19 +315,19 @@
                 <input type="text" id="sim-cliente-dir" class="input-glass" placeholder="Dirección" style="margin-bottom: 5px;">
             </div>
 
-            <div style="text-align: left; font-size: 0.85rem; margin-bottom: 15px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid rgba(212, 175, 55, 0.2);">
-                <label style="color: #D4AF37; font-weight: 600; margin-bottom: 10px; display: block; font-size: 0.95rem; text-align: center;">Plan de Financiación</label>
+            <div style="text-align: left; font-size: 0.85rem; margin-bottom: 15px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid rgba(242, 101, 34, 0.2);">
+                <label style="color: #f26522; font-weight: 600; margin-bottom: 10px; display: block; font-size: 0.95rem; text-align: center;">Plan de Financiación</label>
 
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
                     <label style="margin: 0;">Cuota Inicial ($)</label>
-                    <span id="lbl-cuota-inicial-pct" style="color: #D4AF37; font-weight: bold; font-size: 0.8rem;">30%</span>
+                    <span id="lbl-cuota-inicial-pct" style="color: #f26522; font-weight: bold; font-size: 0.8rem;">30%</span>
                 </div>
-                <input type="number" id="sim-cuota-inicial" class="input-glass" step="500000" style="margin-bottom: 10px; border-color: rgba(212, 175, 55, 0.5);" oninput="sincronizarRangoCuota()">
+                <input type="number" id="sim-cuota-inicial" class="input-glass" step="500000" style="margin-bottom: 10px; border-color: rgba(242, 101, 34, 0.5);" oninput="sincronizarRangoCuota()">
                 <input type="range" id="sim-rango-cuota" min="0" max="100" value="30" step="500000" oninput="sincronizarInputCuota()" style="margin-bottom: 15px;">
 
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
                     <label style="margin: 0;">Plazo de Financiación</label>
-                    <span id="lbl-meses" style="color: #D4AF37; font-weight: bold; font-size: 0.8rem;">12 Meses</span>
+                    <span id="lbl-meses" style="color: #f26522; font-weight: bold; font-size: 0.8rem;">12 Meses</span>
                 </div>
                 <input type="range" id="sim-meses-rango" min="1" max="24" value="12" oninput="sincronizarMeses()" style="margin-bottom: 10px;">
                 <input type="hidden" id="sim-meses" value="12">
@@ -338,7 +338,7 @@
                     <span>Saldo a Financiar:</span>
                     <strong id="sim-saldo">$0</strong>
                 </div>
-                <div style="display: flex; justify-content: space-between; color: #D4AF37; font-size: 1.1rem; border-top: 1px solid #444; padding-top: 5px; margin-top: 5px;">
+                <div style="display: flex; justify-content: space-between; color: #f26522; font-size: 1.1rem; border-top: 1px solid #444; padding-top: 5px; margin-top: 5px;">
                     <span>Valor Cuota Mensual:</span>
                     <strong id="sim-cuota-mensual">$0</strong>
                 </div>
@@ -402,7 +402,7 @@
         const fallbackImage = 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg';
         let globalPanoUrl = fallbackImage;
         let configuracionCuotaInicial = 30; // Valor por defecto
-        let globalTituloColor = '#D4AF37';
+        let globalTituloColor = '#f26522';
         let globalTituloFont = 'Montserrat';
         let globalAsesorNombre = "";
         let globalAsesorTel = "";
@@ -637,12 +637,22 @@
                             let isLink360 = false;
                             let link360Url = null;
                             let link360Icon = null;
+                            let isTarjeta = false;
+                            let tarjetaImg = null;
+                            let tarjetaIcon = null;
 
                             // Extraer base64 y texto de p.content porque p.visualtype no existe en admin.html inserción
                             if (p.content && p.content.startsWith('IMG|')) {
                                 const parts = p.content.split('|TEXT|');
                                 displayVisualType = parts[0];
                                 displayText = parts[1] || 'Punto';
+                            } else if (p.content && p.content.startsWith('TARJETA|')) {
+                                isTarjeta = true;
+                                const parts = p.content.split('|ICON|');
+                                tarjetaImg = parts[0].substring(8); // quita 'TARJETA|'
+                                const parts2 = parts[1].split('|TEXT|');
+                                tarjetaIcon = parts2[0];
+                                displayText = parts2[1] || 'Punto';
                             } else if (p.content && p.content.startsWith('LINK360|')) {
                                 isLink360 = true;
                                 if (p.content.includes('|ICON|')) {
@@ -659,38 +669,53 @@
                             }
                         
                             let htmlContent = '';
-                            if (isLink360) {
+                            if (isTarjeta) {
+                                htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;">
+                                    <div style="background:#fff; border-radius:12px; overflow:hidden; width:220px; box-shadow:0 8px 20px rgba(0,0,0,0.4); display:flex; flex-direction:column; border: 2px solid #fff;">
+                                        <div style="height:140px; background:url('${tarjetaImg}') center/cover no-repeat;"></div>
+                                        <div style="background:#116B5D; display:flex; align-items:center; padding:10px;">
+                                            <div style="background:#fff; border-radius:50%; width:40px; height:40px; display:flex; justify-content:center; align-items:center; margin-right:12px; flex-shrink:0;">
+                                                <img src="${tarjetaIcon}" style="max-width:24px; max-height:24px; object-fit:contain;">
+                                            </div>
+                                            <div style="color:#fff; font-family:'Montserrat', sans-serif; font-size:14px; font-weight:bold; line-height:1.2; text-transform:uppercase;">
+                                                ${displayText}
+                                            </div>
+                                        </div>
+                                    </div>
+                            <div style="width:2px;height:60px;background:#116B5D;margin-top:0px;"></div>
+                                </div>`;
+                            } else if (isLink360) {
                                 if (link360Icon) {
                                     htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;cursor:pointer;">
                                         <div style="background:rgba(255,255,255,0.9); border-radius:50%; width:40px; height:40px; display:flex; justify-content:center; align-items:center; box-shadow: 0 0 20px rgba(255,255,255,0.8); animation: pulse-white 2s infinite; border: 2px solid #fff;">
                                             <img src="${link360Icon}" style="max-width:30px; max-height:30px; object-fit:contain; border-radius:50%;">
                                         </div>
                                         <div style="width:2px;height:30px;background:#fff;margin-top:5px;"></div>
-                                        <div style="width:12px;height:12px;background:#D4AF37;border-radius:50%;"></div>
+                                        <div style="width:12px;height:12px;background:#f26522;border-radius:50%;"></div>
                                     </div>`;
                                 } else {
                                     htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;cursor:pointer;">
-                                        <div style="background:rgba(17,17,17,0.85);backdrop-filter:blur(5px);color:#D4AF37;padding:6px 15px;border:1px solid #D4AF37;border-radius:20px;font-weight:bold;font-size:0.85rem;text-transform:uppercase;box-shadow:0 0 10px rgba(212,175,55,0.5);display:flex;align-items:center;gap:5px;">
+                                        <div style="background:rgba(17,17,17,0.85);backdrop-filter:blur(5px);color:#f26522;padding:6px 15px;border:1px solid #f26522;border-radius:20px;font-weight:bold;font-size:0.85rem;text-transform:uppercase;box-shadow:0 0 10px rgba(212,175,55,0.5);display:flex;align-items:center;gap:5px;">
                                             <span>👁️</span> 360
                                         </div>
                                         <div style="width:2px;height:30px;background:#fff;margin-top:5px;"></div>
-                                        <div style="width:12px;height:12px;background:#D4AF37;border-radius:50%;"></div>
+                                        <div style="width:12px;height:12px;background:#f26522;border-radius:50%;"></div>
                                     </div>`;
                                 }
                             } else if (displayVisualType && displayVisualType.startsWith('IMG|')) {
                                 let imgData = displayVisualType.substring(4);
                                 htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;">
-                                        <div style="background:rgba(0,0,0,0.8); padding:5px; border-radius:8px; border:1px solid #D4AF37;">
+                                        <div style="background:rgba(0,0,0,0.8); padding:5px; border-radius:8px; border:1px solid #f26522;">
                                             <img src="${imgData}" style="max-width: 120px; max-height: 120px; object-fit: contain;">
                                         </div>
                                         <div style="width:2px;height:30px;background:#fff;margin-top:5px;"></div>
-                                        <div style="width:12px;height:12px;background:#D4AF37;border-radius:50%;"></div>
+                                        <div style="width:12px;height:12px;background:#f26522;border-radius:50%;"></div>
                                        </div>`;
                             } else {
                                 htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;">
-                                        <div style="background:rgba(0,0,0,0.8);color:#fff;padding:5px 12px;border:1px solid #D4AF37;border-radius:4px;font-weight:bold;">${displayText}</div>
+                                        <div style="background:rgba(0,0,0,0.8);color:#fff;padding:5px 12px;border:1px solid #f26522;border-radius:4px;font-weight:bold;">${displayText}</div>
                                         <div style="width:2px;height:30px;background:#fff;margin-top:5px;"></div>
-                                        <div style="width:12px;height:12px;background:#D4AF37;border-radius:50%;"></div>
+                                        <div style="width:12px;height:12px;background:#f26522;border-radius:50%;"></div>
                                        </div>`;
                             }
 
@@ -1099,7 +1124,7 @@
                     <div style="font-family: 'Montserrat', sans-serif; color: #222; padding: 50px; background: #fff; max-width: 800px; margin: 0 auto; line-height: 1.6; position: relative;">
 
                         <!-- Fondo Decorativo -->
-                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 10px; background: linear-gradient(90deg, #D4AF37, #f1c40f);"></div>
+                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 10px; background: linear-gradient(90deg, #f26522, #ff8c00);"></div>
 
                         <!-- Cabecera -->
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #eee; padding-bottom: 30px; margin-bottom: 40px;">
@@ -1109,7 +1134,7 @@
                                 <p style="color: #777; margin: 0; font-size: 12px;">Propuesta Comercial de Inversión</p>
                             </div>
                             <div style="text-align: right;">
-                                <div style="font-size: 28px; font-weight: 300; color: #D4AF37; margin-bottom: 8px; letter-spacing: 1px;">COTIZACIÓN</div>
+                                <div style="font-size: 28px; font-weight: 300; color: #f26522; margin-bottom: 8px; letter-spacing: 1px;">COTIZACIÓN</div>
                                 <div style="font-size: 13px; color: #555;"><strong>Fecha:</strong> ${fechaStr}</div>
                                 <div style="font-size: 13px; color: #555; margin-top: 3px;"><strong>Ref:</strong> ${refText}</div>
                             </div>
@@ -1118,7 +1143,7 @@
                         <!-- Detalles de las Partes -->
                         <div style="display: flex; gap: 40px; margin-bottom: 40px;">
                             <div style="flex: 1;">
-                                <h3 style="font-size: 12px; color: #D4AF37; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; border-bottom: 1px solid #D4AF37; padding-bottom: 5px; display: inline-block;">Datos del Inversor</h3>
+                                <h3 style="font-size: 12px; color: #f26522; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; border-bottom: 1px solid #f26522; padding-bottom: 5px; display: inline-block;">Datos del Inversor</h3>
                                 <div style="font-size: 14px; color: #333;">
                                     <div style="margin-bottom: 6px;"><strong>Nombre:</strong> ${cNombre}</div>
                                     <div style="margin-bottom: 6px;"><strong>Teléfono:</strong> ${cTel}</div>
@@ -1127,7 +1152,7 @@
                                 </div>
                             </div>
                             <div style="flex: 1;">
-                                <h3 style="font-size: 12px; color: #D4AF37; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; border-bottom: 1px solid #D4AF37; padding-bottom: 5px; display: inline-block;">Asesor Comercial</h3>
+                                <h3 style="font-size: 12px; color: #f26522; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; border-bottom: 1px solid #f26522; padding-bottom: 5px; display: inline-block;">Asesor Comercial</h3>
                                 <div style="font-size: 14px; color: #333;">
                                     <div style="margin-bottom: 6px;"><strong>Nombre:</strong> ${aNombre}</div>
                                     <div style="margin-bottom: 6px;"><strong>Teléfono:</strong> ${aTel}</div>
@@ -1140,13 +1165,13 @@
                             <div style="position: absolute; top: -50%; right: -10%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(212,175,55,0.15) 0%, rgba(0,0,0,0) 70%); border-radius: 50%; pointer-events: none;"></div>
                             
                             <div style="position: relative; z-index: 1;">
-                                <div style="font-size: 12px; color: #D4AF37; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px;">Especificación del Inmueble</div>
+                                <div style="font-size: 12px; color: #f26522; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px;">Especificación del Inmueble</div>
                                 <h2 style="margin: 0; color: #fff; font-size: 32px; font-weight: 600; letter-spacing: 1px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">${simuladorLoteActual.nombre}</h2>
                             </div>
                             
                             <div style="text-align: right; background: rgba(212,175,55,0.1); padding: 15px 25px; border-radius: 8px; border: 1px solid rgba(212,175,55,0.3); position: relative; z-index: 1;">
                                 <div style="font-size: 11px; color: #eee; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px;">Área Total</div>
-                                <div style="font-size: 26px; color: #D4AF37; font-weight: 600;">${simuladorLoteActual.area}</div>
+                                <div style="font-size: 26px; color: #f26522; font-weight: 600;">${simuladorLoteActual.area}</div>
                             </div>
                         </div>
 
@@ -1174,7 +1199,7 @@
                                     </tr>
                                     <tr style="background: #111;">
                                         <td style="padding: 22px 25px; font-weight: 600; font-size: 16px; color: #fff; text-transform: uppercase; letter-spacing: 1px;">Inversión Mensual Estimada</td>
-                                        <td style="padding: 22px 25px; text-align: right; font-weight: 600; font-size: 22px; color: #D4AF37;">${cuotaMensualStr}</td>
+                                        <td style="padding: 22px 25px; text-align: right; font-weight: 600; font-size: 22px; color: #f26522;">${cuotaMensualStr}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -1310,7 +1335,7 @@
                         if (payload.new && payload.new.titulo) {
                             let tempTitulo = payload.new.titulo;
                             let newLogoUrl = "";
-                            let newColor = "#D4AF37";
+                            let newColor = "#f26522";
                             let newFont = "Montserrat";
                             let newPreloaderUrl = "";
 

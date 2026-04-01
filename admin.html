@@ -17,19 +17,19 @@
         }
         #polygon-editor-header {
             display: flex; justify-content: space-between; align-items: center; padding: 10px 20px;
-            background: #000; border-bottom: 2px solid #D4AF37; z-index: 10;
+            background: #000; border-bottom: 2px solid #f26522; z-index: 10;
         }
-        #polygon-editor-header h2 { margin: 0; color: #D4AF37; font-size: 1.2rem; }
+        #polygon-editor-header h2 { margin: 0; color: #f26522; font-size: 1.2rem; }
         .editor-controls-bar {
             display: flex; gap: 15px; background: #1a1a1a; padding: 10px 20px; z-index: 10;
             border-bottom: 1px solid #333; align-items: center; flex-wrap: wrap;
         }
         .editor-btn {
-            background: #222; color: #D4AF37; border: 1px solid #D4AF37; padding: 8px 15px;
+            background: #222; color: #f26522; border: 1px solid #f26522; padding: 8px 15px;
             border-radius: 4px; cursor: pointer; font-family: 'Montserrat', sans-serif; font-weight: bold; font-size: 0.8rem;
         }
-        .editor-btn:hover { background: #D4AF37; color: #000; }
-        .editor-btn.active-mode { background: #D4AF37; color: #000; }
+        .editor-btn:hover { background: #f26522; color: #000; }
+        .editor-btn.active-mode { background: #f26522; color: #000; }
         .editor-btn.danger { background: #e74c3c; color: white; border-color: #e74c3c; }
 
         #canvas-container {
@@ -44,7 +44,7 @@
 
         .editor-panel-right {
             position: absolute; right: 20px; top: 120px; width: 280px; background: rgba(17,17,17,0.85);
-            backdrop-filter: blur(10px); border: 1px solid #D4AF37; border-radius: 8px; padding: 15px;
+            backdrop-filter: blur(10px); border: 1px solid #f26522; border-radius: 8px; padding: 15px;
             z-index: 20; max-height: calc(100vh - 160px); overflow-y: auto;
         }
         .editor-panel-right h3 { color: #fff; margin-top: 0; font-size: 1rem; border-bottom: 1px solid #444; padding-bottom: 10px; }
@@ -62,27 +62,27 @@
             top: 0;
             left: 0;
             height: 4px;
-            background: #D4AF37;
+            background: #f26522;
             width: 0%;
             z-index: 9999;
             transition: width 0.3s, opacity 0.3s;
             opacity: 0;
-            box-shadow: 0 0 10px #D4AF37;
+            box-shadow: 0 0 10px #f26522;
         }
         body { margin: 0; padding: 0; font-family: 'Montserrat', sans-serif; background-color: #050505; color: #fff; overflow: hidden; }
         .viewer-area { position: absolute; top: 0; left: 0; width: 100vw; height: 50vh; }
         #viewer { width: 100%; height: 100%; }
         .header-premium { position: absolute; top: 0; left: 0; width: 100%; padding: 15px 20px; background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); z-index: 10; pointer-events: none; }
-        .header-title { font-size: 1.2rem; font-weight: 600; color: #D4AF37; letter-spacing: 2px; text-transform: uppercase; pointer-events: auto; }
-        .admin-panel { position: absolute; bottom: 0; left: 0; width: 100vw; height: 50vh; background: #111; border-top: 3px solid #D4AF37; overflow-y: auto; padding: 15px; box-sizing: border-box; display: flex; flex-direction: column; gap: 15px; z-index: 20; }
+        .header-title { font-size: 1.2rem; font-weight: 600; color: #f26522; letter-spacing: 2px; text-transform: uppercase; pointer-events: auto; }
+        .admin-panel { position: absolute; bottom: 0; left: 0; width: 100vw; height: 50vh; background: #111; border-top: 3px solid #f26522; overflow-y: auto; padding: 15px; box-sizing: border-box; display: flex; flex-direction: column; gap: 15px; z-index: 20; }
         @media (min-width: 768px) { .viewer-area { height: 60vh; } .admin-panel { height: 40vh; flex-direction: row; display: grid; grid-template-columns: repeat(3, 1fr); } }
         .control-group { background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #333; display: flex; flex-direction: column; }
         .control-label { font-size: 0.8rem; color: #aaa; margin-bottom: 10px; text-transform: uppercase; font-weight: 600; }
         .input-text, .input-select { width: 100%; padding: 12px; background: #000; border: 1px solid #444; color: #fff; border-radius: 6px; font-family: inherit; margin-bottom: 10px; box-sizing: border-box; }
-        .input-text:focus, .input-select:focus { outline: none; border-color: #D4AF37; }
+        .input-text:focus, .input-select:focus { outline: none; border-color: #f26522; }
         .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; font-family: inherit; font-weight: 600; cursor: pointer; transition: 0.2s; box-sizing: border-box; text-align: center; }
-        .btn-action { background: #D4AF37; color: #000; margin-bottom: 10px; }
-        .btn-upload { background: #222; color: #D4AF37; border: 1px dashed #D4AF37; display: block; }
+        .btn-action { background: #f26522; color: #000; margin-bottom: 10px; }
+        .btn-upload { background: #222; color: #f26522; border: 1px dashed #f26522; display: block; }
         .btn-danger { background: #e74c3c; color: white; margin-bottom: 10px; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); } 100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); } }
         @keyframes pulse-white { 0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(255, 255, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); } }
@@ -92,11 +92,23 @@
         .lote-marker { width: 34px; height: 34px; border: 2px solid #fff; border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 11px; font-weight: bold; color: white; text-shadow: 1px 1px 2px black; text-align: center; }
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; display: none; justify-content: center; align-items: center; }
         .modal-overlay.active { display: flex; }
-        .modal-content { background: #1a1a1a; padding: 25px; border-radius: 12px; border: 1px solid #D4AF37; width: 90%; max-width: 320px; box-sizing: border-box; }
-        .modal-content h3 { margin-top: 0; color: #D4AF37; font-size: 1.2rem; text-align: center; }
+        .modal-content {
+    background: rgba(17, 17, 17, 0.45);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(242, 101, 34, 0.3);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    border-radius: 16px;
+    padding: 25px;
+    width: 90%;
+    max-width: 320px;
+    box-sizing: border-box;
+    color: white;
+}
+        .modal-content h3 { margin-top: 0; color: #f26522; font-size: 1.2rem; text-align: center; }
         input[type="file"] { display: none; }
 
-        .btn-edit-title { background: #D4AF37; border: none; color: #000; font-size: 0.9rem; cursor: pointer; transition: background 0.3s, transform 0.2s; padding: 5px 10px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-weight: bold; pointer-events: auto; }
+        .btn-edit-title { background: #f26522; border: none; color: #000; font-size: 0.9rem; cursor: pointer; transition: background 0.3s, transform 0.2s; padding: 5px 10px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-weight: bold; pointer-events: auto; }
         @media (hover: hover) {
             .btn-edit-title:hover { background: #b5952f; transform: scale(1.05); }
         }
@@ -114,8 +126,8 @@
         #preloader { position: fixed; inset: 0; background: #050505; z-index: 10000; display: flex; justify-content: center; align-items: center; transition: opacity 0.8s ease; }
         .preloader-content { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 20px; }
         #preloader-logo { max-height: 120px; max-width: 80vw; object-fit: contain; animation: logo-pulse 2s infinite; border-radius: 8px; }
-        .spinner { width: 50px; height: 50px; border: 4px solid rgba(212, 175, 55, 0.3); border-top-color: #D4AF37; border-radius: 50%; animation: spin 1s linear infinite; }
-        .preloader-text { color: #D4AF37; font-size: 1.1rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; animation: logo-pulse 2s infinite; }
+        .spinner { width: 50px; height: 50px; border: 4px solid rgba(242, 101, 34, 0.3); border-top-color: #f26522; border-radius: 50%; animation: spin 1s linear infinite; }
+        .preloader-text { color: #f26522; font-size: 1.1rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; animation: logo-pulse 2s infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes logo-pulse { 0% { opacity: 0.7; transform: scale(0.98); } 50% { opacity: 1; transform: scale(1.02); } 100% { opacity: 0.7; transform: scale(0.98); } }
     </style>
@@ -135,8 +147,8 @@
     <div id="global-progress"></div>
 
     <div class="viewer-area">
-        <div id="btn-back-main" style="display:none; position: fixed; top: 60px; left: 20px; z-index: 100; cursor: pointer; background: rgba(17,17,17,0.7); backdrop-filter: blur(10px); border: 1px solid #D4AF37; color: #fff; padding: 10px 15px; border-radius: 8px; font-weight: bold; text-transform: uppercase; font-size: 0.8rem; box-shadow: 0 4px 15px rgba(0,0,0,0.5); align-items: center; gap: 8px; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" onclick="volverVistaPrincipal()">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Volver a Vista Principal
+        <div id="btn-back-main" style="display:none; position: fixed; top: 60px; left: 20px; z-index: 100; cursor: pointer; background: rgba(17,17,17,0.7); backdrop-filter: blur(10px); border: 1px solid #f26522; color: #fff; padding: 10px 15px; border-radius: 8px; font-weight: bold; text-transform: uppercase; font-size: 0.8rem; box-shadow: 0 4px 15px rgba(0,0,0,0.5); align-items: center; gap: 8px; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" onclick="volverVistaPrincipal()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f26522" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Volver a Vista Principal
         </div>
         <div class="header-premium">
             <div class="header-title" style="display: flex; align-items: center; gap: 10px;">
@@ -194,10 +206,10 @@
         <div class="control-group">
             <span class="control-label">2. Herramientas de Mapa</span>
             <button id="btn-add-lote" class="btn btn-action" onclick="activarModo('lote')">+ Crear Lote (Punto)</button>
-            <button id="btn-open-polygon-editor" class="btn btn-action" onclick="abrirEditorPoligonos()" style="background: #D4AF37; color: #000; border: 1px solid #D4AF37; font-weight: bold;">✏️ Dibujar Polígonos 2D</button>
-            <button id="btn-open-polygon-360" class="btn btn-action" onclick="abrirEditorPoligonos360()" style="background: #D4AF37; color: #000; border: 1px solid #D4AF37; font-weight: bold;">✏️ Trazar Polígono 360</button>
+            <button id="btn-open-polygon-editor" class="btn btn-action" onclick="abrirEditorPoligonos()" style="background: #f26522; color: #000; border: 1px solid #f26522; font-weight: bold;">✏️ Dibujar Polígonos 2D</button>
+            <button id="btn-open-polygon-360" class="btn btn-action" onclick="abrirEditorPoligonos360()" style="background: #f26522; color: #000; border: 1px solid #f26522; font-weight: bold;">✏️ Trazar Polígono 360</button>
             <button id="btn-add-poi" class="btn btn-action" onclick="activarModo('poi')" style="background: #222; color: #fff; border: 1px solid #444;">+ Crear Punto de Interés</button>
-            <p style="font-size: 0.75rem; color: #D4AF37; text-align: center; margin-top: 10px; font-weight: bold;" id="add-helper">Selecciona una opción arriba</p>
+            <p style="font-size: 0.75rem; color: #f26522; text-align: center; margin-top: 10px; font-weight: bold;" id="add-helper">Selecciona una opción arriba</p>
         </div>
 
         <div class="control-group">
@@ -209,14 +221,14 @@
     </div>
 
     <!-- UI FLOTANTE PARA DIBUJAR EN 360 -->
-    <div id="polygon-360-ui" style="display: none; position: fixed; top: 10px; right: 10px; background: rgba(17,17,17,0.85); backdrop-filter: blur(10px); padding: 15px; border-radius: 8px; border: 1px solid #D4AF37; z-index: 10000; color: #fff; width: 320px; max-height: calc(100vh - 20px); overflow-y: auto;">
-        <h3 style="margin-top: 0; color: #D4AF37; font-size: 1.1rem; border-bottom: 1px solid #444; padding-bottom: 5px; display: flex; justify-content: space-between; align-items: center;">
+    <div id="polygon-360-ui" style="display: none; position: fixed; top: 10px; right: 10px; background: rgba(17,17,17,0.85); backdrop-filter: blur(10px); padding: 15px; border-radius: 8px; border: 1px solid #f26522; z-index: 10000; color: #fff; width: 320px; max-height: calc(100vh - 20px); overflow-y: auto;">
+        <h3 style="margin-top: 0; color: #f26522; font-size: 1.1rem; border-bottom: 1px solid #444; padding-bottom: 5px; display: flex; justify-content: space-between; align-items: center;">
             <span>Trazar Polígonos 360</span>
             <button class="editor-btn danger" style="padding: 2px 8px;" onclick="cerrarEditorPoligonos360()">X</button>
         </h3>
         
-        <div id="poly-360-draw-mode" style="display: none; margin-bottom: 15px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; border: 1px dashed #D4AF37;">
-            <p style="font-size: 0.8rem; color: #D4AF37; font-weight: bold; margin-top: 0;">Modo Dibujo Activo</p>
+        <div id="poly-360-draw-mode" style="display: none; margin-bottom: 15px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; border: 1px dashed #f26522;">
+            <p style="font-size: 0.8rem; color: #f26522; font-weight: bold; margin-top: 0;">Modo Dibujo Activo</p>
             <p style="font-size: 0.75rem; color: #aaa; margin-bottom: 10px;">Haz clic en el visor 360 para añadir puntos. Arrastra los puntos verdes para ajustarlos.</p>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.85rem;">
                 <span>Puntos: <strong id="poly-360-count" style="color:#2ecc71;">0</strong></span>
@@ -250,7 +262,7 @@
             </div>
         </div>
 
-        <button id="btn-start-draw-poly360" class="editor-btn" style="width: 100%; background: #D4AF37; color: #000; margin-bottom: 15px;" onclick="iniciarDibujoPoly360()">✏️ Crear Nuevo Polígono</button>
+        <button id="btn-start-draw-poly360" class="editor-btn" style="width: 100%; background: #f26522; color: #000; margin-bottom: 15px;" onclick="iniciarDibujoPoly360()">✏️ Crear Nuevo Polígono</button>
 
         <div style="border-top: 1px solid #444; padding-top: 10px;">
             <h4 style="margin: 0 0 10px 0; color: #fff; font-size: 0.9rem;">Inventario Polígonos 360 (<span id="count-polys-360">0</span>)</h4>
@@ -269,14 +281,14 @@
             </div>
         </div>
         <div class="editor-controls-bar">
-            <span style="color:#D4AF37; font-size: 0.8rem; font-weight: bold; text-transform: uppercase;">1. Plano Guía:</span>
+            <span style="color:#f26522; font-size: 0.8rem; font-weight: bold; text-transform: uppercase;">1. Plano Guía:</span>
             <label class="editor-btn">
                 Subir Plano
                 <input type="file" id="upload-plan-img" accept="image/png, image/jpeg" style="display:none;" onchange="cargarPlanoGuia(event)">
             </label>
             <button class="editor-btn" id="btn-mode-move" onclick="setPolyMode('move')" class="active-mode">✋ Mover / Ajustar Plano</button>
 
-            <span style="color:#D4AF37; font-size: 0.8rem; font-weight: bold; text-transform: uppercase; margin-left: 20px;">2. Dibujo:</span>
+            <span style="color:#f26522; font-size: 0.8rem; font-weight: bold; text-transform: uppercase; margin-left: 20px;">2. Dibujo:</span>
             <button class="editor-btn" id="btn-mode-draw" onclick="setPolyMode('draw')">✏️ Dibujar Polígono</button>
             <button class="editor-btn" onclick="undoPolyPoint()">↩️ Deshacer Punto</button>
             <button class="editor-btn danger" onclick="clearPolyDraw()">Borrar Actual</button>
@@ -309,7 +321,7 @@
                 <div id="panel-guardar-poligono" style="display: none; margin-top: 20px; border-top: 1px solid #444; padding-top: 15px;">
                     <h3 style="color:#2ecc71;">Polígono Listo</h3>
                     <p style="font-size: 0.8rem; color: #ddd; margin-bottom: 10px;">Asigna el polígono dibujado a un Lote:</p>
-                    <select id="poly-lote-select" class="input-select" style="background: rgba(0,0,0,0.8); border: 1px solid #D4AF37;">
+                    <select id="poly-lote-select" class="input-select" style="background: rgba(0,0,0,0.8); border: 1px solid #f26522;">
                         <option value="">-- Selecciona un Lote --</option>
                     </select>
                     <button class="editor-btn" style="width: 100%; background: #2ecc71; color: #000; margin-top: 10px; text-align: center;" onclick="guardarPoligonoLote()">Guardar en Lote</button>
@@ -372,6 +384,7 @@
                 <option value="texto">Texto Simple</option>
                 <option value="imagen">Logo / Imagen</option>
                 <option value="vista360">Vista 360 Adicional</option>
+                <option value="tarjeta">Tarjeta Informativa</option>
             </select>
             <input type="text" id="poi-texto" class="input-text" placeholder="Texto (Ej: Zona Social)">
             
@@ -382,6 +395,22 @@
                 </label>
                 <input type="hidden" id="poi-img-data">
                 <img id="poi-img-preview" style="max-width: 100%; max-height: 100px; display: none; margin-top: 10px; border-radius: 4px; border: 1px solid #333;" />
+            </div>
+
+            <div id="poi-tarjeta-container" style="display: none; margin-bottom: 10px;">
+                <label class="btn btn-upload" id="lbl-upload-poi-tarjeta-img" style="margin-bottom: 10px;">
+                    Subir Imagen de Tarjeta (PNG/JPG)
+                    <input type="file" id="upload-poi-tarjeta-img" accept="image/png, image/jpeg" style="display:none;" onchange="cargarImagenTarjetaPOI(event)">
+                </label>
+                <input type="hidden" id="poi-tarjeta-img-data">
+                <img id="poi-tarjeta-img-preview" style="max-width: 100%; max-height: 100px; display: none; margin-top: 10px; border-radius: 4px; border: 1px solid #333;" />
+
+                <label class="btn btn-upload" id="lbl-upload-poi-tarjeta-icon" style="margin-top: 10px;">
+                    Subir Ícono de Tarjeta (PNG/JPG)
+                    <input type="file" id="upload-poi-tarjeta-icon" accept="image/png, image/jpeg" style="display:none;" onchange="cargarIconoTarjetaPOI(event)">
+                </label>
+                <input type="hidden" id="poi-tarjeta-icon-data">
+                <img id="poi-tarjeta-icon-preview" style="max-width: 100%; max-height: 100px; display: none; margin-top: 10px; border-radius: 4px; border: 1px solid #333;" />
             </div>
 
             <div id="poi-vista360-container" style="display: none; margin-bottom: 10px;">
@@ -457,7 +486,7 @@
         const fallbackImage = 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg';
         let globalPanoUrl = fallbackImage;
         let lotesDataEditor = []; // Para tener la lista de lotes en el editor 2D
-        let globalTituloColor = '#D4AF37';
+        let globalTituloColor = '#f26522';
         let globalTituloFont = 'Montserrat';
         let globalAsesorNombre = "";
         let globalAsesorTel = "";
@@ -977,7 +1006,7 @@
                 // Dibujar cruz de centro del plano si estamos moviendo
                 if(editorMode === 'move') {
                     ctx.save();
-                    ctx.strokeStyle = '#D4AF37';
+                    ctx.strokeStyle = '#f26522';
                     ctx.lineWidth = 1;
                     ctx.beginPath();
                     ctx.moveTo(planX - 10, planY); ctx.lineTo(planX + 10, planY);
@@ -1809,7 +1838,7 @@
                     html: html,
                     size: { width: 34, height: 34 },
                     anchor: 'center center',
-                    tooltip: { content: `<div style="text-align:center;"><strong style="color:#D4AF37">${nombre}</strong></div>`, position: 'top center' },
+                    tooltip: { content: `<div style="text-align:center;"><strong style="color:#f26522">${nombre}</strong></div>`, position: 'top center' },
                     data: { nombre, area, precio, estado, yaw, pitch, poligono }
                 };
 
@@ -1882,11 +1911,14 @@
         window.cambiarTipoPOI = function(tipo) {
             document.getElementById('poi-imagen-container').style.display = 'none';
             document.getElementById('poi-vista360-container').style.display = 'none';
+            document.getElementById('poi-tarjeta-container').style.display = 'none';
             
             if (tipo === 'imagen') {
                 document.getElementById('poi-imagen-container').style.display = 'block';
             } else if (tipo === 'vista360') {
                 document.getElementById('poi-vista360-container').style.display = 'block';
+            } else if (tipo === 'tarjeta') {
+                document.getElementById('poi-tarjeta-container').style.display = 'block';
             }
         }
         
@@ -1960,6 +1992,38 @@
             }
         };
 
+        window.cargarImagenTarjetaPOI = async function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            window.mostrarProgreso(10);
+            try {
+                const base64Compressed = await window.comprimirImagen(file, 800, 800, 0.9);
+                document.getElementById('poi-tarjeta-img-data').value = base64Compressed;
+                const preview = document.getElementById('poi-tarjeta-img-preview');
+                preview.src = base64Compressed;
+                preview.style.display = 'block';
+                window.mostrarProgreso(100);
+            } catch (error) {
+                window.mostrarError("Cargar Imagen Tarjeta POI", error);
+            }
+        };
+
+        window.cargarIconoTarjetaPOI = async function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            window.mostrarProgreso(10);
+            try {
+                const base64Compressed = await window.comprimirImagen(file, 400, 400, 0.9);
+                document.getElementById('poi-tarjeta-icon-data').value = base64Compressed;
+                const preview = document.getElementById('poi-tarjeta-icon-preview');
+                preview.src = base64Compressed;
+                preview.style.display = 'block';
+                window.mostrarProgreso(100);
+            } catch (error) {
+                window.mostrarError("Cargar Icono Tarjeta POI", error);
+            }
+        };
+
         window.guardarPOI = async function() {
             try {
                 window.mostrarProgreso(10);
@@ -1986,6 +2050,14 @@
                     } else {
                         newContent = `LINK360|${url360}|TEXT|${texto}`;
                     }
+                } else if (tipo === 'tarjeta') {
+                    const imgData = document.getElementById('poi-tarjeta-img-data').value;
+                    const iconData = document.getElementById('poi-tarjeta-icon-data').value;
+                    if (!imgData || !iconData) {
+                        alert("Por favor sube la imagen y el icono para la tarjeta.");
+                        return;
+                    }
+                    newContent = `TARJETA|${imgData}|ICON|${iconData}|TEXT|${texto}`;
                 }
                 
                 window.mostrarProgreso(50);
@@ -2007,11 +2079,21 @@
                 let isLink360 = false;
                 let link360Url = null;
                 let link360Icon = null;
+                let isTarjeta = false;
+                let tarjetaImg = null;
+                let tarjetaIcon = null;
 
                 if (content && content.startsWith('IMG|')) {
                     const parts = content.split('|TEXT|');
                     displayVisualType = parts[0];
                     displayText = parts[1] || 'Punto';
+                } else if (content && content.startsWith('TARJETA|')) {
+                    isTarjeta = true;
+                    const parts = content.split('|ICON|');
+                    tarjetaImg = parts[0].substring(8); // quita 'TARJETA|'
+                    const parts2 = parts[1].split('|TEXT|');
+                    tarjetaIcon = parts2[0];
+                    displayText = parts2[1] || 'Punto';
                 } else if (content && content.startsWith('LINK360|')) {
                     isLink360 = true;
                     if (content.includes('|ICON|')) {
@@ -2029,7 +2111,22 @@
 
                 if (!markersPlugin.markers[id]) {
                     let htmlContent = '';
-                    if (isLink360) {
+                    if (isTarjeta) {
+                        htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;">
+                            <div style="background:#fff; border-radius:12px; overflow:hidden; width:220px; box-shadow:0 8px 20px rgba(0,0,0,0.4); display:flex; flex-direction:column; border: 2px solid #fff;">
+                                <div style="height:140px; background:url('${tarjetaImg}') center/cover no-repeat;"></div>
+                                <div style="background:#116B5D; display:flex; align-items:center; padding:10px;">
+                                    <div style="background:#fff; border-radius:50%; width:40px; height:40px; display:flex; justify-content:center; align-items:center; margin-right:12px; flex-shrink:0;">
+                                        <img src="${tarjetaIcon}" style="max-width:24px; max-height:24px; object-fit:contain;">
+                                    </div>
+                                    <div style="color:#fff; font-family:'Montserrat', sans-serif; font-size:14px; font-weight:bold; line-height:1.2; text-transform:uppercase;">
+                                        ${displayText}
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="width:2px;height:60px;background:#116B5D;margin-top:0px;"></div>
+                        </div>`;
+                    } else if (isLink360) {
                         if (link360Icon) {
                             htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;cursor:pointer;">
                                 <div style="background:rgba(255,255,255,0.9); border-radius:50%; width:40px; height:40px; display:flex; justify-content:center; align-items:center; box-shadow: 0 0 20px rgba(255,255,255,0.8); animation: pulse-white 2s infinite; border: 2px solid #fff;">
@@ -2039,31 +2136,31 @@
                                     ${displayText}
                                 </div>
                                 <div style="width:2px;height:30px;background:#fff;margin-top:5px;"></div>
-                                <div style="width:12px;height:12px;background:#D4AF37;border-radius:50%;"></div>
+                                <div style="width:12px;height:12px;background:#f26522;border-radius:50%;"></div>
                             </div>`;
                         } else {
                             htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;cursor:pointer;">
-                                <div style="background:rgba(17,17,17,0.85);backdrop-filter:blur(5px);color:#D4AF37;padding:6px 15px;border:1px solid #D4AF37;border-radius:20px;font-weight:bold;font-size:0.85rem;text-transform:uppercase;box-shadow:0 0 10px rgba(212,175,55,0.5);display:flex;align-items:center;gap:5px;">
+                                <div style="background:rgba(17,17,17,0.85);backdrop-filter:blur(5px);color:#f26522;padding:6px 15px;border:1px solid #f26522;border-radius:20px;font-weight:bold;font-size:0.85rem;text-transform:uppercase;box-shadow:0 0 10px rgba(212,175,55,0.5);display:flex;align-items:center;gap:5px;">
                                     <span>👁️</span> ${displayText}
                                 </div>
                                 <div style="width:2px;height:30px;background:#fff;margin-top:5px;"></div>
-                                <div style="width:12px;height:12px;background:#D4AF37;border-radius:50%;"></div>
+                                <div style="width:12px;height:12px;background:#f26522;border-radius:50%;"></div>
                             </div>`;
                         }
                     } else if (displayVisualType && displayVisualType.startsWith('IMG|')) {
                         let imgData = displayVisualType.substring(4);
                         htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;">
-                            <div style="background:rgba(0,0,0,0.8); padding:5px; border-radius:8px; border:1px solid #D4AF37;">
+                            <div style="background:rgba(0,0,0,0.8); padding:5px; border-radius:8px; border:1px solid #f26522;">
                                 <img src="${imgData}" style="max-width: 80px; max-height: 80px; object-fit: contain;">
                             </div>
                             <div style="width:2px;height:30px;background:#fff;margin-top:5px;"></div>
-                            <div style="width:12px;height:12px;background:#D4AF37;border-radius:50%;"></div>
+                            <div style="width:12px;height:12px;background:#f26522;border-radius:50%;"></div>
                         </div>`;
                     } else {
                         htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;">
-                            <div style="background:rgba(0,0,0,0.8);color:#fff;padding:4px 10px;border:1px solid #D4AF37;border-radius:4px;font-size:0.8rem;">${displayText}</div>
+                            <div style="background:rgba(0,0,0,0.8);color:#fff;padding:4px 10px;border:1px solid #f26522;border-radius:4px;font-size:0.8rem;">${displayText}</div>
                             <div style="width:2px;height:30px;background:#fff;margin-top:5px;"></div>
-                            <div style="width:12px;height:12px;background:#D4AF37;border-radius:50%;"></div>
+                            <div style="width:12px;height:12px;background:#f26522;border-radius:50%;"></div>
                         </div>`;
                     }
 
@@ -2079,7 +2176,7 @@
                     const lista = document.getElementById('inventory-list');
                     if(lista.innerHTML.includes('vacío')) lista.innerHTML = '';
                     const iconList = isLink360 ? '👁️' : '★';
-                    lista.insertAdjacentHTML('beforeend', `<div class="lot-item" id="item-${id}"><div><span style="color:#D4AF37">${iconList}</span> <strong>${displayText}</strong></div><button class="btn-delete" onclick="window.borrarElemento('pois', '${id}')">X</button></div>`);
+                    lista.insertAdjacentHTML('beforeend', `<div class="lot-item" id="item-${id}"><div><span style="color:#f26522">${iconList}</span> <strong>${displayText}</strong></div><button class="btn-delete" onclick="window.borrarElemento('pois', '${id}')">X</button></div>`);
                 }
             } catch (error) {
                 window.mostrarError("renderPOI", error);
