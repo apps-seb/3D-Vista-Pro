@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rincón de Baviera - Proyecto Inmobiliario</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gold: #D4AF37;
+            --dark-bg: #111;
+            --darker-bg: #050505;
+            --text-light: #f5f5f5;
+            --glass-bg: rgba(17, 17, 17, 0.65);
+            --glass-border: rgba(212, 175, 55, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        body {
+            background-color: var(--darker-bg);
+            color: var(--text-light);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Utilidades Glassmorphism */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .gold-text {
+            color: var(--primary-gold);
+        }
+
+        /* Header Fijo */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px 5%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0.4), transparent);
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s;
+        }
+
+        .header.scrolled {
+            background: rgba(5, 5, 5, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            padding: 15px 5%;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-gold);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-gold);
+        }
+
+        .btn-cta {
+            background: var(--primary-gold);
+            color: #000;
+            padding: 10px 25px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: inline-block;
+        }
+
+        .btn-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
+        }
+
+        /* Hero Section con Slider */
+        .hero {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .slider {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .slide.active {
+            opacity: 1;
+        }
+
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: -1;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            padding: 0 20px;
+            z-index: 1;
+            animation: fadeIn 2s ease;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.8);
+        }
+
+        .hero-subtitle {
+            font-size: 1.2rem;
+            font-weight: 300;
+            margin-bottom: 40px;
+            color: #ddd;
+        }
+
+        /* Secciones Generales */
+        .section {
+            padding: 100px 5%;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            color: var(--primary-gold);
+            margin-bottom: 60px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 3px;
+            background: var(--primary-gold);
+            margin: 15px auto 0;
+        }
+
+        /* Características Principales */
+        .features-wrapper {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .feature-box {
+            padding: 40px 20px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .feature-box:hover {
+            transform: translateY(-10px);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: var(--primary-gold);
+        }
+
+        .feature-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+
+        .feature-label {
+            font-size: 1rem;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Descripción del Proyecto */
+        .about-section {
+            background: var(--dark-bg);
+            display: flex;
+            align-items: center;
+            gap: 50px;
+        }
+
+        .about-text {
+            flex: 1;
+        }
+
+        .about-text p {
+            font-size: 1.1rem;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+
+        .about-image {
+            flex: 1;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+        }
+
+        .about-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* Beneficios */
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .benefit-card {
+            padding: 30px;
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            transition: transform 0.3s, border-color 0.3s;
+        }
+
+        .benefit-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-gold);
+        }
+
+        .benefit-icon {
+            background: rgba(212, 175, 55, 0.1);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+            color: var(--primary-gold);
+        }
+
+        .benefit-icon svg {
+            width: 30px;
+            height: 30px;
+            stroke: currentColor;
+            stroke-width: 1.5;
+            fill: none;
+        }
+
+        .benefit-content h3 {
+            font-size: 1.2rem;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+
+        .benefit-content p {
+            font-size: 0.95rem;
+            color: #aaa;
+        }
+
+        /* Planos y Renders */
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .media-card {
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            aspect-ratio: 4/3;
+            cursor: pointer;
+        }
+
+        .media-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s;
+        }
+
+        .media-card:hover img {
+            transform: scale(1.1);
+        }
+
+        .media-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            display: flex;
+            align-items: flex-end;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .media-card:hover .media-overlay {
+            opacity: 1;
+        }
+
+        .media-overlay h3 {
+            color: #fff;
+            font-size: 1.2rem;
+            margin: 0;
+        }
+
+        /* Footer */
+        .footer {
+            background: #000;
+            padding: 60px 5% 30px;
+            border-top: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-col h3 {
+            color: var(--primary-gold);
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        .footer-col p, .footer-col a {
+            color: #aaa;
+            font-size: 0.95rem;
+            margin-bottom: 10px;
+            display: block;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-col a:hover {
+            color: var(--primary-gold);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            color: #777;
+            font-size: 0.85rem;
+        }
+
+        /* Animaciones */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .hero-title { font-size: 2.8rem; }
+            .about-section { flex-direction: column; }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; /* Simplificado para móvil por ahora */ }
+            .hero-title { font-size: 2rem; }
+            .hero-subtitle { font-size: 1rem; }
+            .section { padding: 60px 5%; }
+            .section-title { font-size: 2rem; margin-bottom: 40px; }
+            .btn-cta { padding: 8px 20px; font-size: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Fijo -->
+    <header class="header" id="header">
+        <a href="#" class="logo">
+            <span class="gold-text">Rincón</span> de Baviera
+        </a>
+        <nav class="nav-links">
+            <a href="#inicio">Inicio</a>
+            <a href="#proyecto">El Proyecto</a>
+            <a href="#beneficios">Beneficios</a>
+            <a href="#galeria">Galería</a>
+        </nav>
+        <a href="index.html" class="btn-cta">Ver Entorno 360</a>
+    </header>
+
+    <!-- Hero Section con Slider -->
+    <section class="hero" id="inicio">
+        <div class="slider">
+            <!-- Usando imágenes de placeholder premium por ahora -->
+            <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80');"></div>
+            <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80');"></div>
+            <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1613490493576-7fde63acd811?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80');"></div>
+        </div>
+        <div class="hero-overlay"></div>
+
+        <div class="hero-content">
+            <h1 class="hero-title"><span class="gold-text">Exclusividad</span> y Naturaleza</h1>
+            <p class="hero-subtitle">Descubre el lugar perfecto para construir el hogar de tus sueños. Un entorno diseñado para tu tranquilidad y el bienestar de tu familia.</p>
+            <a href="#contacto" class="btn-cta" style="padding: 15px 40px; font-size: 1rem;">Agendar Visita</a>
+        </div>
+    </section>
+
+    <!-- Tarjetas de Características Principales -->
+    <section class="section" style="padding-top: 0; margin-top: -80px; position: relative; z-index: 10;">
+        <div class="features-wrapper">
+            <div class="feature-box glass-card">
+                <div class="feature-icon">🏞️</div>
+                <div class="feature-value">90</div>
+                <div class="feature-label">Lotes Exclusivos</div>
+            </div>
+            <div class="feature-box glass-card">
+                <div class="feature-icon">📏</div>
+                <div class="feature-value">66 m²</div>
+                <div class="feature-label">Área por Lote</div>
+            </div>
+            <div class="feature-box glass-card">
+                <div class="feature-icon">💎</div>
+                <div class="feature-value" style="font-size: 1.5rem; line-height: 2rem;">Desde<br>$80 Millones</div>
+                <div class="feature-label">Excelente Inversión</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Descripción del Proyecto -->
+    <section class="section about-section" id="proyecto">
+        <div class="about-image glass-card">
+            <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Vista del Proyecto">
+        </div>
+        <div class="about-text">
+            <h2 class="section-title" style="text-align: left; margin-bottom: 30px;">El Proyecto</h2>
+            <p>Rincón de Baviera nace con la visión de crear un espacio único donde la elegancia arquitectónica se funde en perfecta armonía con el entorno natural. Cada detalle ha sido cuidadosamente planificado para ofrecer un estilo de vida superior.</p>
+            <p>Con solo 90 lotes disponibles, garantizamos exclusividad y privacidad para nuestros residentes. Imagina despertar cada día rodeado de naturaleza, con la seguridad y el confort que tu familia merece, en un proyecto respaldado por los más altos estándares de calidad.</p>
+            <a href="index.html" class="btn-cta" style="margin-top: 20px; background: transparent; border: 2px solid var(--primary-gold); color: var(--primary-gold);">Explorar Recorrido 360</a>
+        </div>
+    </section>
+
+    <!-- Tarjetas de Beneficios -->
+    <section class="section" id="beneficios">
+        <h2 class="section-title">Beneficios de Invertir</h2>
+        <div class="benefits-grid">
+
+            <div class="benefit-card glass-card">
+                <div class="benefit-icon">
+                    <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                </div>
+                <div class="benefit-content">
+                    <h3>Seguridad 24/7</h3>
+                    <p>Acceso controlado, cerramiento perimetral y vigilancia continua para tu total tranquilidad.</p>
+                </div>
+            </div>
+
+            <div class="benefit-card glass-card">
+                <div class="benefit-icon">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+                </div>
+                <div class="benefit-content">
+                    <h3>Zonas Recreativas</h3>
+                    <p>Espacios diseñados para el esparcimiento: parques infantiles, senderos ecológicos y áreas deportivas.</p>
+                </div>
+            </div>
+
+            <div class="benefit-card glass-card">
+                <div class="benefit-icon">
+                    <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                </div>
+                <div class="benefit-content">
+                    <h3>Alta Valorización</h3>
+                    <p>Ubicación estratégica en zona de alto desarrollo y crecimiento urbano, asegurando el retorno de tu inversión.</p>
+                </div>
+            </div>
+
+            <div class="benefit-card glass-card">
+                <div class="benefit-icon">
+                    <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10.01 10.01 0 0 1-5.9 9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                </div>
+                <div class="benefit-content">
+                    <h3>Servicios Completos</h3>
+                    <p>Todos los lotes se entregan con disponibilidad de servicios públicos básicos y vías pavimentadas.</p>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Renders y Planos -->
+    <section class="section about-section" id="galeria" style="flex-direction: column;">
+        <h2 class="section-title">Galería del Proyecto</h2>
+
+        <h3 style="color: #fff; margin-bottom: 20px; font-size: 1.5rem; width: 100%; text-align: left;">Renders Exclusivos</h3>
+        <div class="media-grid" style="width: 100%; margin-bottom: 50px;">
+            <div class="media-card glass-card">
+                <img src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Render Fachada">
+                <div class="media-overlay"><h3>Diseño Arquitectónico</h3></div>
+            </div>
+            <div class="media-card glass-card">
+                <img src="https://images.unsplash.com/photo-1600566753086-00f18efc2291?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Render Zonas Verdes">
+                <div class="media-overlay"><h3>Zonas Verdes</h3></div>
+            </div>
+            <div class="media-card glass-card">
+                <img src="https://images.unsplash.com/photo-1600585154526-990dced4ea0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Render Urbanismo">
+                <div class="media-overlay"><h3>Urbanismo Completo</h3></div>
+            </div>
+        </div>
+
+        <h3 style="color: #fff; margin-bottom: 20px; font-size: 1.5rem; width: 100%; text-align: left;">Planos Urbanísticos</h3>
+        <div class="media-grid" style="width: 100%;">
+            <div class="media-card glass-card" style="aspect-ratio: 16/9;">
+                <!-- Placeholder de plano, idealmente sería una imagen de un blueprint o mapa topográfico -->
+                <img src="https://images.unsplash.com/photo-1503387762-592deb58ef4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Plano General">
+                <div class="media-overlay"><h3>Distribución de Lotes</h3></div>
+            </div>
+            <div class="media-card glass-card" style="aspect-ratio: 16/9;">
+                <img src="https://images.unsplash.com/photo-1664368153308-41710bd3a0ea?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Plano Tipo">
+                <div class="media-overlay"><h3>Lote Tipo (66 m²)</h3></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer Profesional -->
+    <footer class="footer" id="contacto">
+        <div class="footer-content">
+            <div class="footer-col">
+                <a href="#" class="logo" style="font-size: 1.2rem; margin-bottom: 20px;">
+                    <span class="gold-text">Rincón</span> de Baviera
+                </a>
+                <p>El lugar perfecto para construir el hogar de tus sueños. Invierte en tu futuro hoy.</p>
+            </div>
+            <div class="footer-col">
+                <h3>Contacto</h3>
+                <p>📍 Dirección de la Sala de Ventas, Ciudad</p>
+                <p>📞 +57 321 7399818</p>
+                <p>✉️ ventas@rincondeabaviera.com</p>
+            </div>
+            <div class="footer-col">
+                <h3>Enlaces Rápidos</h3>
+                <a href="#inicio">Inicio</a>
+                <a href="#proyecto">El Proyecto</a>
+                <a href="index.html">Recorrido 360</a>
+                <a href="#">Términos y Condiciones</a>
+            </div>
+            <div class="footer-col">
+                <h3>¿Listo para invertir?</h3>
+                <p>Déjanos tus datos o contáctanos por WhatsApp para recibir asesoría personalizada.</p>
+                <a href="https://wa.me/573217399818?text=Hola,%20quiero%20m%C3%A1s%20informaci%C3%B3n%20sobre%20Rinc%C3%B3n%20de%20Baviera" target="_blank" class="btn-cta" style="margin-top: 10px; background: #25D366; color: white;">Contactar Asesor</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            &copy; <span id="year"></span> Rincón de Baviera. Todos los derechos reservados.
+        </div>
+    </footer>
+
+    <script>
+        // Actualizar año en el footer
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        // Efecto del header al hacer scroll
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('header');
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // Lógica simple para el slider del Hero
+        const slides = document.querySelectorAll('.slide');
+        let currentSlide = 0;
+
+        function nextSlide() {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (currentSlide + 1) % slides.length;
+            slides[currentSlide].classList.add('active');
+        }
+
+        // Cambiar slide cada 5 segundos
+        setInterval(nextSlide, 5000);
+    </script>
+</body>
+</html>
