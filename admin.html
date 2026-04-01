@@ -92,7 +92,19 @@
         .lote-marker { width: 34px; height: 34px; border: 2px solid #fff; border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 11px; font-weight: bold; color: white; text-shadow: 1px 1px 2px black; text-align: center; }
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; display: none; justify-content: center; align-items: center; }
         .modal-overlay.active { display: flex; }
-        .modal-content { background: #1a1a1a; padding: 25px; border-radius: 12px; border: 1px solid #f26522; width: 90%; max-width: 320px; box-sizing: border-box; }
+        .modal-content {
+    background: rgba(17, 17, 17, 0.45);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(242, 101, 34, 0.3);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    border-radius: 16px;
+    padding: 25px;
+    width: 90%;
+    max-width: 320px;
+    box-sizing: border-box;
+    color: white;
+}
         .modal-content h3 { margin-top: 0; color: #f26522; font-size: 1.2rem; text-align: center; }
         input[type="file"] { display: none; }
 
@@ -372,6 +384,7 @@
                 <option value="texto">Texto Simple</option>
                 <option value="imagen">Logo / Imagen</option>
                 <option value="vista360">Vista 360 Adicional</option>
+                <option value="tarjeta">Tarjeta Informativa</option>
             </select>
             <input type="text" id="poi-texto" class="input-text" placeholder="Texto (Ej: Zona Social)">
             
@@ -382,6 +395,22 @@
                 </label>
                 <input type="hidden" id="poi-img-data">
                 <img id="poi-img-preview" style="max-width: 100%; max-height: 100px; display: none; margin-top: 10px; border-radius: 4px; border: 1px solid #333;" />
+            </div>
+
+            <div id="poi-tarjeta-container" style="display: none; margin-bottom: 10px;">
+                <label class="btn btn-upload" id="lbl-upload-poi-tarjeta-img" style="margin-bottom: 10px;">
+                    Subir Imagen de Tarjeta (PNG/JPG)
+                    <input type="file" id="upload-poi-tarjeta-img" accept="image/png, image/jpeg" style="display:none;" onchange="cargarImagenTarjetaPOI(event)">
+                </label>
+                <input type="hidden" id="poi-tarjeta-img-data">
+                <img id="poi-tarjeta-img-preview" style="max-width: 100%; max-height: 100px; display: none; margin-top: 10px; border-radius: 4px; border: 1px solid #333;" />
+
+                <label class="btn btn-upload" id="lbl-upload-poi-tarjeta-icon" style="margin-top: 10px;">
+                    Subir Ícono de Tarjeta (PNG/JPG)
+                    <input type="file" id="upload-poi-tarjeta-icon" accept="image/png, image/jpeg" style="display:none;" onchange="cargarIconoTarjetaPOI(event)">
+                </label>
+                <input type="hidden" id="poi-tarjeta-icon-data">
+                <img id="poi-tarjeta-icon-preview" style="max-width: 100%; max-height: 100px; display: none; margin-top: 10px; border-radius: 4px; border: 1px solid #333;" />
             </div>
 
             <div id="poi-vista360-container" style="display: none; margin-bottom: 10px;">
@@ -1882,11 +1911,14 @@
         window.cambiarTipoPOI = function(tipo) {
             document.getElementById('poi-imagen-container').style.display = 'none';
             document.getElementById('poi-vista360-container').style.display = 'none';
+            document.getElementById('poi-tarjeta-container').style.display = 'none';
             
             if (tipo === 'imagen') {
                 document.getElementById('poi-imagen-container').style.display = 'block';
             } else if (tipo === 'vista360') {
                 document.getElementById('poi-vista360-container').style.display = 'block';
+            } else if (tipo === 'tarjeta') {
+                document.getElementById('poi-tarjeta-container').style.display = 'block';
             }
         }
         
@@ -1960,6 +1992,38 @@
             }
         };
 
+        window.cargarImagenTarjetaPOI = async function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            window.mostrarProgreso(10);
+            try {
+                const base64Compressed = await window.comprimirImagen(file, 800, 800, 0.9);
+                document.getElementById('poi-tarjeta-img-data').value = base64Compressed;
+                const preview = document.getElementById('poi-tarjeta-img-preview');
+                preview.src = base64Compressed;
+                preview.style.display = 'block';
+                window.mostrarProgreso(100);
+            } catch (error) {
+                window.mostrarError("Cargar Imagen Tarjeta POI", error);
+            }
+        };
+
+        window.cargarIconoTarjetaPOI = async function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            window.mostrarProgreso(10);
+            try {
+                const base64Compressed = await window.comprimirImagen(file, 400, 400, 0.9);
+                document.getElementById('poi-tarjeta-icon-data').value = base64Compressed;
+                const preview = document.getElementById('poi-tarjeta-icon-preview');
+                preview.src = base64Compressed;
+                preview.style.display = 'block';
+                window.mostrarProgreso(100);
+            } catch (error) {
+                window.mostrarError("Cargar Icono Tarjeta POI", error);
+            }
+        };
+
         window.guardarPOI = async function() {
             try {
                 window.mostrarProgreso(10);
@@ -1986,6 +2050,14 @@
                     } else {
                         newContent = `LINK360|${url360}|TEXT|${texto}`;
                     }
+                } else if (tipo === 'tarjeta') {
+                    const imgData = document.getElementById('poi-tarjeta-img-data').value;
+                    const iconData = document.getElementById('poi-tarjeta-icon-data').value;
+                    if (!imgData || !iconData) {
+                        alert("Por favor sube la imagen y el icono para la tarjeta.");
+                        return;
+                    }
+                    newContent = `TARJETA|${imgData}|ICON|${iconData}|TEXT|${texto}`;
                 }
                 
                 window.mostrarProgreso(50);
@@ -2007,11 +2079,21 @@
                 let isLink360 = false;
                 let link360Url = null;
                 let link360Icon = null;
+                let isTarjeta = false;
+                let tarjetaImg = null;
+                let tarjetaIcon = null;
 
                 if (content && content.startsWith('IMG|')) {
                     const parts = content.split('|TEXT|');
                     displayVisualType = parts[0];
                     displayText = parts[1] || 'Punto';
+                } else if (content && content.startsWith('TARJETA|')) {
+                    isTarjeta = true;
+                    const parts = content.split('|ICON|');
+                    tarjetaImg = parts[0].substring(8); // quita 'TARJETA|'
+                    const parts2 = parts[1].split('|TEXT|');
+                    tarjetaIcon = parts2[0];
+                    displayText = parts2[1] || 'Punto';
                 } else if (content && content.startsWith('LINK360|')) {
                     isLink360 = true;
                     if (content.includes('|ICON|')) {
@@ -2029,7 +2111,22 @@
 
                 if (!markersPlugin.markers[id]) {
                     let htmlContent = '';
-                    if (isLink360) {
+                    if (isTarjeta) {
+                        htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;">
+                            <div style="background:#fff; border-radius:12px; overflow:hidden; width:220px; box-shadow:0 8px 20px rgba(0,0,0,0.4); display:flex; flex-direction:column; border: 2px solid #fff;">
+                                <div style="height:140px; background:url('${tarjetaImg}') center/cover no-repeat;"></div>
+                                <div style="background:#116B5D; display:flex; align-items:center; padding:10px;">
+                                    <div style="background:#fff; border-radius:50%; width:40px; height:40px; display:flex; justify-content:center; align-items:center; margin-right:12px; flex-shrink:0;">
+                                        <img src="${tarjetaIcon}" style="max-width:24px; max-height:24px; object-fit:contain;">
+                                    </div>
+                                    <div style="color:#fff; font-family:'Montserrat', sans-serif; font-size:14px; font-weight:bold; line-height:1.2; text-transform:uppercase;">
+                                        ${displayText}
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="width:2px;height:60px;background:#116B5D;margin-top:0px;"></div>
+                        </div>`;
+                    } else if (isLink360) {
                         if (link360Icon) {
                             htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;cursor:pointer;">
                                 <div style="background:rgba(255,255,255,0.9); border-radius:50%; width:40px; height:40px; display:flex; justify-content:center; align-items:center; box-shadow: 0 0 20px rgba(255,255,255,0.8); animation: pulse-white 2s infinite; border: 2px solid #fff;">
@@ -2043,7 +2140,7 @@
                             </div>`;
                         } else {
                             htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;cursor:pointer;">
-                                <div style="background:rgba(17,17,17,0.85);backdrop-filter:blur(5px);color:#f26522;padding:6px 15px;border:1px solid #f26522;border-radius:20px;font-weight:bold;font-size:0.85rem;text-transform:uppercase;box-shadow:0 0 10px rgba(242,101,34,0.5);display:flex;align-items:center;gap:5px;">
+                                <div style="background:rgba(17,17,17,0.85);backdrop-filter:blur(5px);color:#f26522;padding:6px 15px;border:1px solid #f26522;border-radius:20px;font-weight:bold;font-size:0.85rem;text-transform:uppercase;box-shadow:0 0 10px rgba(212,175,55,0.5);display:flex;align-items:center;gap:5px;">
                                     <span>👁️</span> ${displayText}
                                 </div>
                                 <div style="width:2px;height:30px;background:#fff;margin-top:5px;"></div>
