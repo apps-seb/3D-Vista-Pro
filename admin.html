@@ -688,7 +688,9 @@
 
         function copiarUrlPublica() {
             if (!currentProjectId) return;
-            const url = window.location.origin + window.location.pathname.replace('admin.html', 'index.html') + '?proyecto=' + currentProjectId;
+            // Robust replacement to handle paths with or without .html
+            const newPath = window.location.pathname.replace(/\/admin(\.html)?$/, '/index.html');
+            const url = window.location.origin + newPath + '?proyecto=' + currentProjectId;
             navigator.clipboard.writeText(url).then(() => {
                 alert("Enlace público copiado al portapapeles:\n" + url);
             }).catch(err => {
