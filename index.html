@@ -638,11 +638,22 @@
                             let link360Url = null;
                             let link360Icon = null;
 
+                            let isTarjeta = false;
+                            let tarjetaImg = null;
+                            let tarjetaIcon = null;
+
                             // Extraer base64 y texto de p.content porque p.visualtype no existe en admin.html inserción
                             if (p.content && p.content.startsWith('IMG|')) {
                                 const parts = p.content.split('|TEXT|');
                                 displayVisualType = parts[0];
                                 displayText = parts[1] || 'Punto';
+                            } else if (p.content && p.content.startsWith('TARJETA|')) {
+                                isTarjeta = true;
+                                const parts = p.content.split('|ICON|');
+                                tarjetaImg = parts[0].substring(8); // quita 'TARJETA|'
+                                const parts2 = parts[1].split('|TEXT|');
+                                tarjetaIcon = parts2[0];
+                                displayText = parts2[1] || 'Punto';
                             } else if (p.content && p.content.startsWith('LINK360|')) {
                                 isLink360 = true;
                                 if (p.content.includes('|ICON|')) {
@@ -659,7 +670,22 @@
                             }
                         
                             let htmlContent = '';
-                            if (isLink360) {
+                            if (isTarjeta) {
+                                htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;">
+                                    <div style="background:#fff; border-radius:12px; overflow:hidden; width:220px; box-shadow:0 8px 20px rgba(0,0,0,0.4); display:flex; flex-direction:column; border: 2px solid #fff;">
+                                        <div style="height:140px; background:url('${tarjetaImg}') center/cover no-repeat;"></div>
+                                        <div style="background:#116B5D; display:flex; align-items:center; padding:10px;">
+                                            <div style="background:#fff; border-radius:50%; width:40px; height:40px; display:flex; justify-content:center; align-items:center; margin-right:12px; flex-shrink:0;">
+                                                <img src="${tarjetaIcon}" style="max-width:24px; max-height:24px; object-fit:contain;">
+                                            </div>
+                                            <div style="color:#fff; font-family:'Montserrat', sans-serif; font-size:14px; font-weight:bold; line-height:1.2; text-transform:uppercase;">
+                                                ${displayText}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style="width:2px;height:60px;background:#116B5D;margin-top:0px;"></div>
+                                </div>`;
+                            } else if (isLink360) {
                                 if (link360Icon) {
                                     htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;cursor:pointer;">
                                         <div style="background:rgba(255,255,255,0.9); border-radius:50%; width:40px; height:40px; display:flex; justify-content:center; align-items:center; box-shadow: 0 0 20px rgba(255,255,255,0.8); animation: pulse-white 2s infinite; border: 2px solid #fff;">
@@ -1190,20 +1216,23 @@
 
                 const printContainer = document.createElement('div');
                 printContainer.style.width = '800px';
-                printContainer.style.height = '1040px';
                 printContainer.style.position = 'absolute';
                 printContainer.style.left = '-9999px';
                 printContainer.style.top = '-9999px';
-                printContainer.style.overflow = 'hidden';
+                printContainer.style.visibility = 'hidden';
                 printContainer.innerHTML = htmlTemplate;
                 document.body.appendChild(printContainer);
+
+                // Generate exact content height to avoid blank pages/crops
+                const contentHeight = printContainer.offsetHeight || 1040;
+                document.body.removeChild(printContainer);
 
                 const opt = {
                     margin:       0,
                     filename:     `Cotizacion_${simuladorLoteActual.nombre.replace(/\s+/g, '_')}_${cNombre.replace(/\s+/g, '_')}.pdf`,
                     image:        { type: 'jpeg', quality: 0.98 },
                     html2canvas:  { scale: 2, useCORS: true, allowTaint: true, logging: false, windowWidth: 800 },
-                    jsPDF:        { unit: 'px', format: [800, 1040], orientation: 'portrait' }
+                    jsPDF:        { unit: 'px', format: [800, contentHeight], orientation: 'portrait' }
                 };
 
                 window.mostrarProgreso(50);
@@ -1211,7 +1240,7 @@
                 pdfFilenameGlobal = opt.filename;
                 // Generar Blob en lugar de descargar directamente
                 try {
-                    pdfBlobGlobal = await html2pdf().set(opt).from(printContainer).output('blob');
+                    pdfBlobGlobal = await html2pdf().set(opt).from(htmlTemplate).output('blob');
 
                     window.mostrarProgreso(100);
 
@@ -1234,10 +1263,6 @@
                     window.mostrarProgreso(100);
                     btn.innerText = originalText;
                     window.mostrarError("generarPDF", error);
-                } finally {
-                    if (printContainer && printContainer.parentNode) {
-                        printContainer.parentNode.removeChild(printContainer);
-                    }
                 }
             } catch (error) {
                 window.mostrarProgreso(100);
