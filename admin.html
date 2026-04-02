@@ -592,12 +592,12 @@
             }
         }
 
-        function abrirModalNuevoProyecto() {
+        window.abrirModalNuevoProyecto = function() {
             document.getElementById('nuevo-proyecto-nombre').value = '';
             document.getElementById('modal-nuevo-proyecto').classList.add('active');
         }
 
-        async function crearProyecto() {
+        window.crearProyecto = async function() {
             const nombre = document.getElementById('nuevo-proyecto-nombre').value.trim();
             if (!nombre) { alert("Por favor ingresa un nombre para el proyecto."); return; }
 
