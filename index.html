@@ -142,6 +142,21 @@
     </style>
 </head>
 <body>
+    <!-- Lobby de Proyectos (Se muestra si no hay ID en la URL) -->
+    <div id="lobby-proyectos" style="display: none; padding: 40px 20px; min-height: 100vh; background: #111;">
+        <div style="max-width: 1200px; margin: 0 auto;">
+            <h1 style="color: #f26522; font-family: 'Montserrat', sans-serif; font-size: 2.5rem; margin-bottom: 10px; text-align: center;">Explora Nuestros Proyectos 360</h1>
+            <p style="color: #bbb; text-align: center; margin-bottom: 40px;">Selecciona un proyecto para iniciar el recorrido virtual.</p>
+
+            <div id="lista-proyectos-publicos" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px;">
+                <!-- Aquí se inyectarán las cards -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor del Visor (Se muestra si hay ID) -->
+    <div id="visor-container" style="display: none; width: 100%; height: 100vh; position: absolute; top: 0; left: 0;">
+
     <div id="preloader">
         <video id="preloader-video" autoplay loop muted playsinline style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; display: none;"></video>
         <img id="preloader-bg-img" src="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; display: none;">
@@ -356,6 +371,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
+    </div> <!-- Fin visor-container -->
+
     <script>
         window.mostrarProgreso = function(porcentaje) {
             const bar = document.getElementById('global-progress');
@@ -398,6 +415,7 @@
         const supabaseKey = 'sb_publishable_yW5gsHp1w8ElbWRTeoMJYw_ZC-u0j9e';
         
         let supabaseClient;
+        let currentProjectId = null;
         let viewer, markersPlugin, gyroscopePlugin;
         const fallbackImage = 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg';
         let globalPanoUrl = fallbackImage;
@@ -408,19 +426,78 @@
         let globalAsesorTel = "";
 
         async function initClient() {
+            try {
+                if (!window.supabase) throw new Error("Base de datos no cargada");
+                supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+                const params = new URLSearchParams(window.location.search);
+                const projectId = params.get('proyecto');
+
+                if (projectId) {
+                    abrirProyecto(projectId);
+                } else {
+                    document.getElementById('preloader').style.display = 'none';
+                    document.getElementById('lobby-proyectos').style.display = 'block';
+                    cargarProyectosPublicos();
+                }
+            } catch (error) {
+                window.mostrarError("initClient", error);
+                document.getElementById('preloader-text').innerText = "Error: " + error.message;
+            }
+        }
+
+        async function cargarProyectosPublicos() {
+            try {
+                const { data: proyectos, error } = await supabaseClient.from('proyectos').select('*').eq('estado', 'activo').order('created_at', { ascending: false });
+                if (error) throw error;
+
+                const contenedor = document.getElementById('lista-proyectos-publicos');
+                contenedor.innerHTML = '';
+
+                if (proyectos && proyectos.length > 0) {
+                    proyectos.forEach(p => {
+                        const imgBg = p.imagen_portada ? p.imagen_portada : fallbackImage;
+
+                        const card = document.createElement('div');
+                        card.style.cssText = `background: linear-gradient(rgba(17,17,17,0.4), rgba(17,17,17,0.9)), url('${imgBg}') center/cover; backdrop-filter: blur(20px); border: 1px solid #444; border-radius: 16px; min-height: 250px; display: flex; flex-direction: column; justify-content: flex-end; padding: 20px; cursor: pointer; transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s; position: relative; overflow: hidden;`;
+                        card.onmouseover = function() { this.style.transform = 'translateY(-5px)'; this.style.boxShadow = '0 10px 25px rgba(242, 101, 34, 0.3)'; this.style.borderColor = '#f26522'; };
+                        card.onmouseout = function() { this.style.transform = 'translateY(0)'; this.style.boxShadow = 'none'; this.style.borderColor = '#444'; };
+                        card.onclick = () => window.location.href = '?proyecto=' + p.id;
+
+                        card.innerHTML = `
+                            <div>
+                                <h3 style="color: #fff; font-family: 'Montserrat', sans-serif; margin: 0 0 10px 0; font-size: 1.6rem; text-shadow: 0 2px 4px rgba(0,0,0,0.8);">${p.nombre}</h3>
+                                <div style="display: flex; align-items: center; gap: 8px; background: rgba(242,101,34,0.9); display: inline-flex; padding: 8px 16px; border-radius: 20px; color: #fff; font-size: 0.8rem; font-weight: bold; text-transform: uppercase;">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> Ver Proyecto
+                                </div>
+                            </div>
+                        `;
+                        contenedor.appendChild(card);
+                    });
+                } else {
+                    contenedor.innerHTML = '<p style="color: #bbb; text-align: center; grid-column: 1 / -1;">No hay proyectos disponibles en este momento.</p>';
+                }
+            } catch (error) {
+                console.error("Error al cargar proyectos públicos:", error);
+            }
+        }
+
+        async function abrirProyecto(projectId) {
+            currentProjectId = projectId;
+            document.getElementById('lobby-proyectos').style.display = 'none';
+            document.getElementById('visor-container').style.display = 'block';
+            document.getElementById('preloader').style.display = 'flex';
+
             let panoUrl = fallbackImage;
-            let titulo = "Rincón de Baviera";
+            let titulo = "Cargando...";
             let logoUrl = "";
             let preloaderUrl = "";
 
             try {
-                if (!window.supabase) throw new Error("Base de datos no cargada");
                 if (!window.PhotoSphereViewer) throw new Error("Visor 360 no cargado");
 
-                supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
-
                 try {
-                    const { data: config, error: configError } = await supabaseClient.from('configuracion').select('*').eq('id', 1).maybeSingle();
+                    const { data: config, error: configError } = await supabaseClient.from('configuracion').select('*').eq('proyecto_id', currentProjectId).maybeSingle();
                     if (configError) throw new Error(configError.message);
                     if (config) {
                         if (config.imagen_url) {
@@ -555,7 +632,7 @@
         async function cargarDatosPublicos() {
             try {
                 if (!supabaseClient) return;
-                const { data: lotes, error: lotesError } = await supabaseClient.from('lotes').select('*');
+                const { data: lotes, error: lotesError } = await supabaseClient.from('lotes').select('*').eq('proyecto_id', currentProjectId);
                 if (lotesError) throw lotesError;
 
                 let disp = 0, res = 0, vend = 0;
@@ -624,7 +701,7 @@
                 document.getElementById('count-vend').innerText = vend;
 
                 window.mostrarProgreso(50);
-                const { data: pois, error: poisError } = await supabaseClient.from('pois').select('*');
+                const { data: pois, error: poisError } = await supabaseClient.from('pois').select('*').eq('proyecto_id', currentProjectId);
                 if (poisError) throw poisError;
 
                 if (pois) {
@@ -731,7 +808,7 @@
                 }
                 // Cargar también polígonos 360
                 try {
-                    const { data: polys360, error: polyError } = await supabaseClient.from('poligonos_360').select('*');
+                    const { data: polys360, error: polyError } = await supabaseClient.from('poligonos_360').select('*').eq('proyecto_id', currentProjectId);
                     if (!polyError && polys360 && polys360.length > 0) {
                         polys360.forEach(p => {
                             activeMarkers.add(p.id);
@@ -1254,7 +1331,8 @@
                                     direccion: cDir,
                                     lote: simuladorLoteActual.nombre,
                                     cuota_inicial: formatearDinero(cuotaInicialNum),
-                                    meses: meses
+                                    meses: meses,
+                                    proyecto_id: currentProjectId
                                 }
                             ]);
                             if (insertError) {
