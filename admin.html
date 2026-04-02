@@ -184,6 +184,10 @@
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg> Copiar Link Público
         </div>
 
+        <div id="btn-toggle-admin-panel" style="position: fixed; top: 70px; right: 20px; z-index: 1000; cursor: pointer; background: rgba(17,17,17,0.8); backdrop-filter: blur(10px); border: 1px solid #f26522; color: #fff; padding: 10px 15px; border-radius: 8px; font-weight: bold; text-transform: uppercase; font-size: 0.8rem; box-shadow: 0 4px 15px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 8px; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" onclick="toggleAdminPanel()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f26522" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> <span id="toggle-admin-panel-text">Ocultar Panel</span>
+        </div>
+
         <div id="btn-back-main" style="display:none; position: fixed; top: 70px; left: 20px; z-index: 100; cursor: pointer; background: rgba(17,17,17,0.7); backdrop-filter: blur(10px); border: 1px solid #f26522; color: #fff; padding: 10px 15px; border-radius: 8px; font-weight: bold; text-transform: uppercase; font-size: 0.8rem; box-shadow: 0 4px 15px rgba(0,0,0,0.5); align-items: center; gap: 8px; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" onclick="volverVistaPrincipal()">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f26522" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Volver a Vista Principal
         </div>
@@ -196,7 +200,7 @@
         <div id="viewer"></div>
     </div>
 
-    <div class="admin-panel">
+    <div class="admin-panel" id="admin-panel-container" style="display: none;">
         <div class="control-group">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                 <span class="control-label" style="margin-bottom: 0;">1. Configuración Principal</span>
@@ -609,9 +613,11 @@
                 window.mostrarProgreso(50);
 
                 // Crear configuración por defecto
+                const idConfiguracion = Date.now();
                 const { error: configError } = await supabaseClient.from('configuracion').insert([{
+                    id: idConfiguracion,
                     proyecto_id: data.id,
-                    titulo_texto: nombre,
+                    titulo: nombre,
                     cuota_inicial: '30'
                 }]);
 
@@ -619,7 +625,7 @@
 
                 window.mostrarProgreso(100);
                 document.getElementById('modal-nuevo-proyecto').classList.remove('active');
-                cargarListaProyectos(); // Recargar la lista
+                abrirProyecto(data.id);
             } catch (error) {
                 console.error("Error al crear proyecto:", error);
                 alert("Error al crear proyecto: " + error.message);
@@ -643,10 +649,30 @@
             }
         }
 
+        function toggleAdminPanel() {
+            const panel = document.getElementById('admin-panel-container');
+            const textSpan = document.getElementById('toggle-admin-panel-text');
+            const viewerContainer = document.getElementById('viewer-area-container');
+            const viewerArea = viewerContainer.querySelector('.viewer-area') || viewerContainer; // get actual container modifying height
+
+            if (panel.style.display === 'none') {
+                panel.style.display = '';
+                textSpan.innerText = 'Ocultar Panel';
+                viewerArea.style.height = ''; // reset to default 50vh/60vh
+                if (viewer) viewer.resize();
+            } else {
+                panel.style.display = 'none';
+                textSpan.innerText = 'Mostrar Panel';
+                viewerArea.style.height = '100vh';
+                if (viewer) viewer.resize();
+            }
+        }
+
         function volverDashboard() {
             currentProjectId = null;
             window.history.replaceState({}, document.title, window.location.pathname);
             document.getElementById('viewer-area-container').style.display = 'none';
+            document.getElementById('admin-panel-container').style.display = 'none';
             document.getElementById('dashboard-proyectos').style.display = 'block';
 
             // Destruir el visor actual si existe
@@ -676,6 +702,8 @@
 
             document.getElementById('dashboard-proyectos').style.display = 'none';
             document.getElementById('viewer-area-container').style.display = 'block';
+            document.getElementById('admin-panel-container').style.display = 'flex'; // As per CSS it should be flex or grid. It uses flex and grid conditionally. So setting display directly might be tricky, let's remove inline display: none.
+            document.getElementById('admin-panel-container').style.display = ''; // Reset to default CSS
             document.getElementById('preloader').style.display = 'flex'; // Mostrar preloader mientras carga
 
             let panoUrl = fallbackImage;
