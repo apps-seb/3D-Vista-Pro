@@ -1,0 +1,40 @@
+=== INSTRUCCIONES PARA CREAR LA TABLA DE INTERESADOS EN SUPABASE ===
+
+Para que la nueva funcionalidad de guardar y mostrar los interesados (leads) funcione correctamente, debes crear una nueva tabla en tu base de datos de Supabase.
+
+Por favor, sigue estos pasos:
+
+1. Ve a tu panel de control de Supabase (https://app.supabase.com).
+2. Selecciona tu proyecto "mungbffwwjobinfcympd".
+3. En el menú de la izquierda, haz clic en "SQL Editor" (el ícono que parece una terminal con un símbolo de >_).
+4. Haz clic en "New query" (Nueva consulta) para abrir un espacio en blanco.
+5. Copia el siguiente código SQL y pégalo en el editor:
+
+
+CREATE TABLE public.interesados (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    nombre TEXT NOT NULL,
+    telefono TEXT NOT NULL,
+    correo TEXT NOT NULL,
+    direccion TEXT NOT NULL,
+    lote TEXT NOT NULL,
+    cuota_inicial TEXT NOT NULL,
+    meses INTEGER NOT NULL,
+    fecha TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+-- Habilitar Row Level Security (RLS)
+ALTER TABLE public.interesados ENABLE ROW LEVEL SECURITY;
+
+-- Crear políticas para permitir que el visualizador 360 pueda insertar (guardar) nuevos interesados
+CREATE POLICY "Permitir insert en interesados" ON public.interesados FOR INSERT WITH CHECK (true);
+
+-- Crear políticas para permitir que la pagina de admin/interesados pueda leer (ver) los datos
+CREATE POLICY "Permitir select en interesados" ON public.interesados FOR SELECT USING (true);
+
+
+6. Haz clic en el botón verde "Run" (Ejecutar) en la parte inferior derecha.
+
+¡Listo! Con esto la base de datos estará preparada para recibir la información de las personas interesadas que utilicen el simulador financiero y generen su PDF.
+
+Puedes ver la lista de interesados abriendo el archivo `interesados.html` en tu navegador.

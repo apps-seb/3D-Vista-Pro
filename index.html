@@ -1122,7 +1122,7 @@
 
                 // Plantilla HTML para el PDF (Diseño Elegante y Profesional)
                 const htmlTemplate = `
-                    <div style="font-family: 'Montserrat', sans-serif; color: #222; padding: 50px; background: #fff; max-width: 800px; margin: 0 auto; line-height: 1.6; position: relative;">
+                    <div style="font-family: 'Montserrat', sans-serif; color: #222; padding: 50px; background: #fff; width: 800px; box-sizing: border-box; margin: 0 auto; line-height: 1.6; position: relative; min-height: 1040px; display: flex; flex-direction: column;">
 
                         <!-- Fondo Decorativo -->
                         <div style="position: absolute; top: 0; left: 0; width: 100%; height: 10px; background: linear-gradient(90deg, #f26522, #ff8c00);"></div>
@@ -1207,7 +1207,7 @@
                         </div>
 
                         <!-- Pie de página -->
-                        <div style="text-align: center; font-size: 11px; color: #999; border-top: 1px solid #eee; padding-top: 25px; margin-top: auto;">
+                        <div style="text-align: center; font-size: 11px; color: #999; border-top: 1px solid #eee; padding-top: 25px; margin-top: auto; padding-bottom: 20px;">
                             <p style="margin: 0 0 5px 0; line-height: 1.4;">Este documento es de carácter informativo y no representa un compromiso legal ni una promesa de compraventa. <br>Los valores, áreas y condiciones están sujetos a verificación y posibles modificaciones sin previo aviso.</p>
                             <p style="margin: 0; font-weight: 600; color: #666;">Generado interactivamente por el sistema de gestión de <strong>${titleText}</strong>.</p>
                         </div>
@@ -1224,13 +1224,14 @@
                 document.body.appendChild(printContainer);
 
                 // Generate exact content height to avoid blank pages/crops
-                const contentHeight = printContainer.offsetHeight || 1040;
+                // Extra padding buffer added to ensure footer isn't cut off
+                const contentHeight = (printContainer.offsetHeight || 1040) + 20;
                 document.body.removeChild(printContainer);
 
                 const opt = {
                     margin:       0,
                     filename:     `Cotizacion_${simuladorLoteActual.nombre.replace(/\s+/g, '_')}_${cNombre.replace(/\s+/g, '_')}.pdf`,
-                    image:        { type: 'jpeg', quality: 0.98 },
+                    image:        { type: 'jpeg', quality: 1 },
                     html2canvas:  { scale: 2, useCORS: true, allowTaint: true, logging: false, windowWidth: 800 },
                     jsPDF:        { unit: 'px', format: [800, contentHeight], orientation: 'portrait' }
                 };
@@ -1241,6 +1242,30 @@
                 // Generar Blob en lugar de descargar directamente
                 try {
                     pdfBlobGlobal = await html2pdf().set(opt).from(htmlTemplate).output('blob');
+
+                    // Guardar lead en la tabla 'interesados'
+                    try {
+                        if (supabaseClient) {
+                            const { error: insertError } = await supabaseClient.from('interesados').insert([
+                                {
+                                    nombre: cNombre,
+                                    telefono: cTel,
+                                    correo: cEmail,
+                                    direccion: cDir,
+                                    lote: simuladorLoteActual.nombre,
+                                    cuota_inicial: formatearDinero(cuotaInicialNum),
+                                    meses: meses
+                                }
+                            ]);
+                            if (insertError) {
+                                console.warn("Error al guardar el interesado en Supabase:", insertError);
+                            } else {
+                                console.log("Interesado guardado exitosamente en Supabase");
+                            }
+                        }
+                    } catch (dbErr) {
+                        console.warn("Error capturado al guardar el interesado:", dbErr);
+                    }
 
                     window.mostrarProgreso(100);
 
