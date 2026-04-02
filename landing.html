@@ -62,24 +62,10 @@
             background: var(--glass-bg);
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
             border-radius: 16px;
             box-shadow: var(--shadow-soft);
             position: relative;
-            z-index: 1;
-        }
-
-        .glass-card::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: 16px;
-            padding: 2px;
-            background: var(--primary-gradient);
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            z-index: -1;
-            pointer-events: none;
         }
 
         .accent-text {
@@ -137,7 +123,7 @@
             top: 0;
             left: 0;
             width: 100%;
-            padding: 20px 50px;
+            padding: 10px 50px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -148,13 +134,13 @@
         .header.scrolled {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
-            padding: 15px 50px;
+            padding: 10px 50px;
             border-bottom: 1px solid rgba(0,0,0,0.05);
             box-shadow: 0 4px 20px rgba(0,0,0,0.05);
         }
 
         .logo {
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             font-weight: 700;
             color: var(--text-dark);
             text-decoration: none;
@@ -182,7 +168,7 @@
             color: var(--text-dark);
             text-decoration: none;
             font-weight: 500;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             text-transform: uppercase;
             letter-spacing: 1px;
             transition: var(--transition);
@@ -370,7 +356,7 @@
             color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 1px;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             font-weight: 500;
         }
 
@@ -476,22 +462,22 @@
             align-items: center;
             text-align: center;
             transition: var(--transition);
+            border: 1px solid rgba(0,0,0,0.03);
             box-shadow: var(--shadow-soft);
             position: relative;
-            z-index: 1;
         }
 
-        .benefit-card::before {
+        .benefit-card::before, .glass-card::before {
             content: '';
             position: absolute;
-            inset: 0;
-            border-radius: 16px;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: inherit;
             padding: 2px;
             background: var(--primary-gradient);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask-composite: exclude;
-            z-index: -1;
+            opacity: 0.8;
             pointer-events: none;
         }
 
@@ -644,14 +630,14 @@
             color: #666666;
             padding-top: 30px;
             border-top: 1px solid rgba(255,255,255,0.1);
-            font-size: 0.9rem;
+            font-size: 0.8rem;
         }
 
         /* Responsiveness */
         @media (max-width: 992px) {
             .hero-title { font-size: 3.5rem; }
             .about-section { flex-direction: column; }
-            .header { padding: 20px; }
+            .header { padding: 15px 20px; }
             .nav-links { display: none; }
             .tour-container { height: 500px; }
         }
@@ -660,29 +646,24 @@
             .hero-title { font-size: 2.5rem; letter-spacing: 2px; }
             .hero-subtitle { font-size: 1.1rem; }
             .section { padding: 60px 20px; }
-
+            
             /* Full screen mobile tour modifications */
-            .tour-section {
-                padding: 0;
-                margin: 0;
-                border-radius: 0;
-                max-width: 100%;
-                width: 100vw;
-                position: relative;
-                left: 50%;
-                right: 50%;
-                margin-left: -50vw;
-                margin-right: -50vw;
+            .tour-section { 
+                padding: 0; 
+                margin: 0 -20px; 
+                border-radius: 0; 
+                max-width: none;
+                width: auto;
             }
-            .tour-container {
-                height: 100vh;
-                margin: 0;
-                border-radius: 0;
+            .tour-container { 
+                height: 100vh; 
+                margin: 0; 
+                border-radius: 0; 
                 max-width: 100%;
                 width: 100%;
             }
             .tour-section > .btn-cta, .tour-section > h3 {
-                display: none; /* Hide button under iframe in mobile full screen view to save space or adjust as needed, we'll just keep it but adjust padding */
+                display: none;
             }
             #tour .section-title, #tour .section-subtitle {
                 padding: 0 20px;
@@ -693,7 +674,7 @@
             }
 
             .features-wrapper { margin-top: -30px; }
-            .header.scrolled { padding: 15px 20px; }
+            .header.scrolled { padding: 10px 20px; }
             .media-grid { grid-template-columns: 1fr; }
         }
     </style>    <meta charset="UTF-8">
@@ -755,7 +736,7 @@
                 <div class="feature-icon">
                     <svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
                 </div>
-                <div class="feature-value" style="font-size: 1.5rem; line-height: 2rem; padding-top: 10px;">Desde<br>$80 Millones</div>
+                <div class="feature-value" style="font-size: 1.2rem; line-height: 2rem; padding-top: 10px;">Desde<br>$80 Millones</div>
                 <div class="feature-label" style="margin-top: 5px;">Excelente Inversión</div>
             </div>
         </div>
@@ -785,7 +766,7 @@
                 <iframe src="https://rincondebaviera.proyectaconstructora.com/tour360.html" title="Tour 360 Rincón de Baviera" allowfullscreen></iframe>
             </div>
             <div style="text-align: center; margin-top: 20px;">
-                <h3 style="margin-bottom: 15px; font-size: 1.5rem; color: var(--text-dark);">¿Encontraste tu lugar ideal?</h3>
+                <h3 style="margin-bottom: 15px; font-size: 1.2rem; color: var(--text-dark);">¿Encontraste tu lugar ideal?</h3>
                 <a href="#contacto" class="btn-cta">Escoge tu lote ahora</a>
             </div>
         </div>
@@ -845,7 +826,7 @@
     <section class="section about-section" id="galeria" style="flex-direction: column;">
         <h2 class="section-title fade-up">Galería del Proyecto</h2>
 
-        <h3 class="fade-up" style="color: var(--text-dark); margin-bottom: 20px; font-size: 1.5rem; width: 100%; text-align: left;">Renders Exclusivos</h3>
+        <h3 class="fade-up" style="color: var(--text-dark); margin-bottom: 20px; font-size: 1.2rem; width: 100%; text-align: left;">Renders Exclusivos</h3>
         <div class="media-grid fade-up" style="width: 100%; margin-bottom: 60px;">
             <div class="media-card">
                 <img src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Render Fachada">
@@ -861,7 +842,7 @@
             </div>
         </div>
 
-        <h3 class="fade-up" style="color: var(--text-dark); margin-bottom: 20px; font-size: 1.5rem; width: 100%; text-align: left;">Planos Urbanísticos</h3>
+        <h3 class="fade-up" style="color: var(--text-dark); margin-bottom: 20px; font-size: 1.2rem; width: 100%; text-align: left;">Planos Urbanísticos</h3>
         <div class="media-grid fade-up" style="width: 100%;">
             <div class="media-card" style="aspect-ratio: 16/9;">
                 <img src="https://images.unsplash.com/photo-1503387762-592deb58ef4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Plano General">
