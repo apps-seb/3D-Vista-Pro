@@ -62,9 +62,24 @@
             background: var(--glass-bg);
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
-            border: 1px solid var(--glass-border);
             border-radius: 16px;
             box-shadow: var(--shadow-soft);
+            position: relative;
+            z-index: 1;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 16px;
+            padding: 2px;
+            background: var(--primary-gradient);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            z-index: -1;
+            pointer-events: none;
         }
 
         .accent-text {
@@ -417,9 +432,9 @@
         .tour-section {
             background-color: var(--secondary-bg);
             border-radius: 24px;
-            padding: 60px;
+            padding: 60px 0;
             margin: 50px auto;
-            max-width: 1400px;
+            max-width: 100%;
             box-shadow: inset 0 0 50px rgba(0,0,0,0.02);
             display: flex;
             flex-direction: column;
@@ -428,9 +443,10 @@
 
         .tour-container {
             width: 100%;
-            max-width: 1200px;
-            height: 600px;
-            border-radius: 16px;
+            max-width: 100%;
+            height: 85vh;
+            min-height: 600px;
+            border-radius: 0;
             overflow: hidden;
             box-shadow: var(--shadow-soft);
             margin: 40px 0;
@@ -460,8 +476,23 @@
             align-items: center;
             text-align: center;
             transition: var(--transition);
-            border: 1px solid rgba(0,0,0,0.03);
             box-shadow: var(--shadow-soft);
+            position: relative;
+            z-index: 1;
+        }
+
+        .benefit-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 16px;
+            padding: 2px;
+            background: var(--primary-gradient);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            z-index: -1;
+            pointer-events: none;
         }
 
         .benefit-card:hover {
@@ -629,8 +660,38 @@
             .hero-title { font-size: 2.5rem; letter-spacing: 2px; }
             .hero-subtitle { font-size: 1.1rem; }
             .section { padding: 60px 20px; }
-            .tour-section { padding: 40px 20px; margin: 30px 20px; border-radius: 16px; }
-            .tour-container { height: 400px; }
+
+            /* Full screen mobile tour modifications */
+            .tour-section {
+                padding: 0;
+                margin: 0;
+                border-radius: 0;
+                max-width: 100%;
+                width: 100vw;
+                position: relative;
+                left: 50%;
+                right: 50%;
+                margin-left: -50vw;
+                margin-right: -50vw;
+            }
+            .tour-container {
+                height: 100vh;
+                margin: 0;
+                border-radius: 0;
+                max-width: 100%;
+                width: 100%;
+            }
+            .tour-section > .btn-cta, .tour-section > h3 {
+                display: none; /* Hide button under iframe in mobile full screen view to save space or adjust as needed, we'll just keep it but adjust padding */
+            }
+            #tour .section-title, #tour .section-subtitle {
+                padding: 0 20px;
+            }
+            .tour-section > div[style*="text-align: center"] {
+                padding: 20px;
+                background-color: var(--secondary-bg);
+            }
+
             .features-wrapper { margin-top: -30px; }
             .header.scrolled { padding: 15px 20px; }
             .media-grid { grid-template-columns: 1fr; }
