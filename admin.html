@@ -718,7 +718,7 @@
                 if (!window.PhotoSphereViewer) throw new Error("No cargó el Visor");
 
                 try {
-                    const { data: config, error: configError } = await supabaseClient.from('configuracion').select('*').eq('proyecto_id', currentProjectId).maybeSingle();
+                    const { data: config, error: configError } = await supabaseClient.from('configuracion').select('*').eq('proyecto_id', currentProjectId).limit(1).maybeSingle();
                     if (configError) throw new Error(configError.message);
                     if (config) {
                         if (config.imagen_url) { panoUrl = config.imagen_url; globalPanoUrl = panoUrl; }
@@ -1840,7 +1840,7 @@
                 }
 
                 window.mostrarProgreso(40);
-                const { data, error: selectError } = await supabaseClient.from('configuracion').select('id').eq('proyecto_id', currentProjectId).maybeSingle();
+                const { data, error: selectError } = await supabaseClient.from('configuracion').select('id').eq('proyecto_id', currentProjectId).limit(1).maybeSingle();
                 if (selectError) throw selectError;
 
                 const dataToSave = {
@@ -1893,7 +1893,7 @@
 
                 window.mostrarProgreso(80);
 
-                const { data: configCheck, error: selectError } = await supabaseClient.from('configuracion').select('id').eq('proyecto_id', currentProjectId).maybeSingle();
+                const { data: configCheck, error: selectError } = await supabaseClient.from('configuracion').select('id').eq('proyecto_id', currentProjectId).limit(1).maybeSingle();
                 if (selectError) throw selectError;
 
                 if (!configCheck) {

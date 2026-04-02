@@ -497,7 +497,7 @@
                 if (!window.PhotoSphereViewer) throw new Error("Visor 360 no cargado");
 
                 try {
-                    const { data: config, error: configError } = await supabaseClient.from('configuracion').select('*').eq('proyecto_id', currentProjectId).maybeSingle();
+                    const { data: config, error: configError } = await supabaseClient.from('configuracion').select('*').eq('proyecto_id', currentProjectId).limit(1).maybeSingle();
                     if (configError) throw new Error(configError.message);
                     if (config) {
                         if (config.imagen_url) {
