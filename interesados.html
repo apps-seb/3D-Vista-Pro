@@ -188,11 +188,16 @@
 <body>
 
     <div class="header">
-        <h1>Gestión de Interesados</h1>
-        <button class="btn-export" onclick="exportToCSV()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-            Exportar CSV
-        </button>
+        <h1 id="titulo-pagina">Gestión de Interesados</h1>
+        <div style="display: flex; gap: 15px; align-items: center;">
+            <select id="proyecto-filter" class="table-container" style="background: rgba(30, 30, 30, 0.6); color: white; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px; cursor: pointer;" onchange="filtrarPorProyecto()">
+                <option value="todos">Todos los Proyectos</option>
+            </select>
+            <button class="btn-export" onclick="exportToCSV()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Exportar CSV
+            </button>
+        </div>
     </div>
 
     <div class="container">
@@ -234,15 +239,33 @@
         const supabaseKey = 'sb_publishable_yW5gsHp1w8ElbWRTeoMJYw_ZC-u0j9e';
         let supabaseClient;
         let allLeads = [];
+        let proyectosData = {};
 
         async function init() {
             try {
                 supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+                await fetchProyectos();
                 await fetchLeads();
             } catch (error) {
                 console.error("Error init:", error);
                 document.getElementById('leads-body').innerHTML = `<tr><td colspan="6" style="text-align:center; color:#e74c3c; padding:30px;">Error al conectar con la base de datos.</td></tr>`;
             }
+        }
+
+        async function fetchProyectos() {
+            const { data, error } = await supabaseClient.from('proyectos').select('id, nombre');
+            if (error) {
+                console.error("Error fetching projects:", error);
+                return;
+            }
+            const select = document.getElementById('proyecto-filter');
+            data.forEach(p => {
+                proyectosData[p.id] = p.nombre;
+                const option = document.createElement('option');
+                option.value = p.id;
+                option.textContent = p.nombre;
+                select.appendChild(option);
+            });
         }
 
         async function fetchLeads() {
@@ -262,20 +285,28 @@
         }
 
         function updateUI() {
-            document.getElementById('total-leads').innerText = allLeads.length;
+            const proyectoFilterId = document.getElementById('proyecto-filter').value;
+            let leadsAMostrar = allLeads;
 
-            const lotesUnicos = new Set(allLeads.map(l => l.lote));
+            if (proyectoFilterId !== 'todos') {
+                leadsAMostrar = allLeads.filter(l => l.proyecto_id === proyectoFilterId);
+            }
+
+            document.getElementById('total-leads').innerText = leadsAMostrar.length;
+
+            const lotesUnicos = new Set(leadsAMostrar.map(l => l.lote));
             document.getElementById('lotes-interes').innerText = lotesUnicos.size;
 
             const tbody = document.getElementById('leads-body');
             tbody.innerHTML = '';
 
-            if (allLeads.length === 0) {
+            if (leadsAMostrar.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#aaa; padding:30px;">No hay interesados registrados aún.</td></tr>`;
                 return;
             }
 
-            allLeads.forEach(lead => {
+            leadsAMostrar.forEach(lead => {
+                const nombreProyecto = lead.proyecto_id && proyectosData[lead.proyecto_id] ? proyectosData[lead.proyecto_id] : 'Desconocido';
                 const date = new Date(lead.fecha);
                 const dateStr = date.toLocaleDateString('es-CO') + ' ' + date.toLocaleTimeString('es-CO', {hour: '2-digit', minute:'2-digit'});
 
@@ -290,7 +321,10 @@
                         ${lead.telefono}<br>
                         <span style="font-size: 0.8rem; color: #888;">${lead.correo || 'Sin correo'}</span>
                     </td>
-                    <td><span class="badge">${lead.lote}</span></td>
+                    <td>
+                        <span class="badge">${lead.lote}</span><br>
+                        <span style="font-size: 0.75rem; color: #888;">${nombreProyecto}</span>
+                    </td>
                     <td>
                         <div style="font-size: 0.85rem;">
                             C. Inicial: <strong style="color: #f26522;">${lead.cuota_inicial}</strong><br>
@@ -298,7 +332,7 @@
                         </div>
                     </td>
                     <td>
-                        <a href="https://wa.me/57${lead.telefono.replace(/\\D/g, '')}?text=Hola%20${encodeURIComponent(lead.nombre)},%20te%20contacto%20de%20Rinc%C3%B3n%20de%20Baviera%20respecto%20a%20tu%20inter%C3%A9s%20en%20el%20lote%20${encodeURIComponent(lead.lote)}." target="_blank" class="btn-action">
+                        <a href="https://wa.me/57${lead.telefono.replace(/\D/g, '')}?text=Hola%20${encodeURIComponent(lead.nombre)},%20te%20contacto%20sobre%20tu%20inter%C3%A9s%20en%20el%20lote%20${encodeURIComponent(lead.lote)}%20del%20proyecto%20${encodeURIComponent(nombreProyecto)}." target="_blank" class="btn-action">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
                             Contactar
                         </a>
@@ -308,16 +342,28 @@
             });
         }
 
+        function filtrarPorProyecto() {
+            updateUI();
+        }
+
         function exportToCSV() {
-            if(allLeads.length === 0) return alert("No hay datos para exportar.");
+            const proyectoFilterId = document.getElementById('proyecto-filter').value;
+            let leadsAExportar = allLeads;
+            if (proyectoFilterId !== 'todos') {
+                leadsAExportar = allLeads.filter(l => l.proyecto_id === proyectoFilterId);
+            }
+
+            if(leadsAExportar.length === 0) return alert("No hay datos para exportar.");
 
             let csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += "Fecha,Nombre,Telefono,Correo,Direccion,Lote,Cuota Inicial,Meses\n";
+            csvContent += "Fecha,Proyecto,Nombre,Telefono,Correo,Direccion,Lote,Cuota Inicial,Meses\n";
 
-            allLeads.forEach(lead => {
+            leadsAExportar.forEach(lead => {
+                const nombreProyecto = lead.proyecto_id && proyectosData[lead.proyecto_id] ? proyectosData[lead.proyecto_id] : 'Desconocido';
                 const date = new Date(lead.fecha).toLocaleDateString('es-CO');
                 const row = [
                     date,
+                    `"${nombreProyecto}"`,
                     `"${lead.nombre}"`,
                     `"${lead.telefono}"`,
                     `"${lead.correo}"`,
