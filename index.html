@@ -1096,7 +1096,7 @@
 
                 // Plantilla HTML para el PDF (Diseño Elegante y Profesional)
                 const htmlTemplate = `
-                    <div style="font-family: 'Montserrat', sans-serif; color: #222; padding: 50px; background: #fff; max-width: 800px; margin: 0 auto; line-height: 1.6; position: relative;">
+                    <div style="font-family: 'Montserrat', sans-serif; color: #222; padding: 50px; background: #fff; width: 800px; max-width: 800px; box-sizing: border-box; margin: 0 auto; line-height: 1.6; position: relative; display: flex; flex-direction: column;">
 
                         <!-- Fondo Decorativo -->
                         <div style="position: absolute; top: 0; left: 0; width: 100%; height: 10px; background: linear-gradient(90deg, #f26522, #ff8c00);"></div>
@@ -1188,17 +1188,25 @@
                     </div>
                 `;
 
-                // It's better to pass the raw string if we want html2pdf to handle the iframe creation,
-                // or if we must attach it, we can use a worker or hidden iframe mechanism,
-                // but html2pdf typically handles detached elements/strings well if images are loaded.
-                // Let's use string directly to let html2pdf handle the container logic internally.
+                // Calcular dinámicamente la altura del contenido para asegurar una sola página sin cortes
+                const tempDiv = document.createElement('div');
+                tempDiv.style.width = '800px';
+                tempDiv.style.position = 'absolute';
+                tempDiv.style.visibility = 'hidden';
+                tempDiv.style.pointerEvents = 'none';
+                tempDiv.innerHTML = htmlTemplate;
+                document.body.appendChild(tempDiv);
+
+                const contentHeight = Math.ceil(tempDiv.offsetHeight) || 1040;
+                document.body.removeChild(tempDiv);
 
                 const opt = {
-                    margin:       0,
+                    margin:       [0, 0, 0, 0], // Evitar márgenes que causen desbordamiento extra
                     filename:     `Cotizacion_${simuladorLoteActual.nombre.replace(/\s+/g, '_')}_${cNombre.replace(/\s+/g, '_')}.pdf`,
                     image:        { type: 'jpeg', quality: 0.98 },
-                    html2canvas:  { scale: 2, useCORS: true, allowTaint: true, logging: false, windowWidth: 800, width: 800, height: 1040 },
-                    jsPDF:        { unit: 'px', format: [800, 1040], orientation: 'portrait' }
+                    html2canvas:  { scale: 2, useCORS: true, allowTaint: true, logging: false, windowWidth: 800, width: 800 },
+                    pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] },
+                    jsPDF:        { unit: 'px', format: [800, contentHeight], orientation: 'portrait' }
                 };
 
                 window.mostrarProgreso(50);
