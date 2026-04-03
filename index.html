@@ -908,23 +908,13 @@
                     try { markersPlugin.hideMarker(id); } catch(err){}
                 });
 
-                const preloader = document.getElementById('preloader');
-                if (preloader) {
-                    preloader.style.backgroundColor = 'transparent';
-                    preloader.style.display = 'flex';
-                    preloader.style.opacity = '1';
-                }
-                viewer.setPanorama(globalPanoUrl, { transition: 500, showLoader: false }).then(() => {
+                viewer.setPanorama(globalPanoUrl, { transition: 1000, showLoader: false }).then(() => {
                     marcadoresOcultos.forEach(id => {
                         try { markersPlugin.showMarker(id); } catch(e){}
                     });
                     marcadoresOcultos = [];
                     document.getElementById('btn-back-main').style.display = 'none';
                     window.mostrarProgreso(100);
-                    if (preloader) {
-                        preloader.style.opacity = '0';
-                        setTimeout(() => preloader.style.display = 'none', 800);
-                    }
                 });
             } catch (error) {
                 window.mostrarError("volverVistaPrincipal", error);
@@ -945,19 +935,9 @@
                             try { markersPlugin.hideMarker(id); } catch(err){}
                         });
 
-                        const preloader = document.getElementById('preloader');
-                        if (preloader) {
-                            preloader.style.backgroundColor = 'transparent';
-                            preloader.style.display = 'flex';
-                            preloader.style.opacity = '1';
-                        }
-                        viewer.setPanorama(marker.config.data.url, { transition: 500, showLoader: false }).then(() => {
+                        viewer.setPanorama(marker.config.data.url, { transition: 1000, showLoader: false }).then(() => {
                             document.getElementById('btn-back-main').style.display = 'flex';
                             window.mostrarProgreso(100);
-                            if (preloader) {
-                                preloader.style.opacity = '0';
-                                setTimeout(() => preloader.style.display = 'none', 800);
-                            }
                         });
                     } else if (marker.config.data && marker.config.data.type === 'lote') {
                         document.getElementById('m-titulo').innerText = marker.config.data.nombre;
