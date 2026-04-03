@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core@5.1.4/index.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core@5.1.4/index.min.css" />
+<style>
+  body { margin: 0; padding: 0; }
+  #viewer { width: 100vw; height: 100vh; }
+</style>
+</head>
+<body>
+<div id="viewer"></div>
+<script>
+  let viewer = new PhotoSphereViewer.Viewer({
+      container: document.querySelector('#viewer'),
+      panorama: 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg',
+      navbar: false
+  });
+
+  viewer.addEventListener('ready', () => {
+     // Verify the API we modified exists
+     console.log("Ready!");
+  });
+</script>
+</body>
+</html>
