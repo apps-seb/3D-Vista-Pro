@@ -197,6 +197,9 @@
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                 Exportar CSV
             </button>
+            <button onclick="cerrarSesion()" style="background: rgba(17,17,17,0.8); backdrop-filter: blur(10px); border: 1px solid #e74c3c; color: #fff; padding: 10px 15px; border-radius: 8px; font-weight: bold; text-transform: uppercase; font-size: 0.8rem; cursor: pointer; transition: background 0.2s;">
+                Cerrar Sesión
+            </button>
         </div>
     </div>
 
@@ -237,13 +240,39 @@
     <script>
         const supabaseUrl = 'https://mungbffwwjobinfcympd.supabase.co';
         const supabaseKey = 'sb_publishable_yW5gsHp1w8ElbWRTeoMJYw_ZC-u0j9e';
+        const MASTER_ADMIN_EMAIL = "tu_correo@ejemplo.com";
+
         let supabaseClient;
+        let currentUser = null;
         let allLeads = [];
         let proyectosData = {};
 
+        async function checkAuthAndInit() {
+            try {
+                if (!window.supabase) throw new Error("No cargó Supabase");
+                supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+                const { data: { session }, error } = await supabaseClient.auth.getSession();
+
+                if (error) throw error;
+
+                if (!session) {
+                    const currentUrl = window.location.href;
+                    window.location.href = `login.html?redirect=${encodeURIComponent(currentUrl)}`;
+                    return;
+                }
+
+                currentUser = session.user;
+                init();
+
+            } catch (error) {
+                console.error("Auth error:", error);
+                window.location.href = 'login.html';
+            }
+        }
+
         async function init() {
             try {
-                supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
                 await fetchProyectos();
                 await fetchLeads();
             } catch (error) {
@@ -252,8 +281,23 @@
             }
         }
 
+        async function cerrarSesion() {
+            try {
+                await supabaseClient.auth.signOut();
+                window.location.href = 'login.html';
+            } catch (error) {
+                console.error("Error al cerrar sesión", error);
+            }
+        }
+
         async function fetchProyectos() {
-            const { data, error } = await supabaseClient.from('proyectos').select('id, nombre');
+            let query = supabaseClient.from('proyectos').select('id, nombre, user_id');
+
+            if (currentUser && currentUser.email !== MASTER_ADMIN_EMAIL) {
+                query = query.eq('user_id', currentUser.id);
+            }
+
+            const { data, error } = await query;
             if (error) {
                 console.error("Error fetching projects:", error);
                 return;
@@ -269,10 +313,24 @@
         }
 
         async function fetchLeads() {
-            const { data, error } = await supabaseClient
-                .from('interesados')
-                .select('*')
-                .order('fecha', { ascending: false });
+            // Get valid project IDs for this user
+            const validProjectIds = Object.keys(proyectosData);
+
+            let query = supabaseClient.from('interesados').select('*').order('fecha_registro', { ascending: false });
+
+            // If there are valid projects and it's not the master admin
+            if (currentUser && currentUser.email !== MASTER_ADMIN_EMAIL) {
+                if (validProjectIds.length > 0) {
+                     query = query.in('proyecto_id', validProjectIds);
+                } else {
+                    // If the user has no projects, don't fetch any leads
+                    allLeads = [];
+                    updateUI();
+                    return;
+                }
+            }
+
+            const { data, error } = await query;
 
             if (error) {
                 console.error("Error fetching leads:", error);
@@ -307,7 +365,7 @@
 
             leadsAMostrar.forEach(lead => {
                 const nombreProyecto = lead.proyecto_id && proyectosData[lead.proyecto_id] ? proyectosData[lead.proyecto_id] : 'Desconocido';
-                const date = new Date(lead.fecha);
+                const date = new Date(lead.fecha_registro);
                 const dateStr = date.toLocaleDateString('es-CO') + ' ' + date.toLocaleTimeString('es-CO', {hour: '2-digit', minute:'2-digit'});
 
                 const tr = document.createElement('tr');
@@ -360,7 +418,7 @@
 
             leadsAExportar.forEach(lead => {
                 const nombreProyecto = lead.proyecto_id && proyectosData[lead.proyecto_id] ? proyectosData[lead.proyecto_id] : 'Desconocido';
-                const date = new Date(lead.fecha).toLocaleDateString('es-CO');
+                const date = new Date(lead.fecha_registro).toLocaleDateString('es-CO');
                 const row = [
                     date,
                     `"${nombreProyecto}"`,
@@ -384,7 +442,7 @@
             document.body.removeChild(link);
         }
 
-        window.onload = init;
+        window.onload = checkAuthAndInit;
     </script>
 </body>
 </html>

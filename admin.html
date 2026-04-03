@@ -205,7 +205,10 @@
 
     <!-- Dashboard de Proyectos -->
     <div id="dashboard-proyectos" style="display: none; padding: 40px 20px; min-height: 100vh; background: #111;">
-        <div style="max-width: 1200px; margin: 0 auto;">
+        <div style="position: absolute; top: 20px; right: 20px; z-index: 1000;">
+            <button onclick="cerrarSesion()" style="background: rgba(17,17,17,0.8); backdrop-filter: blur(10px); border: 1px solid #e74c3c; color: #fff; padding: 10px 15px; border-radius: 8px; font-weight: bold; text-transform: uppercase; font-size: 0.8rem; cursor: pointer; transition: background 0.2s;">Cerrar Sesión</button>
+        </div>
+        <div style="max-width: 1200px; margin: 0 auto; position: relative;">
             <h1 style="color: #f26522; font-family: 'Montserrat', sans-serif; font-size: 2.5rem; margin-bottom: 10px; text-align: center;">Tus Proyectos</h1>
             <p style="color: #bbb; text-align: center; margin-bottom: 40px;">Administra tus proyectos 360 o crea uno nuevo.</p>
 
@@ -617,6 +620,11 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
+        // MASTER ADMIN EMAIL
+        // Añade aquí tu correo para poder ver todos los proyectos de todos los usuarios
+        const MASTER_ADMIN_EMAIL = "tu_correo@ejemplo.com";
+        let currentUser = null;
+
         window.mostrarProgreso = function(porcentaje) {
             const bar = document.getElementById('global-progress');
             if (!bar) return;
@@ -670,11 +678,33 @@
         let globalAsesorNombre = "";
         let globalAsesorTel = "";
 
-        async function initApp() {
+        async function checkAuthAndInit() {
             try {
                 if (!window.supabase) throw new Error("No cargó Supabase");
                 supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
+                const { data: { session }, error } = await supabaseClient.auth.getSession();
+
+                if (error) throw error;
+
+                if (!session) {
+                    // No session, redirect to login
+                    const currentUrl = window.location.href;
+                    window.location.href = `login.html?redirect=${encodeURIComponent(currentUrl)}`;
+                    return;
+                }
+
+                currentUser = session.user;
+                initApp();
+
+            } catch (error) {
+                console.error("Auth error:", error);
+                window.location.href = 'login.html';
+            }
+        }
+
+        async function initApp() {
+            try {
                 // Mostrar siempre el dashboard inicialmente si no hay ID en la URL
                 const params = new URLSearchParams(window.location.search);
                 const projectId = params.get('proyecto');
@@ -688,13 +718,32 @@
                 }
             } catch (error) {
                 alert("Error al inicializar la aplicación: " + error.message);
-                document.getElementById('preloader-text').innerText = "Error: " + error.message;
+                const plText = document.querySelector('.preloader-text');
+                if(plText) plText.innerText = "Error: " + error.message;
+            }
+        }
+
+        async function cerrarSesion() {
+            try {
+                window.mostrarProgreso(30);
+                await supabaseClient.auth.signOut();
+                window.location.href = 'login.html';
+            } catch (error) {
+                console.error("Error al cerrar sesión", error);
+                window.mostrarError("Cerrar Sesión", error);
             }
         }
 
         async function cargarListaProyectos() {
             try {
-                const { data: proyectos, error } = await supabaseClient.from('proyectos').select('*').order('created_at', { ascending: false });
+                let query = supabaseClient.from('proyectos').select('*').order('created_at', { ascending: false });
+
+                // Si no es el master admin, filtrar por el user_id del usuario actual
+                if (currentUser && currentUser.email !== MASTER_ADMIN_EMAIL) {
+                    query = query.eq('user_id', currentUser.id);
+                }
+
+                const { data: proyectos, error } = await query;
                 if (error) throw error;
 
                 const contenedor = document.getElementById('lista-proyectos');
@@ -744,7 +793,12 @@
 
             window.mostrarProgreso(10);
             try {
-                const { data, error } = await supabaseClient.from('proyectos').insert([{ nombre: nombre }]).select().single();
+                const newProjectData = {
+                    nombre: nombre,
+                    user_id: currentUser ? currentUser.id : null
+                };
+
+                const { data, error } = await supabaseClient.from('proyectos').insert([newProjectData]).select().single();
                 if (error) throw error;
 
                 window.mostrarProgreso(50);
@@ -3016,7 +3070,7 @@
             }
         }
 
-        window.onload = initApp;
+        window.onload = checkAuthAndInit;
     </script>
 </body>
 </html>
