@@ -216,7 +216,7 @@
     <script>
         const supabaseUrl = 'https://mungbffwwjobinfcympd.supabase.co';
         const supabaseKey = 'sb_publishable_yW5gsHp1w8ElbWRTeoMJYw_ZC-u0j9e';
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
         function mostrarProgreso(porcentaje) {
             const bar = document.getElementById('global-progress');
@@ -251,7 +251,7 @@
             mostrarProgreso(30);
 
             try {
-                const { data, error } = await supabase.auth.signInWithPassword({
+                const { data, error } = await supabaseClient.auth.signInWithPassword({
                     email: email,
                     password: password,
                 });
@@ -266,7 +266,12 @@
                 // Redirigir al admin después de login exitoso
                 setTimeout(() => {
                     const params = new URLSearchParams(window.location.search);
-                    const redirectTo = params.get('redirect') || 'admin.html';
+                    let redirectTo = params.get('redirect') || 'admin.html';
+
+                    if (!params.get('redirect') && params.get('proyecto')) {
+                        redirectTo += '?proyecto=' + params.get('proyecto');
+                    }
+
                     window.location.href = redirectTo;
                 }, 1000);
 
@@ -291,10 +296,15 @@
         // Verificar si ya está logueado al cargar
         async function checkSession() {
             mostrarProgreso(10);
-            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { session } } = await supabaseClient.auth.getSession();
             if (session) {
                 const params = new URLSearchParams(window.location.search);
-                const redirectTo = params.get('redirect') || 'admin.html';
+                let redirectTo = params.get('redirect') || 'admin.html';
+
+                if (!params.get('redirect') && params.get('proyecto')) {
+                    redirectTo += '?proyecto=' + params.get('proyecto');
+                }
+
                 window.location.href = redirectTo;
             } else {
                 mostrarProgreso(100);
