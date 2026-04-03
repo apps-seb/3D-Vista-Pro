@@ -123,6 +123,63 @@
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
+        /* PanoFlatten Editor Styles */
+        #panoflatten-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #111; z-index: 10001; display: none; flex-direction: column; overflow: hidden;
+        }
+        #panoflatten-header {
+            display: flex; justify-content: space-between; align-items: center; padding: 10px 20px;
+            background: #000; border-bottom: 2px solid #e67e22; z-index: 10;
+        }
+        #panoflatten-header h2 { margin: 0; color: #e67e22; font-size: 1.2rem; }
+
+        #pf-workspace {
+            position: relative; flex: 1; overflow: hidden; background: #222;
+            cursor: crosshair; display: flex; justify-content: center; align-items: center;
+        }
+
+        #pf-scroll-container {
+            width: 100%; height: 100%; overflow: auto; position: relative;
+        }
+
+        #pf-image-container {
+            position: relative; transform-origin: 0 0;
+            /* width and height set by JS based on image */
+        }
+
+        #pf-pano-img {
+            display: block; width: 100%; height: auto;
+            pointer-events: none;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+
+        #pf-svg-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: auto;
+        }
+
+        .pf-svg-poly {
+            pointer-events: auto;
+            cursor: pointer;
+            transition: fill 0.2s;
+        }
+
+        .pf-svg-poly:hover {
+            fill: rgba(230, 126, 34, 0.6) !important;
+        }
+
+        #pf-panel-right {
+            position: absolute; right: 20px; top: 80px; width: 300px; background: rgba(17,17,17,0.9);
+            backdrop-filter: blur(10px); border: 1px solid #e67e22; border-radius: 8px; padding: 15px;
+            z-index: 20; max-height: calc(100vh - 100px); overflow-y: auto; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        .pf-zoom-controls {
+            position: absolute; left: 20px; bottom: 20px; display: flex; gap: 10px; z-index: 20;
+            background: rgba(0,0,0,0.7); padding: 10px; border-radius: 8px; border: 1px solid #444;
+        }
+
         #preloader { position: fixed; inset: 0; background: #050505; z-index: 10000; display: flex; justify-content: center; align-items: center; transition: opacity 0.8s ease; }
         .preloader-content { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 20px; }
         #preloader-logo { max-height: 120px; max-width: 80vw; object-fit: contain; animation: logo-pulse 2s infinite; border-radius: 8px; }
@@ -247,8 +304,9 @@
         <div class="control-group">
             <span class="control-label">2. Herramientas de Mapa</span>
             <button id="btn-add-lote" class="btn btn-action" onclick="activarModo('lote')">+ Crear Lote (Punto)</button>
-            <button id="btn-open-polygon-editor" class="btn btn-action" onclick="abrirEditorPoligonos()" style="background: #f26522; color: #000; border: 1px solid #f26522; font-weight: bold;">✏️ Dibujar Polígonos 2D</button>
-            <button id="btn-open-polygon-360" class="btn btn-action" onclick="abrirEditorPoligonos360()" style="background: #f26522; color: #000; border: 1px solid #f26522; font-weight: bold;">✏️ Trazar Polígono 360</button>
+            <button id="btn-open-polygon-editor" class="btn btn-action" onclick="abrirEditorPoligonos()" style="background: #f26522; color: #000; border: 1px solid #f26522; font-weight: bold;">✏️ Dibujar Polígonos 2D (Guía)</button>
+            <button id="btn-open-panoflatten" class="btn btn-action" onclick="abrirPanoFlattenEditor()" style="background: #e67e22; color: #fff; border: 1px solid #e67e22; font-weight: bold;">🗺️ PanoFlatten (Trazado Plano 360)</button>
+            <button id="btn-open-polygon-360" class="btn btn-action" onclick="abrirEditorPoligonos360()" style="background: #f26522; color: #000; border: 1px solid #f26522; font-weight: bold;">✏️ Trazar Polígono 360 (Directo)</button>
             <button id="btn-add-poi" class="btn btn-action" onclick="activarModo('poi')" style="background: #222; color: #fff; border: 1px solid #444;">+ Crear Punto de Interés</button>
             <p style="font-size: 0.75rem; color: #f26522; text-align: center; margin-top: 10px; font-weight: bold;" id="add-helper">Selecciona una opción arriba</p>
         </div>
@@ -309,6 +367,77 @@
             <h4 style="margin: 0 0 10px 0; color: #fff; font-size: 0.9rem;">Inventario Polígonos 360 (<span id="count-polys-360">0</span>)</h4>
             <div id="poly-360-list" style="max-height: 200px; overflow-y: auto;">
                 <p style="font-size: 0.8rem; color: #666; text-align: center;">Cargando...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANOFLATTEN EDITOR OVERLAY -->
+    <div id="panoflatten-overlay">
+        <div id="panoflatten-header">
+            <h2>🗺️ PanoFlatten - Trazado sobre Imagen 360 Original</h2>
+            <div>
+                <button class="editor-btn danger" onclick="cerrarPanoFlattenEditor()">Cerrar Editor</button>
+            </div>
+        </div>
+
+        <div id="pf-workspace">
+            <div id="pf-scroll-container">
+                <div id="pf-image-container">
+                    <img id="pf-pano-img" src="" alt="Panorama Equirectangular">
+                    <svg id="pf-svg-layer"></svg>
+                </div>
+            </div>
+
+            <div class="pf-zoom-controls">
+                <button class="editor-btn" onclick="pfZoomIn()">➕ Zoom In</button>
+                <button class="editor-btn" onclick="pfZoomOut()">➖ Zoom Out</button>
+                <button class="editor-btn" onclick="pfZoomReset()">🔄 100%</button>
+            </div>
+
+            <!-- Panel Derecho PanoFlatten -->
+            <div id="pf-panel-right">
+                <h3 style="color: #fff; margin-top: 0; font-size: 1rem; border-bottom: 1px solid #444; padding-bottom: 10px;">Herramientas PanoFlatten</h3>
+
+                <div style="margin-bottom: 15px;">
+                    <button id="pf-btn-draw" class="editor-btn" style="width: 100%; margin-bottom: 5px;" onclick="pfStartDrawing()">✏️ Nuevo Polígono</button>
+                    <button class="editor-btn" style="width: 100%; margin-bottom: 5px;" onclick="pfUndoPoint()">↩️ Deshacer Punto</button>
+                    <button class="editor-btn danger" style="width: 100%;" onclick="pfCancelDrawing()">Cancelar Dibujo</button>
+                </div>
+
+                <div id="pf-save-panel" style="display: none; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; border: 1px dashed #e67e22; margin-bottom: 15px;">
+                    <p style="font-size: 0.85rem; color: #e67e22; margin-top: 0;"><strong>Guardar Trazado</strong></p>
+
+                    <label style="font-size: 0.8rem; color: #ddd; display: block; margin-bottom: 5px;">Asignar a Lote existente:</label>
+                    <select id="pf-lote-select" class="input-select" style="background: rgba(0,0,0,0.8); border: 1px solid #e67e22; margin-bottom: 10px;">
+                        <option value="">-- Selecciona un Lote --</option>
+                    </select>
+                    <button class="editor-btn" style="width: 100%; background: #2ecc71; color: #000; margin-bottom: 10px;" onclick="pfSaveToLote()">✅ Guardar en Lote</button>
+
+                    <div style="border-top: 1px solid #444; margin: 10px 0;"></div>
+
+                    <label style="font-size: 0.8rem; color: #ddd; display: block; margin-bottom: 5px;">O Guardar como Polígono 360 Libre:</label>
+                    <input type="text" id="pf-poly360-nombre" class="input-text" placeholder="Nombre del polígono libre" style="padding: 6px; font-size: 0.8rem; margin-bottom: 5px;">
+
+                    <div style="display: flex; gap: 5px; margin-bottom: 5px;">
+                        <input type="color" id="pf-poly360-color" class="input-text" value="#e67e22" style="height: 30px; padding: 0; width: 50%;">
+                        <select id="pf-poly360-tipo" class="input-select" style="padding: 4px; font-size: 0.75rem; width: 50%;">
+                            <option value="relleno">Relleno</option>
+                            <option value="trazado">Borde</option>
+                        </select>
+                    </div>
+
+                    <button class="editor-btn" style="width: 100%; background: #e67e22; color: #000;" onclick="pfSaveToPoly360()">🌟 Guardar Polígono 360</button>
+                </div>
+
+                <div style="border-top: 1px solid #444; padding-top: 10px;">
+                    <h4 style="margin: 0 0 10px 0; color: #fff; font-size: 0.9rem;">Visibilidad de Trazados</h4>
+                    <label style="font-size: 0.8rem; display: flex; align-items: center; gap: 5px; margin-bottom: 5px; cursor: pointer;">
+                        <input type="checkbox" id="pf-toggle-lotes" checked onchange="pfRenderAllPolygons()"> Lotes
+                    </label>
+                    <label style="font-size: 0.8rem; display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                        <input type="checkbox" id="pf-toggle-poly360" checked onchange="pfRenderAllPolygons()"> Polígonos 360 Libres
+                    </label>
+                </div>
             </div>
         </div>
     </div>
@@ -1021,6 +1150,307 @@
                 window.mostrarError("guardarTituloDesdeModal", error);
             }
         };
+
+        // ---------------- PANOFLATTEN LÓGICA ---------------- //
+        let pfScale = 1;
+        let pfImageWidth = 0;
+        let pfImageHeight = 0;
+        let pfDrawingPoints = [];
+        let pfIsDrawing = false;
+
+        window.abrirPanoFlattenEditor = function() {
+            document.getElementById('panoflatten-overlay').style.display = 'flex';
+            const img = document.getElementById('pf-pano-img');
+
+            let panoToLoad = globalPanoUrl;
+            if (viewer && viewer.config.panorama) {
+                panoToLoad = viewer.config.panorama;
+            }
+
+            img.onload = function() {
+                pfImageWidth = img.naturalWidth;
+                pfImageHeight = img.naturalHeight;
+                pfZoomReset();
+                pfUpdateLoteSelect();
+                pfRenderAllPolygons();
+            }
+            img.onerror = function() {
+                alert("Error cargando la imagen para PanoFlatten. Por favor verifica la conexión.");
+            }
+            // Add a cache-buster or crossOrigin if necessary
+            img.crossOrigin = "anonymous";
+            img.src = panoToLoad;
+
+            const svgLayer = document.getElementById('pf-svg-layer');
+            // Ensure we don't attach multiple listeners
+            svgLayer.removeEventListener('click', pfOnSvgClick);
+            svgLayer.addEventListener('click', pfOnSvgClick);
+        }
+
+        window.cerrarPanoFlattenEditor = function() {
+            document.getElementById('panoflatten-overlay').style.display = 'none';
+            pfCancelDrawing();
+        }
+
+        window.pfZoomIn = function() { pfScale *= 1.2; pfUpdateScale(); }
+        window.pfZoomOut = function() { pfScale /= 1.2; pfUpdateScale(); }
+        window.pfZoomReset = function() {
+            const container = document.getElementById('pf-scroll-container');
+            // Try to fit the height of the image to the container initially
+            const scaleFitHeight = container.clientHeight / pfImageHeight;
+            const scaleFitWidth = container.clientWidth / pfImageWidth;
+            pfScale = Math.min(scaleFitHeight, scaleFitWidth) * 0.95; // fit to screen with a small margin
+            if(pfScale > 1) pfScale = 1;
+            pfUpdateScale();
+        }
+
+        function pfUpdateScale() {
+            const imgContainer = document.getElementById('pf-image-container');
+            imgContainer.style.width = (pfImageWidth * pfScale) + 'px';
+            imgContainer.style.height = (pfImageHeight * pfScale) + 'px';
+
+            const img = document.getElementById('pf-pano-img');
+            img.style.width = '100%';
+            img.style.height = '100%';
+
+            pfRenderAllPolygons();
+        }
+
+        function pfOnSvgClick(e) {
+            if(!pfIsDrawing) return;
+            const svgLayer = document.getElementById('pf-svg-layer');
+            const rect = svgLayer.getBoundingClientRect();
+            // Coordinates relative to the scaled image
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            // Un-scale coordinates to get original image coordinates
+            const origX = x / pfScale;
+            const origY = y / pfScale;
+
+            pfDrawingPoints.push({x: origX, y: origY});
+            pfRenderAllPolygons();
+            pfCheckDrawingState();
+        }
+
+        window.pfStartDrawing = function() {
+            pfIsDrawing = true;
+            pfDrawingPoints = [];
+            document.getElementById('pf-save-panel').style.display = 'none';
+            document.getElementById('pf-btn-draw').innerText = '✏️ Dibujando... (Clic en la imagen)';
+            document.getElementById('pf-btn-draw').style.background = '#e74c3c';
+            pfRenderAllPolygons();
+        }
+
+        window.pfUndoPoint = function() {
+            if (pfDrawingPoints.length > 0) {
+                pfDrawingPoints.pop();
+                pfRenderAllPolygons();
+                pfCheckDrawingState();
+            }
+        }
+
+        window.pfCancelDrawing = function() {
+            pfIsDrawing = false;
+            pfDrawingPoints = [];
+            document.getElementById('pf-save-panel').style.display = 'none';
+            document.getElementById('pf-btn-draw').innerText = '✏️ Nuevo Polígono';
+            document.getElementById('pf-btn-draw').style.background = '#222';
+            pfRenderAllPolygons();
+        }
+
+        function pfCheckDrawingState() {
+            if (pfDrawingPoints.length >= 3) {
+                document.getElementById('pf-save-panel').style.display = 'block';
+            } else {
+                document.getElementById('pf-save-panel').style.display = 'none';
+            }
+        }
+
+        function pfUpdateLoteSelect() {
+            const select = document.getElementById('pf-lote-select');
+            select.innerHTML = '<option value="">-- Selecciona un Lote --</option>';
+            lotesDataEditor.forEach(l => {
+                const opt = document.createElement('option');
+                opt.value = l.id;
+                opt.text = l.nombre + (l.poligono ? ' (Ya tiene trazado)' : '');
+                select.appendChild(opt);
+            });
+        }
+
+        function pfRenderAllPolygons() {
+            const svgLayer = document.getElementById('pf-svg-layer');
+            svgLayer.innerHTML = '';
+
+            // 1. Render existing poly360s
+            if(document.getElementById('pf-toggle-poly360').checked) {
+                polys360Data.forEach(p => {
+                    const points = JSON.parse(p.puntos);
+                    if(points && points.length >= 3) {
+                        const pixelPoints = points.map(pt => pfSphereToPixel(pt[0], pt[1]));
+                        const pointsAttr = pixelPoints.map(pt => `${pt.x * pfScale},${pt.y * pfScale}`).join(' ');
+
+                        const poly = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+                        poly.setAttribute('points', pointsAttr);
+                        poly.setAttribute('fill', p.tipo === 'relleno' ? hexToRgbA(p.color_relleno, 0.4) : 'transparent');
+                        poly.setAttribute('stroke', p.color_borde);
+                        poly.setAttribute('stroke-width', '2');
+                        poly.classList.add('pf-svg-poly');
+
+                        const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+                        title.textContent = p.nombre;
+                        poly.appendChild(title);
+
+                        svgLayer.appendChild(poly);
+                    }
+                });
+            }
+
+            // 2. Render existing lotes polygons
+            if(document.getElementById('pf-toggle-lotes').checked) {
+                lotesDataEditor.forEach(l => {
+                    if(l.poligono) {
+                        try {
+                            const points = JSON.parse(l.poligono);
+                            if (Array.isArray(points) && points.length >= 3) {
+                                const pixelPoints = points.map(pt => pfSphereToPixel(pt[0], pt[1]));
+                                const pointsAttr = pixelPoints.map(pt => `${pt.x * pfScale},${pt.y * pfScale}`).join(' ');
+
+                                let strokeColor = l.estado === 'Vendido' ? '#e74c3c' : (l.estado === 'Reservado' ? '#f39c12' : '#2ecc71');
+                                let fillColor = strokeColor.replace('rgb', 'rgba').replace(')', ', 0.4)'); // Simplified approximation
+                                if(strokeColor.startsWith('#')) {
+                                    fillColor = hexToRgbA(strokeColor, 0.4);
+                                }
+
+                                const poly = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+                                poly.setAttribute('points', pointsAttr);
+                                poly.setAttribute('fill', fillColor);
+                                poly.setAttribute('stroke', strokeColor);
+                                poly.setAttribute('stroke-width', '2');
+                                poly.classList.add('pf-svg-poly');
+
+                                const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+                                title.textContent = l.nombre;
+                                poly.appendChild(title);
+
+                                svgLayer.appendChild(poly);
+                            }
+                        } catch(e) {}
+                    }
+                });
+            }
+
+            // 3. Render the currently drawing polygon
+            if(pfDrawingPoints.length > 0) {
+                const pointsAttr = pfDrawingPoints.map(pt => `${pt.x * pfScale},${pt.y * pfScale}`).join(' ');
+
+                // Draw lines
+                const polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+                polyline.setAttribute('points', pointsAttr);
+                polyline.setAttribute('fill', pfDrawingPoints.length >= 3 ? 'rgba(230, 126, 34, 0.4)' : 'transparent');
+                polyline.setAttribute('stroke', '#e67e22');
+                polyline.setAttribute('stroke-width', '2');
+                svgLayer.appendChild(polyline);
+
+                // Draw vertices
+                pfDrawingPoints.forEach((pt, index) => {
+                    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    circle.setAttribute('cx', pt.x * pfScale);
+                    circle.setAttribute('cy', pt.y * pfScale);
+                    circle.setAttribute('r', '4');
+                    circle.setAttribute('fill', '#fff');
+                    circle.setAttribute('stroke', '#e67e22');
+                    circle.setAttribute('stroke-width', '2');
+                    svgLayer.appendChild(circle);
+                });
+            }
+        }
+
+        function pfPixelToSphere(x, y) {
+            const yaw = (x / pfImageWidth) * 2 * Math.PI - Math.PI;
+            const pitch = (0.5 - (y / pfImageHeight)) * Math.PI;
+            return [yaw, pitch];
+        }
+
+        function pfSphereToPixel(yaw, pitch) {
+            const x = ((yaw + Math.PI) / (2 * Math.PI)) * pfImageWidth;
+            const y = (0.5 - (pitch / Math.PI)) * pfImageHeight;
+            return {x, y};
+        }
+
+        window.pfSaveToLote = async function() {
+            const loteId = document.getElementById('pf-lote-select').value;
+            if(!loteId) { alert("Selecciona un lote."); return; }
+            if(pfDrawingPoints.length < 3) return;
+
+            window.mostrarProgreso(10);
+            try {
+                // Convert to spherical
+                const sphericalPoints = pfDrawingPoints.map(pt => pfPixelToSphere(pt.x, pt.y));
+                const poligonoStr = JSON.stringify(sphericalPoints);
+
+                const { error } = await supabaseClient.from('lotes')
+                    .update({ poligono: poligonoStr })
+                    .eq('id', loteId);
+
+                if (error) throw error;
+
+                // Update local
+                const lote = lotesDataEditor.find(l => l.id === loteId);
+                if(lote) lote.poligono = poligonoStr;
+
+                // Update viewer
+                if (lote) {
+                    window.renderLote(lote.id, lote.nombre, lote.area, lote.precio, lote.estado, lote.yaw, lote.pitch, lote.poligono);
+                }
+
+                pfCancelDrawing();
+                pfUpdateLoteSelect(); // Refresh names
+                actualizarListaLotesEditor(); // If the other editor is open
+
+                window.mostrarProgreso(100);
+                alert("Guardado en lote exitosamente.");
+            } catch (error) {
+                window.mostrarError("pfSaveToLote", error);
+            }
+        }
+
+        window.pfSaveToPoly360 = async function() {
+            if(pfDrawingPoints.length < 3) return;
+            const nombre = document.getElementById('pf-poly360-nombre').value;
+            if(!nombre) { alert("Ingresa un nombre para el polígono."); return; }
+
+            const colorRelleno = document.getElementById('pf-poly360-color').value;
+            const colorBorde = colorRelleno;
+            const tipo = document.getElementById('pf-poly360-tipo').value;
+            const idUnico = 'poly360-' + Date.now();
+
+            window.mostrarProgreso(10);
+            try {
+                const sphericalPoints = pfDrawingPoints.map(pt => pfPixelToSphere(pt.x, pt.y));
+                const poligonoStr = JSON.stringify(sphericalPoints);
+
+                const { error } = await supabaseClient.from('poligonos_360').insert([{
+                    id: idUnico, nombre: nombre, puntos: poligonoStr,
+                    color_relleno: colorRelleno, color_borde: colorBorde, tipo: tipo,
+                    proyecto_id: currentProjectId
+                }]);
+
+                if (error) throw error;
+
+                // Update local & viewer
+                cargarInventarioPolys360();
+
+                pfCancelDrawing();
+                document.getElementById('pf-poly360-nombre').value = '';
+
+                window.mostrarProgreso(100);
+                alert("Polígono 360 libre guardado exitosamente.");
+            } catch (error) {
+                window.mostrarError("pfSaveToPoly360", error);
+            }
+        }
+
 
         // ---------------- EDITOR DE POLÍGONOS LÓGICA ---------------- //
         let editorCanvas, ctx;
