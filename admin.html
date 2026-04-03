@@ -384,7 +384,11 @@
             <div id="pf-scroll-container">
                 <div id="pf-image-container">
                     <img id="pf-pano-img" src="" alt="Panorama Equirectangular">
+
                     <svg id="pf-svg-layer"></svg>
+                    <!-- WebGL Canvas for Nadir Projection -->
+                    <canvas id="pf-nadir-canvas" width="100%" height="100%" style="position: absolute; top: 0; left: 0; z-index: 5; display: none; object-fit: contain; pointer-events: none;"></canvas>
+
                 </div>
             </div>
 
@@ -404,7 +408,17 @@
                     <button class="editor-btn danger" style="width: 100%;" onclick="pfCancelDrawing()">Cancelar Dibujo</button>
                 </div>
 
+
+                <div id="pf-view-panel" style="margin-bottom: 15px;">
+                    <label style="color:#fff; display:block; margin-bottom:5px; font-size:12px;">Proyección de la Vista</label>
+                    <select id="pf-projection-select" onchange="pfUpdateProjection()" style="width:100%; padding:8px; border-radius:5px; border:1px solid rgba(255,255,255,0.2); background:#222; color:#fff;">
+                        <option value="equirectangular">Equirectangular (Normal)</option>
+                        <option value="nadir">Nadir (Planta Ortogonal)</option>
+                    </select>
+                </div>
+
                 <div id="pf-save-panel" style="display: none; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; border: 1px dashed #e67e22; margin-bottom: 15px;">
+
                     <p style="font-size: 0.85rem; color: #e67e22; margin-top: 0;"><strong>Guardar Trazado</strong></p>
 
                     <label style="font-size: 0.8rem; color: #ddd; display: block; margin-bottom: 5px;">Asignar a Lote existente:</label>
@@ -1366,17 +1380,273 @@
             }
         }
 
+
+        // --- WebGL Nadir Support ---
+        let gl = null;
+        let shaderProgram = null;
+        let positionBuffer = null;
+        let texCoordBuffer = null;
+        let texture = null;
+        let pfCurrentProjection = 'equirectangular';
+
+        const vsSource = `
+            attribute vec4 aVertexPosition;
+            attribute vec2 aTextureCoord;
+            varying highp vec2 vTextureCoord;
+            void main(void) {
+                gl_Position = aVertexPosition;
+                vTextureCoord = aTextureCoord;
+            }
+        `;
+
+        const fsSource = `
+            precision highp float;
+            varying highp vec2 vTextureCoord;
+            uniform sampler2D uSampler;
+
+            void main(void) {
+
+                // vTextureCoord ranges from 0.0 to 1.0 (X and Y)
+                // Map this 0 to 1 square to a circle representing the bottom hemisphere
+
+                // Shift so center is 0,0 and range is -1 to 1
+                vec2 uv = vTextureCoord * 2.0 - 1.0;
+
+                // Calculate distance from center (radius)
+                float r = length(uv);
+
+                if (r > 1.0) {
+                    // Outside the circle (bottom hemisphere)
+                    gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+                    return;
+                }
+
+                // Calculate azimuthal angle (longitude / yaw)
+                float theta = atan(uv.x, uv.y);
+
+                // Map r to pitch (latitude). r=0 -> pitch=-90 (bottom), r=1 -> pitch=0 (equator)
+                // Pitch in equirectangular texture space: 0 is top, 0.5 is equator, 1.0 is bottom
+                float textureY = 0.5 + (r * 0.5);
+
+                // Map theta to yaw (longitude). theta from -PI to PI
+                // Yaw in equirectangular texture space: 0 to 1.0
+                float textureX = (theta + 3.14159265359) / (2.0 * 3.14159265359);
+
+                gl_FragColor = texture2D(uSampler, vec2(textureX, textureY));
+            }
+        `;
+
+        function initWebGL() {
+            const canvas = document.getElementById('pf-nadir-canvas');
+            gl = canvas.getContext('webgl');
+            if (!gl) {
+                console.warn('WebGL not supported, falling back to basic.');
+                return;
+            }
+
+            const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
+            const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
+
+            shaderProgram = gl.createProgram();
+            gl.attachShader(shaderProgram, vertexShader);
+            gl.attachShader(shaderProgram, fragmentShader);
+            gl.linkProgram(shaderProgram);
+
+            if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+                console.error('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));
+                return;
+            }
+
+            positionBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+            const positions = [
+                 1.0,  1.0,
+                -1.0,  1.0,
+                 1.0, -1.0,
+                -1.0, -1.0,
+            ];
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+            texCoordBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+            const textureCoordinates = [
+                1.0,  0.0,
+                0.0,  0.0,
+                1.0,  1.0,
+                0.0,  1.0,
+            ];
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates), gl.STATIC_DRAW);
+        }
+
+        function loadShader(gl, type, source) {
+            const shader = gl.createShader(type);
+            gl.shaderSource(shader, source);
+            gl.compileShader(shader);
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                console.error('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
+                gl.deleteShader(shader);
+                return null;
+            }
+            return shader;
+        }
+
+        function renderNadir(imgElement) {
+            if (!gl) initWebGL();
+            if (!gl) return;
+
+            const canvas = document.getElementById('pf-nadir-canvas');
+
+            // Set canvas size to a square based on the container to maintain aspect ratio
+            const container = document.getElementById('pf-workspace');
+            const size = Math.min(container.clientWidth, container.clientHeight);
+            canvas.width = size;
+            canvas.height = size;
+
+            // Adjust canvas styling so it sits centrally
+            canvas.style.left = (container.clientWidth - size) / 2 + 'px';
+            canvas.style.top = (container.clientHeight - size) / 2 + 'px';
+            canvas.style.width = size + 'px';
+            canvas.style.height = size + 'px';
+
+            gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+
+            if (!texture) {
+                texture = gl.createTexture();
+                gl.bindTexture(gl.TEXTURE_2D, texture);
+
+                // Flip Y because WebGL expects bottom-left origin
+                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, imgElement);
+
+                // Set filtering
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            }
+
+            gl.useProgram(shaderProgram);
+
+            const vertexPosition = gl.getAttribLocation(shaderProgram, 'aVertexPosition');
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+            gl.vertexAttribPointer(vertexPosition, 2, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(vertexPosition);
+
+            const textureCoord = gl.getAttribLocation(shaderProgram, 'aTextureCoord');
+            gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+            gl.vertexAttribPointer(textureCoord, 2, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(textureCoord);
+
+            const uSampler = gl.getUniformLocation(shaderProgram, 'uSampler');
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.uniform1i(uSampler, 0);
+
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        }
+
+        window.pfUpdateProjection = function() {
+            const select = document.getElementById('pf-projection-select');
+            pfCurrentProjection = select ? select.value : 'equirectangular';
+
+            const imgEl = document.getElementById('pf-pano-img');
+            const canvas = document.getElementById('pf-nadir-canvas');
+
+            if (pfCurrentProjection === 'nadir') {
+                imgEl.style.opacity = '0'; // Hide the 2D image
+                canvas.style.display = 'block'; // Show WebGL
+                renderNadir(imgEl);
+                pfScale = 1; // Handled differently in nadir
+
+                // Need to reposition the SVG overlay to match the Nadir canvas bounds
+                const container = document.getElementById('pf-workspace');
+                const size = Math.min(container.clientWidth, container.clientHeight);
+                const svgLayer = document.getElementById('pf-svg-layer');
+                svgLayer.style.left = (container.clientWidth - size) / 2 + 'px';
+                svgLayer.style.top = (container.clientHeight - size) / 2 + 'px';
+                svgLayer.style.width = size + 'px';
+                svgLayer.style.height = size + 'px';
+
+            } else {
+                imgEl.style.opacity = '1';
+                canvas.style.display = 'none';
+
+                // Reset SVG bounds to full image
+                const svgLayer = document.getElementById('pf-svg-layer');
+                svgLayer.style.left = '0px';
+                svgLayer.style.top = '0px';
+                svgLayer.style.width = '100%';
+                svgLayer.style.height = '100%';
+                pfUpdateScale(); // Restore equirectangular scale
+            }
+
+            pfRenderAllPolygons();
+        }
+
         function pfPixelToSphere(x, y) {
-            const yaw = (x / pfImageWidth) * 2 * Math.PI - Math.PI;
-            const pitch = (0.5 - (y / pfImageHeight)) * Math.PI;
-            return [yaw, pitch];
+            if (pfCurrentProjection === 'nadir') {
+                // x,y are pixel coordinates on the square Nadir canvas
+                const canvas = document.getElementById('pf-nadir-canvas');
+                const w = canvas.width;
+                const h = canvas.height;
+
+                // Map to -1 to 1 range, with 0,0 at center
+                const u = (x / w) * 2.0 - 1.0;
+                // Flip Y because pixel Y goes down, but our math Y goes up
+                const v = ((h - y) / h) * 2.0 - 1.0;
+
+                const r = Math.sqrt(u*u + v*v);
+
+                // If clicked outside the circle, default to equator
+                if (r > 1.0) return [0, 0];
+
+                // Calculate Yaw
+                const theta = Math.atan2(u, v);
+
+                // Map r to pitch (0 is equator, 1 is nadir)
+                // Spherical pitch is -PI/2 (bottom) to PI/2 (top)
+                const pitch = -1 * r * (Math.PI / 2);
+
+                return [theta, pitch];
+            } else {
+                const yaw = (x / pfImageWidth) * 2 * Math.PI - Math.PI;
+                const pitch = (0.5 - (y / pfImageHeight)) * Math.PI;
+                return [yaw, pitch];
+            }
         }
 
         function pfSphereToPixel(yaw, pitch) {
-            const x = ((yaw + Math.PI) / (2 * Math.PI)) * pfImageWidth;
-            const y = (0.5 - (pitch / Math.PI)) * pfImageHeight;
-            return {x, y};
+            if (pfCurrentProjection === 'nadir') {
+                // If point is in the upper hemisphere, it's not visible in Nadir, but map it to edge
+                let r = pitch >= 0 ? 1.0 : (Math.abs(pitch) / (Math.PI / 2));
+
+                // Clamp r to 1.0 max
+                r = Math.min(r, 1.0);
+
+                // theta is yaw
+                const u = r * Math.sin(yaw);
+                const v = r * Math.cos(yaw);
+
+                const canvas = document.getElementById('pf-nadir-canvas');
+                // Use a default size if canvas isn't ready
+                const w = canvas.width || 800;
+                const h = canvas.height || 800;
+
+                // Map back to pixel coordinates (u,v are -1 to 1)
+                const x = (u + 1.0) / 2.0 * w;
+                // Unflip Y
+                const y = h - ((v + 1.0) / 2.0 * h);
+
+                return {x, y};
+            } else {
+                const x = ((yaw + Math.PI) / (2 * Math.PI)) * pfImageWidth;
+                const y = (0.5 - (pitch / Math.PI)) * pfImageHeight;
+                return {x, y};
+            }
         }
+
 
         window.pfSaveToLote = async function() {
             const loteId = document.getElementById('pf-lote-select').value;
