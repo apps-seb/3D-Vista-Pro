@@ -20,9 +20,16 @@ CREATE TABLE IF NOT EXISTS public.proyectos (
 
 ALTER TABLE public.proyectos ENABLE ROW LEVEL SECURITY;
 -- Políticas para proyectos: Lectura pública para la landing page, pero inserción/actualización/borrado solo para usuarios autenticados dueños del proyecto.
+DROP POLICY IF EXISTS "Permitir select en proyectos" ON public.proyectos;
 CREATE POLICY "Permitir select en proyectos" ON public.proyectos FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Permitir insert en proyectos" ON public.proyectos;
 CREATE POLICY "Permitir insert en proyectos" ON public.proyectos FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+
+DROP POLICY IF EXISTS "Permitir update en proyectos" ON public.proyectos;
 CREATE POLICY "Permitir update en proyectos" ON public.proyectos FOR UPDATE USING (auth.uid() = user_id OR auth.uid() IS NULL);
+
+DROP POLICY IF EXISTS "Permitir delete en proyectos" ON public.proyectos;
 CREATE POLICY "Permitir delete en proyectos" ON public.proyectos FOR DELETE USING (auth.uid() = user_id OR auth.uid() IS NULL);
 
 -- ==============================================================================
