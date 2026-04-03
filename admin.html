@@ -738,9 +738,9 @@
             try {
                 let query = supabaseClient.from('proyectos').select('*').order('created_at', { ascending: false });
 
-                // Si no es el master admin, filtrar por el user_id del usuario actual
+                // Si no es el master admin, filtrar por el user_id del usuario actual (o null para proyectos legacy)
                 if (currentUser && currentUser.email !== MASTER_ADMIN_EMAIL) {
-                    query = query.eq('user_id', currentUser.id);
+                    query = query.or(`user_id.eq.${currentUser.id},user_id.is.null`);
                 }
 
                 const { data: proyectos, error } = await query;

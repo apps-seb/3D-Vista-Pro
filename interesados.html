@@ -294,7 +294,7 @@
             let query = supabaseClient.from('proyectos').select('id, nombre, user_id');
 
             if (currentUser && currentUser.email !== MASTER_ADMIN_EMAIL) {
-                query = query.eq('user_id', currentUser.id);
+                query = query.or(`user_id.eq.${currentUser.id},user_id.is.null`);
             }
 
             const { data, error } = await query;
