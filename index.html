@@ -36,9 +36,9 @@
         .inv-dot { width: 10px; height: 10px; border-radius: 50%; }
         .inv-count { background: rgba(255,255,255,0.15); padding: 2px 8px; border-radius: 12px; }
 
-        /* FIX CRÍTICO: pointer-events: none para permitir que el wrapper de PSV detecte el clic en móviles */
-        .lote-marker { width: 34px; height: 34px; border: 2px solid #fff; border-radius: 50%; cursor: pointer; animation: pulse 2s infinite; display: flex; justify-content: center; align-items: center; font-size: 11px; font-weight: bold; color: white; text-shadow: 1px 1px 2px black; text-align: center; pointer-events: none; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
+        .lote-marker-container { width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; pointer-events: auto !important; cursor: pointer; background: rgba(255,255,255,0.01); border-radius: 50%; }
+        .lote-marker-visual { width: 34px; height: 34px; border: 2px solid #fff; border-radius: 50%; animation: pulse-visual 2s infinite; display: flex; justify-content: center; align-items: center; font-size: 11px; font-weight: bold; color: white; text-shadow: 1px 1px 2px black; text-align: center; pointer-events: none; }
+        @keyframes pulse-visual { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
         @keyframes pulse-white { 0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(255, 255, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); } }
 
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 50; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
@@ -57,9 +57,6 @@
             color: white;
             text-align: center;
             position: relative;
-        }
-        @media (max-width: 600px) {
-            .modal-content { width: 95%; padding: 20px; }
         }
         .btn-close { position: absolute; top: 10px; right: 15px; background: none; border: none; color: #aaa; font-size: 1.5rem; cursor: pointer; transition: color 0.3s; }
         .btn-close:hover { color: #fff; }
@@ -102,7 +99,6 @@
             border-radius: 8px;
             box-sizing: border-box;
             font-family: inherit;
-            font-size: 16px; /* FIX: Evita el auto-zoom en inputs en iOS y Android */
             transition: border-color 0.3s, background 0.3s;
         }
         .input-glass:focus {
@@ -148,7 +144,7 @@
     </style>
 </head>
 <body>
-    <!-- Lobby de Proyectos -->
+    <!-- Lobby de Proyectos (Se muestra si no hay ID en la URL) -->
     <div id="lobby-proyectos" style="display: none; padding: 40px 20px; min-height: 100vh; background: #111;">
         <div style="max-width: 1200px; margin: 0 auto;">
             <h1 style="color: #f26522; font-family: 'Montserrat', sans-serif; font-size: 2.5rem; margin-bottom: 10px; text-align: center;">Explora Nuestros Proyectos 360</h1>
@@ -160,7 +156,7 @@
         </div>
     </div>
 
-    <!-- Contenedor del Visor -->
+    <!-- Contenedor del Visor (Se muestra si hay ID) -->
     <div id="visor-container" style="display: none; width: 100%; height: 100vh; position: absolute; top: 0; left: 0;">
 
     <div id="preloader">
@@ -222,7 +218,7 @@
         }
         @media (max-width: 600px) {
             .btn-flotante-conoce-mas { bottom: 150px; }
-            .btn-flotante-whatsapp { bottom: 80px; }
+            .btn-flotante-whatsapp { bottom: 80px; } /* Evita tapar barra de inventario */
         }
     </style>
 
@@ -299,6 +295,7 @@
     </div>
 
     <!-- Modal Simulador -->
+    <!-- Modal de Bienvenida (Giroscopio) -->
     <div id="welcome-modal" class="modal-overlay">
         <div class="modal-content" style="max-width: 350px;">
             <h2 class="modal-title" style="font-size: 1.5rem; margin-bottom: 15px;">¡Bienvenido!</h2>
@@ -373,6 +370,7 @@
         </div>
     </div>
 
+
     <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core@5.1.4/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin@5.1.4/index.min.js"></script>
@@ -410,6 +408,7 @@
             alert("Error en " + contexto + ":\n" + msg);
         }
 
+        // CAZADOR DE ERRORES GLOBALES
         window.onerror = function(msg, url, line) {
             window.mostrarError("Global", "Línea " + line + " - " + msg);
             return false;
@@ -427,11 +426,13 @@
         let viewer, markersPlugin, gyroscopePlugin;
         const fallbackImage = 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg';
         let globalPanoUrl = fallbackImage;
-        let configuracionCuotaInicial = 30;
+        let configuracionCuotaInicial = 30; // Valor por defecto
         let globalTituloColor = '#f26522';
         let globalTituloFont = 'Montserrat';
         let globalAsesorNombre = "";
         let globalAsesorTel = "";
+        
+        window.lotesDataMap = {}; // Para acceso directo desde onclick
 
         async function initClient() {
             try {
@@ -560,6 +561,7 @@
                             tempTitulo = removeValue(tempTitulo, "COLOR");
                             
                             titulo = tempTitulo;
+                            
                         }
                     }
                 } catch (dbError) {
@@ -627,6 +629,7 @@
                         preloader.style.opacity = '0';
                         setTimeout(() => {
                             preloader.style.display = 'none';
+                            // Mostrar el modal de bienvenida al terminar de cargar
                             document.getElementById('welcome-modal').classList.add('active');
                         }, 800);
                     }
@@ -644,6 +647,7 @@
                 if (lotesError) throw lotesError;
 
                 let disp = 0, res = 0, vend = 0;
+
                 const activeMarkers = new Set();
 
                 if (lotes) {
@@ -656,17 +660,23 @@
 
                         let shortName = l.nombre.replace(/lote\s*/i, '').trim();
                         if(shortName.length > 4) shortName = shortName.substring(0, 4);
+                        
+                        let loteData = { type: 'lote', nombre: l.nombre, area: l.area + ' m²', precio: l.precio, estado: l.estado };
+                        window.lotesDataMap[l.id] = loteData;
 
-                        const htmlContent = `<div class="lote-marker" style="background:${bg}; box-shadow: 0 0 15px ${shadow}">${shortName}</div>`;
+                        const htmlContent = `
+                            <div class="lote-marker-container" onclick="window.abrirLoteModal('${l.id}')">
+                                <div class="lote-marker-visual" style="background:${bg}; box-shadow: 0 0 15px ${shadow}">${shortName}</div>
+                            </div>
+                        `;
 
                         let markerConfigHTML = {
                             id: l.id,
                             position: { yaw: l.yaw, pitch: l.pitch },
                             html: htmlContent,
-                            size: { width: 34, height: 34 },
+                            size: { width: 50, height: 50 }, // Tamaño del hitbox (container)
                             anchor: 'center center',
-                            data: { type: 'lote', nombre: l.nombre, area: l.area + ' m²', precio: l.precio, estado: l.estado },
-                            style: { cursor: 'pointer' } // FIX CRÍTICO: Eliminado pointerEvents: 'auto'. El wrapper de PSV captura el evento de forma natural.
+                            data: loteData // Mantenemos la data por si el plugin de PhotoSphere captura el evento
                         };
 
                         if (markersPlugin.markers[l.id]) {
@@ -683,12 +693,14 @@
                                         id: polyId,
                                         polygon: polyPoints,
                                         svgStyle: {
-                                            fill: bg.replace('0.9', '0.4'),
+                                            fill: bg.replace('0.9', '0.4'), // Más transparente
                                             stroke: shadow,
                                             strokeWidth: '2px',
-                                            pointerEvents: 'none'
+                                            pointerEvents: 'none',
+                                            "pointer-events": "none"
                                         },
-                                        data: { type: 'lote_poly', parentId: l.id }
+                                        data: { type: 'lote_poly', parentId: l.id },
+                                        style: { pointerEvents: 'none' }
                                     };
                                     if (markersPlugin.markers[polyId]) {
                                         markersPlugin.removeMarker(polyId);
@@ -728,6 +740,7 @@
                             let tarjetaImg = null;
                             let tarjetaIcon = null;
 
+                            // Extraer base64 y texto de p.content porque p.visualtype no existe en admin.html inserción
                             if (p.content && p.content.startsWith('IMG|')) {
                                 const parts = p.content.split('|TEXT|');
                                 displayVisualType = parts[0];
@@ -735,7 +748,7 @@
                             } else if (p.content && p.content.startsWith('TARJETA|')) {
                                 isTarjeta = true;
                                 const parts = p.content.split('|ICON|');
-                                tarjetaImg = parts[0].substring(8);
+                                tarjetaImg = parts[0].substring(8); // quita 'TARJETA|'
                                 const parts2 = parts[1].split('|TEXT|');
                                 tarjetaIcon = parts2[0];
                                 displayText = parts2[1] || 'Punto';
@@ -755,9 +768,8 @@
                             }
                         
                             let htmlContent = '';
-                            // FIX CRÍTICO: Añadido pointer-events: none; a los divs principales generados de POIs.
                             if (isTarjeta) {
-                                htmlContent = `<div style="display:flex;flex-direction:column;align-items:center; pointer-events:none;">
+                                htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;">
                                     <div style="background:#fff; border-radius:12px; overflow:hidden; width:220px; box-shadow:0 8px 20px rgba(0,0,0,0.4); display:flex; flex-direction:column; border: 2px solid #fff;">
                                         <div style="height:140px; background:url('${tarjetaImg}') center/cover no-repeat;"></div>
                                         <div style="background:#116B5D; display:flex; align-items:center; padding:10px;">
@@ -773,7 +785,7 @@
                                 </div>`;
                             } else if (isLink360) {
                                 if (link360Icon) {
-                                    htmlContent = `<div style="display:flex;flex-direction:column;align-items:center; pointer-events:none;">
+                                    htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;cursor:pointer;">
                                         <div style="background:rgba(255,255,255,0.9); border-radius:50%; width:40px; height:40px; display:flex; justify-content:center; align-items:center; box-shadow: 0 0 20px rgba(255,255,255,0.8); animation: pulse-white 2s infinite; border: 2px solid #fff;">
                                             <img src="${link360Icon}" style="max-width:30px; max-height:30px; object-fit:contain; border-radius:50%;">
                                         </div>
@@ -781,7 +793,7 @@
                                         <div style="width:12px;height:12px;background:#f26522;border-radius:50%;"></div>
                                     </div>`;
                                 } else {
-                                    htmlContent = `<div style="display:flex;flex-direction:column;align-items:center; pointer-events:none;">
+                                    htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;cursor:pointer;">
                                         <div style="background:rgba(17,17,17,0.85);backdrop-filter:blur(5px);color:#f26522;padding:6px 15px;border:1px solid #f26522;border-radius:20px;font-weight:bold;font-size:0.85rem;text-transform:uppercase;box-shadow:0 0 10px rgba(242,101,34,0.5);display:flex;align-items:center;gap:5px;">
                                             <span>👁️</span> 360
                                         </div>
@@ -791,7 +803,7 @@
                                 }
                             } else if (displayVisualType && displayVisualType.startsWith('IMG|')) {
                                 let imgData = displayVisualType.substring(4);
-                                htmlContent = `<div style="display:flex;flex-direction:column;align-items:center; pointer-events:none;">
+                                htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;">
                                         <div style="background:rgba(0,0,0,0.8); padding:5px; border-radius:8px; border:1px solid #f26522;">
                                             <img src="${imgData}" style="max-width: 120px; max-height: 120px; object-fit: contain;">
                                         </div>
@@ -799,7 +811,7 @@
                                         <div style="width:12px;height:12px;background:#f26522;border-radius:50%;"></div>
                                        </div>`;
                             } else {
-                                htmlContent = `<div style="display:flex;flex-direction:column;align-items:center; pointer-events:none;">
+                                htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;">
                                         <div style="background:rgba(0,0,0,0.8);color:#fff;padding:5px 12px;border:1px solid #f26522;border-radius:4px;font-weight:bold;">${displayText}</div>
                                         <div style="width:2px;height:30px;background:#fff;margin-top:5px;"></div>
                                         <div style="width:12px;height:12px;background:#f26522;border-radius:50%;"></div>
@@ -810,13 +822,12 @@
                                 id: p.id, position: { yaw: p.yaw, pitch: p.pitch },
                                 html: htmlContent,
                                 anchor: 'bottom center',
-                                data: isLink360 ? { type: 'link360', url: link360Url, nombre: displayText } : null,
-                                style: { cursor: 'pointer' }
+                                data: isLink360 ? { type: 'link360', url: link360Url, nombre: displayText } : null
                             });
                         }
                     });
                 }
-                
+                // Cargar también polígonos 360
                 try {
                     const { data: polys360, error: polyError } = await supabaseClient.from('poligonos_360').select('*').eq('proyecto_id', currentProjectId);
                     if (!polyError && polys360 && polys360.length > 0) {
@@ -895,12 +906,14 @@
                     });
                 }
 
+                // Auto-rotación inicial
                 if (viewer) {
                     viewer.animate({
                         yaw: viewer.getPosition().yaw + 0.5,
                         pitch: viewer.getPosition().pitch,
                         speed: "1rpm"
                     }).then(() => {
+                        // Se detiene al llegar o si el usuario interactúa
                     });
                 }
             } catch (error) {
@@ -941,12 +954,35 @@
             }
         }
 
+        window.abrirLoteModal = function(id) {
+            const data = window.lotesDataMap[id];
+            if (!data) return;
+            
+            document.getElementById('m-titulo').innerText = data.nombre;
+            document.getElementById('m-area').innerText = data.area;
+            document.getElementById('m-precio').innerText = formatearDinero(parsearDinero(data.precio));
+
+            const est = document.getElementById('m-estado');
+            est.innerText = data.estado;
+            est.style.color = data.estado === 'Vendido' ? '#e74c3c' : (data.estado === 'Reservado' ? '#f39c12' : '#2ecc71');
+            est.style.background = 'rgba(255,255,255,0.1)';
+
+            const btnSimular = document.getElementById('m-simular');
+            btnSimular.onclick = () => {
+                abrirSimulador(data);
+            };
+
+            simuladorLoteActual = data;
+            document.getElementById('premium-modal').classList.add('active');
+        };
+
         function attachModalEvents() {
             try {
                 if(!markersPlugin) return;
                 markersPlugin.addEventListener('select-marker', (e) => {
                     const marker = e.marker;
                     if (marker.config.data && marker.config.data.type === 'link360') {
+                        // Navegar a la sub-vista
                         window.mostrarProgreso(10);
 
                         marcadoresOcultos = Object.keys(markersPlugin.markers);
@@ -956,6 +992,7 @@
 
                         const transitionOverlay = document.getElementById('transition-overlay');
                         transitionOverlay.style.display = 'flex';
+                        // Pequeño delay para permitir que el display:flex se aplique antes del opacity
                         setTimeout(() => {
                             transitionOverlay.style.opacity = '1';
                         }, 10);
@@ -969,24 +1006,9 @@
                                     transitionOverlay.style.display = 'none';
                                 }, 500);
                             });
-                        }, 500);
+                        }, 500); // Esperar a que el fade-in termine
                     } else if (marker.config.data && marker.config.data.type === 'lote') {
-                        document.getElementById('m-titulo').innerText = marker.config.data.nombre;
-                        document.getElementById('m-area').innerText = marker.config.data.area;
-                        document.getElementById('m-precio').innerText = formatearDinero(parsearDinero(marker.config.data.precio));
-
-                        const est = document.getElementById('m-estado');
-                        est.innerText = marker.config.data.estado;
-                        est.style.color = marker.config.data.estado === 'Vendido' ? '#e74c3c' : (marker.config.data.estado === 'Reservado' ? '#f39c12' : '#2ecc71');
-                        est.style.background = 'rgba(255,255,255,0.1)';
-
-                        const btnSimular = document.getElementById('m-simular');
-                        btnSimular.onclick = () => {
-                            abrirSimulador(marker.config.data);
-                        };
-
-                        simuladorLoteActual = marker.config.data;
-                        document.getElementById('premium-modal').classList.add('active');
+                        window.abrirLoteModal(marker.id);
                     }
                 });
             } catch (error) {
@@ -994,21 +1016,26 @@
             }
         }
 
+        // --- SISTEMA DE WHATSAPP PREGUNTAS ---
         let loteContextoWhatsapp = false;
 
         function abrirModalWhatsapp(desdeLote = false) {
             loteContextoWhatsapp = desdeLote;
 
+            // Si viene desde el modal del lote, cerrar el modal del lote primero
             if(desdeLote) {
                 cerrarModal();
             }
 
+            // Mostrar el modal de preguntas
             document.getElementById('whatsapp-preguntas-modal').classList.add('active');
 
+            // Limpiar textarea y resetear radios
             document.getElementById('wa-texto-extra').value = '';
             document.getElementById('wa-texto-extra').style.display = 'none';
             document.querySelector('input[name="wa_pregunta"][value="Quiero agendar una visita al proyecto."]').checked = true;
 
+            // Escuchar cambios en los radios
             const radios = document.querySelectorAll('input[name="wa_pregunta"]');
             radios.forEach(radio => {
                 radio.onchange = (e) => {
@@ -1037,15 +1064,19 @@
                 mensaje = `Hola, respecto al proyecto ${tituloProyecto}: ${opcionSeleccionada}`;
             }
 
+            // Si se abrió desde la información de un lote específico, añadimos esa referencia
             if (loteContextoWhatsapp && simuladorLoteActual) {
                 mensaje += `\n\nEstoy interesado específicamente en el lote: ${simuladorLoteActual.nombre} (Precio: ${formatearDinero(parsearDinero(simuladorLoteActual.precio))}).`;
             }
 
+            // Siempre enviar al número especificado por el usuario
             let numeroAsesor = "573217399818";
+
             window.open(`https://wa.me/${numeroAsesor}?text=${encodeURIComponent(mensaje)}`, '_blank');
             cerrarModalWhatsapp();
         }
 
+        // --- SISTEMA DE SIMULADOR ---
         let simuladorLoteActual = null;
 
         function abrirSimulador(loteData) {
@@ -1055,13 +1086,14 @@
             document.getElementById('sim-lote-nombre').innerText = loteData.nombre;
             document.getElementById('sim-valor-total').innerText = formatearDinero(parsearDinero(loteData.precio));
 
+            // Inicializar sliders e inputs con valores por defecto basados en configuración
             const valorTotal = parsearDinero(loteData.precio);
 
             document.getElementById('sim-rango-cuota').max = valorTotal;
             document.getElementById('sim-cuota-inicial').max = valorTotal;
 
             let cuotaSugerida = Math.round(valorTotal * (configuracionCuotaInicial / 100));
-            cuotaSugerida = Math.round(cuotaSugerida / 500000) * 500000;
+            cuotaSugerida = Math.round(cuotaSugerida / 500000) * 500000; // Round to nearest 500k
             
             document.getElementById('sim-rango-cuota').value = cuotaSugerida;
             document.getElementById('sim-cuota-inicial').value = cuotaSugerida;
@@ -1195,9 +1227,14 @@
                 const titleText = document.getElementById('display-title').innerText;
                 const refText = simuladorLoteActual.id ? (simuladorLoteActual.id.split('-')[1] || simuladorLoteActual.id) : Date.now();
 
+                // Plantilla HTML para el PDF (Diseño Elegante y Profesional)
                 const htmlTemplate = `
                     <div style="font-family: 'Montserrat', sans-serif; color: #222; padding: 50px; background: #fff; width: 800px; box-sizing: border-box; margin: 0 auto; line-height: 1.6; position: relative; min-height: 1040px; display: flex; flex-direction: column;">
+
+                        <!-- Fondo Decorativo -->
                         <div style="position: absolute; top: 0; left: 0; width: 100%; height: 10px; background: linear-gradient(90deg, #f26522, #ff8c00);"></div>
+
+                        <!-- Cabecera -->
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #eee; padding-bottom: 30px; margin-bottom: 40px;">
                             <div style="max-width: 50%;">
                                 ${logoDisplay}
@@ -1210,6 +1247,8 @@
                                 <div style="font-size: 13px; color: #555; margin-top: 3px;"><strong>Ref:</strong> ${refText}</div>
                             </div>
                         </div>
+
+                        <!-- Detalles de las Partes -->
                         <div style="display: flex; gap: 40px; margin-bottom: 40px;">
                             <div style="flex: 1;">
                                 <h3 style="font-size: 12px; color: #f26522; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; border-bottom: 1px solid #f26522; padding-bottom: 5px; display: inline-block;">Datos del Inversor</h3>
@@ -1228,6 +1267,8 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Detalles del Inmueble (Destacado y Elegante) -->
                         <div style="background: linear-gradient(135deg, #111 0%, #2a2a2a 100%); border-radius: 12px; padding: 30px; margin-bottom: 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); position: relative; overflow: hidden;">
                             <div style="position: absolute; top: -50%; right: -10%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(242,101,34,0.15) 0%, rgba(0,0,0,0) 70%); border-radius: 50%; pointer-events: none;"></div>
                             
@@ -1241,7 +1282,10 @@
                                 <div style="font-size: 26px; color: #f26522; font-weight: 600;">${simuladorLoteActual.area}</div>
                             </div>
                         </div>
+
+                        <!-- Resumen Financiero -->
                         <h3 style="font-size: 14px; color: #111; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; text-align: center;">Proyección Financiera</h3>
+
                         <div style="border: 1px solid #eee; border-radius: 8px; overflow: hidden; margin-bottom: 50px;">
                             <table style="width: 100%; border-collapse: collapse; font-size: 15px;">
                                 <tbody>
@@ -1268,6 +1312,8 @@
                                 </tbody>
                             </table>
                         </div>
+
+                        <!-- Pie de página -->
                         <div style="text-align: center; font-size: 11px; color: #999; border-top: 1px solid #eee; padding-top: 25px; margin-top: auto; padding-bottom: 20px;">
                             <p style="margin: 0 0 5px 0; line-height: 1.4;">Este documento es de carácter informativo y no representa un compromiso legal ni una promesa de compraventa. <br>Los valores, áreas y condiciones están sujetos a verificación y posibles modificaciones sin previo aviso.</p>
                             <p style="margin: 0; font-weight: 600; color: #666;">Generado interactivamente por el sistema de gestión de <strong>${titleText}</strong>.</p>
@@ -1284,6 +1330,8 @@
                 printContainer.innerHTML = htmlTemplate;
                 document.body.appendChild(printContainer);
 
+                // Generate exact content height to avoid blank pages/crops
+                // Extra padding buffer added to ensure footer isn't cut off
                 const contentHeight = (printContainer.offsetHeight || 1040) + 20;
                 document.body.removeChild(printContainer);
 
@@ -1298,9 +1346,11 @@
                 window.mostrarProgreso(50);
                 
                 pdfFilenameGlobal = opt.filename;
+                // Generar Blob en lugar de descargar directamente
                 try {
                     pdfBlobGlobal = await html2pdf().set(opt).from(htmlTemplate).output('blob');
 
+                    // Guardar lead en la tabla 'interesados'
                     try {
                         if (supabaseClient) {
                             const { error: insertError } = await supabaseClient.from('interesados').insert([
@@ -1334,6 +1384,7 @@
 
                     document.getElementById('pdf-send-nombre').innerText = cNombre;
 
+                    // Mostrar modal de envío de PDF
                     cerrarSimulador();
                     document.getElementById('pdf-send-modal').classList.add('active');
 
@@ -1373,12 +1424,14 @@
                     cerrarPdfSendModal();
                 } catch (error) {
                     console.error('Error al compartir el PDF:', error);
+                    // Fallback to simple download if share is canceled or fails
                     if (error.name !== 'AbortError') {
                         alert('No se pudo compartir el archivo automáticamente. El archivo se descargará ahora.');
                         descargarPdfLocal();
                     }
                 }
             } else {
+                // Fallback for browsers that don't support file sharing
                 alert("Tu navegador no soporta compartir archivos directamente. El documento se descargará para que lo envíes manualmente.");
                 descargarPdfLocal();
             }
