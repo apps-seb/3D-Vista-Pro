@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vista 360 - Rincón de Baviera</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
     
@@ -10,9 +10,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin@5.1.4/index.min.css" />
     
     <style>
-        * { box-sizing: border-box; }
-        body { margin: 0; padding: 0; font-family: 'Montserrat', sans-serif; background-color: #000; overflow: hidden; width: 100vw; height: 100vh; position: fixed; }
-        #viewer { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; }
+        body { margin: 0; font-family: 'Montserrat', sans-serif; background-color: #000; overflow: hidden; }
+        #viewer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
 
         #global-progress {
             position: fixed;
@@ -228,11 +227,6 @@
     </div>
 
     <div id="viewer"></div>
-
-    <!-- Full-screen blur overlay for transitions -->
-    <div id="transition-overlay" style="position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); z-index: 9999; display: none; opacity: 0; transition: opacity 0.5s ease; justify-content: center; align-items: center;">
-        <div class="spinner"></div>
-    </div>
 
     <div id="premium-modal" class="modal-overlay">
         <div class="modal-content">
@@ -683,8 +677,7 @@
                                         svgStyle: {
                                             fill: bg.replace('0.9', '0.4'), // Más transparente
                                             stroke: shadow,
-                                strokeWidth: '2px',
-                                pointerEvents: 'auto'
+                                            strokeWidth: '2px'
                                         },
                                         data: { type: 'lote_poly', parentId: l.id }
                                     };
@@ -915,26 +908,14 @@
                     try { markersPlugin.hideMarker(id); } catch(err){}
                 });
 
-                const transitionOverlay = document.getElementById('transition-overlay');
-                transitionOverlay.style.display = 'flex';
-                setTimeout(() => {
-                    transitionOverlay.style.opacity = '1';
-                }, 10);
-
-                setTimeout(() => {
-                    viewer.setPanorama(globalPanoUrl, { transition: 0, showLoader: false }).then(() => {
-                        marcadoresOcultos.forEach(id => {
-                            try { markersPlugin.showMarker(id); } catch(e){}
-                        });
-                        marcadoresOcultos = [];
-                        document.getElementById('btn-back-main').style.display = 'none';
-                        window.mostrarProgreso(100);
-                        transitionOverlay.style.opacity = '0';
-                        setTimeout(() => {
-                            transitionOverlay.style.display = 'none';
-                        }, 500);
+                viewer.setPanorama(globalPanoUrl, { transition: 1000, showLoader: false }).then(() => {
+                    marcadoresOcultos.forEach(id => {
+                        try { markersPlugin.showMarker(id); } catch(e){}
                     });
-                }, 500);
+                    marcadoresOcultos = [];
+                    document.getElementById('btn-back-main').style.display = 'none';
+                    window.mostrarProgreso(100);
+                });
             } catch (error) {
                 window.mostrarError("volverVistaPrincipal", error);
             }
@@ -954,23 +935,10 @@
                             try { markersPlugin.hideMarker(id); } catch(err){}
                         });
 
-                        const transitionOverlay = document.getElementById('transition-overlay');
-                        transitionOverlay.style.display = 'flex';
-                        // Pequeño delay para permitir que el display:flex se aplique antes del opacity
-                        setTimeout(() => {
-                            transitionOverlay.style.opacity = '1';
-                        }, 10);
-
-                        setTimeout(() => {
-                            viewer.setPanorama(marker.config.data.url, { transition: 0, showLoader: false }).then(() => {
-                                document.getElementById('btn-back-main').style.display = 'flex';
-                                window.mostrarProgreso(100);
-                                transitionOverlay.style.opacity = '0';
-                                setTimeout(() => {
-                                    transitionOverlay.style.display = 'none';
-                                }, 500);
-                            });
-                        }, 500); // Esperar a que el fade-in termine
+                        viewer.setPanorama(marker.config.data.url, { transition: 1000, showLoader: false }).then(() => {
+                            document.getElementById('btn-back-main').style.display = 'flex';
+                            window.mostrarProgreso(100);
+                        });
                     } else if (marker.config.data && marker.config.data.type === 'lote') {
                         document.getElementById('m-titulo').innerText = marker.config.data.nombre;
                         document.getElementById('m-area').innerText = marker.config.data.area;
@@ -991,30 +959,6 @@
                         simuladorLoteActual = marker.config.data;
 
                         document.getElementById('premium-modal').classList.add('active');
-                    } else if (marker.config.data && marker.config.data.type === 'lote_poly') {
-                        // Si hace click en el polígono, buscar el lote asociado (punto HTML)
-                        const parentId = marker.config.data.parentId;
-                        if (markersPlugin.markers[parentId]) {
-                            const parentMarker = markersPlugin.markers[parentId];
-                            if (parentMarker.config.data && parentMarker.config.data.type === 'lote') {
-                                document.getElementById('m-titulo').innerText = parentMarker.config.data.nombre;
-                                document.getElementById('m-area').innerText = parentMarker.config.data.area;
-                                document.getElementById('m-precio').innerText = formatearDinero(parsearDinero(parentMarker.config.data.precio));
-
-                                const est = document.getElementById('m-estado');
-                                est.innerText = parentMarker.config.data.estado;
-                                est.style.color = parentMarker.config.data.estado === 'Vendido' ? '#e74c3c' : (parentMarker.config.data.estado === 'Reservado' ? '#f39c12' : '#2ecc71');
-                                est.style.background = 'rgba(255,255,255,0.1)';
-
-                                const btnSimular = document.getElementById('m-simular');
-                                btnSimular.onclick = () => {
-                                    abrirSimulador(parentMarker.config.data);
-                                };
-
-                                simuladorLoteActual = parentMarker.config.data;
-                                document.getElementById('premium-modal').classList.add('active');
-                            }
-                        }
                     }
                 });
             } catch (error) {
