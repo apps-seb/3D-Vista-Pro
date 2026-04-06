@@ -36,8 +36,9 @@
         .inv-dot { width: 10px; height: 10px; border-radius: 50%; }
         .inv-count { background: rgba(255,255,255,0.15); padding: 2px 8px; border-radius: 12px; }
 
-        .lote-marker { width: 34px; height: 34px; border: 2px solid #fff; border-radius: 50%; cursor: pointer; animation: pulse 2s infinite; display: flex; justify-content: center; align-items: center; font-size: 11px; font-weight: bold; color: white; text-shadow: 1px 1px 2px black; text-align: center; pointer-events: auto; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
+        .lote-marker-container { width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; pointer-events: auto !important; cursor: pointer; background: rgba(255,255,255,0.01); border-radius: 50%; }
+        .lote-marker-visual { width: 34px; height: 34px; border: 2px solid #fff; border-radius: 50%; animation: pulse-visual 2s infinite; display: flex; justify-content: center; align-items: center; font-size: 11px; font-weight: bold; color: white; text-shadow: 1px 1px 2px black; text-align: center; pointer-events: none; }
+        @keyframes pulse-visual { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
         @keyframes pulse-white { 0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(255, 255, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); } }
 
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 50; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
@@ -431,6 +432,8 @@
         let globalAsesorNombre = "";
         let globalAsesorTel = "";
 
+        window.lotesDataMap = {}; // Para acceso directo desde onclick
+
         async function initClient() {
             try {
                 if (!window.supabase) throw new Error("Base de datos no cargada");
@@ -658,16 +661,22 @@
                         let shortName = l.nombre.replace(/lote\s*/i, '').trim();
                         if(shortName.length > 4) shortName = shortName.substring(0, 4);
 
-                        const htmlContent = `<div class="lote-marker" style="background:${bg}; box-shadow: 0 0 15px ${shadow}">${shortName}</div>`;
+                        let loteData = { type: 'lote', nombre: l.nombre, area: l.area + ' m²', precio: l.precio, estado: l.estado };
+                        window.lotesDataMap[l.id] = loteData;
+
+                        const htmlContent = `
+                            <div class="lote-marker-container" onclick="window.abrirLoteModal('${l.id}')">
+                                <div class="lote-marker-visual" style="background:${bg}; box-shadow: 0 0 15px ${shadow}">${shortName}</div>
+                            </div>
+                        `;
 
                         let markerConfigHTML = {
                             id: l.id,
                             position: { yaw: l.yaw, pitch: l.pitch },
                             html: htmlContent,
-                            size: { width: 34, height: 34 },
+                            size: { width: 50, height: 50 }, // Tamaño del hitbox (container)
                             anchor: 'center center',
-                            data: { type: 'lote', nombre: l.nombre, area: l.area + ' m²', precio: l.precio, estado: l.estado },
-                            style: { cursor: 'pointer', pointerEvents: 'auto' }
+                            data: loteData // Mantenemos la data por si el plugin de PhotoSphere captura el evento
                         };
 
                         if (markersPlugin.markers[l.id]) {
@@ -686,10 +695,12 @@
                                         svgStyle: {
                                             fill: bg.replace('0.9', '0.4'), // Más transparente
                                             stroke: shadow,
-                                strokeWidth: '2px',
-                                            pointerEvents: 'none'
+                                            strokeWidth: '2px',
+                                            pointerEvents: 'none',
+                                            "pointer-events": "none"
                                         },
-                                        data: { type: 'lote_poly', parentId: l.id }
+                                        data: { type: 'lote_poly', parentId: l.id },
+                                        style: { pointerEvents: 'none' }
                                     };
                                     if (markersPlugin.markers[polyId]) {
                                         markersPlugin.removeMarker(polyId);
@@ -943,6 +954,28 @@
             }
         }
 
+        window.abrirLoteModal = function(id) {
+            const data = window.lotesDataMap[id];
+            if (!data) return;
+
+            document.getElementById('m-titulo').innerText = data.nombre;
+            document.getElementById('m-area').innerText = data.area;
+            document.getElementById('m-precio').innerText = formatearDinero(parsearDinero(data.precio));
+
+            const est = document.getElementById('m-estado');
+            est.innerText = data.estado;
+            est.style.color = data.estado === 'Vendido' ? '#e74c3c' : (data.estado === 'Reservado' ? '#f39c12' : '#2ecc71');
+            est.style.background = 'rgba(255,255,255,0.1)';
+
+            const btnSimular = document.getElementById('m-simular');
+            btnSimular.onclick = () => {
+                abrirSimulador(data);
+            };
+
+            simuladorLoteActual = data;
+            document.getElementById('premium-modal').classList.add('active');
+        };
+
         function attachModalEvents() {
             try {
                 if(!markersPlugin) return;
@@ -975,25 +1008,7 @@
                             });
                         }, 500); // Esperar a que el fade-in termine
                     } else if (marker.config.data && marker.config.data.type === 'lote') {
-                        document.getElementById('m-titulo').innerText = marker.config.data.nombre;
-                        document.getElementById('m-area').innerText = marker.config.data.area;
-                        document.getElementById('m-precio').innerText = formatearDinero(parsearDinero(marker.config.data.precio));
-
-                        const est = document.getElementById('m-estado');
-                        est.innerText = marker.config.data.estado;
-                        est.style.color = marker.config.data.estado === 'Vendido' ? '#e74c3c' : (marker.config.data.estado === 'Reservado' ? '#f39c12' : '#2ecc71');
-                        est.style.background = 'rgba(255,255,255,0.1)';
-
-                        // Configurar botón Simular
-                        const btnSimular = document.getElementById('m-simular');
-                        btnSimular.onclick = () => {
-                            abrirSimulador(marker.config.data);
-                        };
-
-                        // Guardar datos del lote temporalmente para el modal de whatsapp
-                        simuladorLoteActual = marker.config.data;
-
-                        document.getElementById('premium-modal').classList.add('active');
+                        window.abrirLoteModal(marker.id);
                     }
                 });
             } catch (error) {
