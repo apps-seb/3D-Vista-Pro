@@ -229,6 +229,11 @@
 
     <div id="viewer"></div>
 
+    <!-- Full-screen blur overlay for transitions -->
+    <div id="transition-overlay" style="position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); z-index: 9999; display: none; opacity: 0; transition: opacity 0.5s ease; justify-content: center; align-items: center;">
+        <div class="spinner"></div>
+    </div>
+
     <div id="premium-modal" class="modal-overlay">
         <div class="modal-content">
             <button class="btn-close" onclick="cerrarModal()">&times;</button>
@@ -678,7 +683,8 @@
                                         svgStyle: {
                                             fill: bg.replace('0.9', '0.4'), // Más transparente
                                             stroke: shadow,
-                                            strokeWidth: '2px'
+                                strokeWidth: '2px',
+                                pointerEvents: 'auto'
                                         },
                                         data: { type: 'lote_poly', parentId: l.id }
                                     };
@@ -909,14 +915,26 @@
                     try { markersPlugin.hideMarker(id); } catch(err){}
                 });
 
-                viewer.setPanorama(globalPanoUrl, { transition: 1000, showLoader: false }).then(() => {
-                    marcadoresOcultos.forEach(id => {
-                        try { markersPlugin.showMarker(id); } catch(e){}
+                const transitionOverlay = document.getElementById('transition-overlay');
+                transitionOverlay.style.display = 'flex';
+                setTimeout(() => {
+                    transitionOverlay.style.opacity = '1';
+                }, 10);
+
+                setTimeout(() => {
+                    viewer.setPanorama(globalPanoUrl, { transition: 0, showLoader: false }).then(() => {
+                        marcadoresOcultos.forEach(id => {
+                            try { markersPlugin.showMarker(id); } catch(e){}
+                        });
+                        marcadoresOcultos = [];
+                        document.getElementById('btn-back-main').style.display = 'none';
+                        window.mostrarProgreso(100);
+                        transitionOverlay.style.opacity = '0';
+                        setTimeout(() => {
+                            transitionOverlay.style.display = 'none';
+                        }, 500);
                     });
-                    marcadoresOcultos = [];
-                    document.getElementById('btn-back-main').style.display = 'none';
-                    window.mostrarProgreso(100);
-                });
+                }, 500);
             } catch (error) {
                 window.mostrarError("volverVistaPrincipal", error);
             }
@@ -936,10 +954,23 @@
                             try { markersPlugin.hideMarker(id); } catch(err){}
                         });
 
-                        viewer.setPanorama(marker.config.data.url, { transition: 1000, showLoader: false }).then(() => {
-                            document.getElementById('btn-back-main').style.display = 'flex';
-                            window.mostrarProgreso(100);
-                        });
+                        const transitionOverlay = document.getElementById('transition-overlay');
+                        transitionOverlay.style.display = 'flex';
+                        // Pequeño delay para permitir que el display:flex se aplique antes del opacity
+                        setTimeout(() => {
+                            transitionOverlay.style.opacity = '1';
+                        }, 10);
+
+                        setTimeout(() => {
+                            viewer.setPanorama(marker.config.data.url, { transition: 0, showLoader: false }).then(() => {
+                                document.getElementById('btn-back-main').style.display = 'flex';
+                                window.mostrarProgreso(100);
+                                transitionOverlay.style.opacity = '0';
+                                setTimeout(() => {
+                                    transitionOverlay.style.display = 'none';
+                                }, 500);
+                            });
+                        }, 500); // Esperar a que el fade-in termine
                     } else if (marker.config.data && marker.config.data.type === 'lote') {
                         document.getElementById('m-titulo').innerText = marker.config.data.nombre;
                         document.getElementById('m-area').innerText = marker.config.data.area;

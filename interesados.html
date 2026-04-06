@@ -395,6 +395,40 @@
 
     </div>
 
+    <!-- Modal Enviar WhatsApp Personalizado -->
+    <div id="whatsapp-send-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Enviar Mensaje WhatsApp</h2>
+                <button class="modal-close" onclick="cerrarModalWhatsappSend()">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Mensaje a enviar a <span id="wa-send-name" style="color: #f26522;"></span></label>
+                <textarea id="wa-send-message" style="height: 150px;"></textarea>
+            </div>
+            <input type="hidden" id="wa-send-phone">
+            <button class="btn-save" style="background: #25D366; color: white;" onclick="confirmarEnvioWhatsApp()">Abrir en WhatsApp</button>
+        </div>
+    </div>
+
+    <!-- Modal Enviar Correo Personalizado -->
+    <div id="email-send-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Enviar Correo Electrónico</h2>
+                <button class="modal-close" onclick="cerrarModalEmailSend()">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Asunto</label>
+                <input type="text" id="email-send-subject" style="width: 100%; padding: 10px; background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: #fff; font-family: inherit; box-sizing: border-box; margin-bottom: 15px;">
+                <label>Mensaje a enviar a <span id="email-send-name" style="color: #3498db;"></span></label>
+                <textarea id="email-send-message" style="height: 150px;"></textarea>
+            </div>
+            <input type="hidden" id="email-send-address">
+            <button class="btn-save" style="background: #3498db; color: white;" onclick="confirmarEnvioCorreo()">Abrir en Correo</button>
+        </div>
+    </div>
+
     <!-- Modal Mensajes -->
     <div id="mensaje-modal" class="modal-overlay">
         <div class="modal-content">
@@ -639,8 +673,22 @@
                 .replace(/{cuota_inicial}/g, cuota)
                 .replace(/{meses}/g, meses);
 
+            document.getElementById('wa-send-name').innerText = nombre;
+            document.getElementById('wa-send-message').value = msg;
+            document.getElementById('wa-send-phone').value = telefono;
+            document.getElementById('whatsapp-send-modal').classList.add('active');
+        }
+
+        function cerrarModalWhatsappSend() {
+            document.getElementById('whatsapp-send-modal').classList.remove('active');
+        }
+
+        function confirmarEnvioWhatsApp() {
+            const telefono = document.getElementById('wa-send-phone').value;
+            const msg = document.getElementById('wa-send-message').value;
             const url = `https://wa.me/57${telefono.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`;
             window.open(url, '_blank');
+            cerrarModalWhatsappSend();
         }
 
         function enviarCorreo(correo, nombre, lote, proyecto, cuota, meses) {
@@ -656,8 +704,26 @@
                 .replace(/{cuota_inicial}/g, cuota)
                 .replace(/{meses}/g, meses);
 
+            document.getElementById('email-send-name').innerText = nombre;
+            document.getElementById('email-send-subject').value = subject;
+            document.getElementById('email-send-message').value = body;
+            document.getElementById('email-send-address').value = correo;
+            document.getElementById('email-send-modal').classList.add('active');
+        }
+
+        function cerrarModalEmailSend() {
+            document.getElementById('email-send-modal').classList.remove('active');
+        }
+
+        function confirmarEnvioCorreo() {
+            const correo = document.getElementById('email-send-address').value;
+            const subject = document.getElementById('email-send-subject').value;
+            const body = document.getElementById('email-send-message').value;
+
+            // Using window.open allows a cleaner handoff to default mail clients
             const url = `mailto:${correo}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-            window.location.href = url;
+            window.open(url, '_blank');
+            cerrarModalEmailSend();
         }
 
         function abrirModalMensaje() {
