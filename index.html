@@ -1372,6 +1372,7 @@
 
                 // Re-create the element to pass to html2pdf to ensure width is respected
                 const renderElement = document.createElement('div');
+                renderElement.style.width = '800px';
                 renderElement.innerHTML = htmlTemplate;
 
                 try {
