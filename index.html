@@ -36,7 +36,7 @@
         .inv-dot { width: 10px; height: 10px; border-radius: 50%; }
         .inv-count { background: rgba(255,255,255,0.15); padding: 2px 8px; border-radius: 12px; }
 
-        .lote-marker { width: 34px; height: 34px; border: 2px solid #fff; border-radius: 50%; cursor: pointer; animation: pulse 2s infinite; display: flex; justify-content: center; align-items: center; font-size: 11px; font-weight: bold; color: white; text-shadow: 1px 1px 2px black; text-align: center; pointer-events: all; }
+        .lote-marker { width: 34px; height: 34px; border: 2px solid #fff; border-radius: 50%; cursor: pointer; animation: pulse 2s infinite; display: flex; justify-content: center; align-items: center; font-size: 11px; font-weight: bold; color: white; text-shadow: 1px 1px 2px black; text-align: center; pointer-events: auto; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
         @keyframes pulse-white { 0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(255, 255, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); } }
 
@@ -617,6 +617,8 @@
                 markersPlugin = viewer.getPlugin(PhotoSphereViewer.MarkersPlugin);
                 gyroscopePlugin = viewer.getPlugin(PhotoSphereViewer.GyroscopePlugin);
 
+                attachModalEvents();
+
                 viewer.addEventListener('ready', async () => {
                     await cargarDatosPublicos();
                     const preloader = document.getElementById('preloader');
@@ -665,7 +667,7 @@
                             size: { width: 34, height: 34 },
                             anchor: 'center center',
                             data: { type: 'lote', nombre: l.nombre, area: l.area + ' m²', precio: l.precio, estado: l.estado },
-                            style: { cursor: 'pointer', pointerEvents: 'all' }
+                            style: { cursor: 'pointer', pointerEvents: 'auto' }
                         };
 
                         if (markersPlugin.markers[l.id]) {
@@ -685,7 +687,7 @@
                                             fill: bg.replace('0.9', '0.4'), // Más transparente
                                             stroke: shadow,
                                 strokeWidth: '2px',
-                                            pointerEvents: 'visiblePainted'
+                                            pointerEvents: 'none'
                                         },
                                         data: { type: 'lote_poly', parentId: l.id }
                                     };
@@ -992,30 +994,6 @@
                         simuladorLoteActual = marker.config.data;
 
                         document.getElementById('premium-modal').classList.add('active');
-                    } else if (marker.config.data && marker.config.data.type === 'lote_poly') {
-                        // Si hace click en el polígono, buscar el lote asociado (punto HTML)
-                        const parentId = marker.config.data.parentId;
-                        if (markersPlugin.markers[parentId]) {
-                            const parentMarker = markersPlugin.markers[parentId];
-                            if (parentMarker.config.data && parentMarker.config.data.type === 'lote') {
-                                document.getElementById('m-titulo').innerText = parentMarker.config.data.nombre;
-                                document.getElementById('m-area').innerText = parentMarker.config.data.area;
-                                document.getElementById('m-precio').innerText = formatearDinero(parsearDinero(parentMarker.config.data.precio));
-
-                                const est = document.getElementById('m-estado');
-                                est.innerText = parentMarker.config.data.estado;
-                                est.style.color = parentMarker.config.data.estado === 'Vendido' ? '#e74c3c' : (parentMarker.config.data.estado === 'Reservado' ? '#f39c12' : '#2ecc71');
-                                est.style.background = 'rgba(255,255,255,0.1)';
-
-                                const btnSimular = document.getElementById('m-simular');
-                                btnSimular.onclick = () => {
-                                    abrirSimulador(parentMarker.config.data);
-                                };
-
-                                simuladorLoteActual = parentMarker.config.data;
-                                document.getElementById('premium-modal').classList.add('active');
-                            }
-                        }
                     }
                 });
             } catch (error) {
@@ -1583,7 +1561,6 @@
         window.onload = function() {
             try {
                 initClient().then(() => {
-                    setTimeout(attachModalEvents, 500);
                     setupRealtimeSubscription();
                 }).catch(error => {
                     window.mostrarError("onload", error);
