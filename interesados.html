@@ -116,10 +116,13 @@
             color: #fff;
         }
 
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
         .btn-action {
-            background: rgba(37, 211, 102, 0.2);
-            color: #25D366;
-            border: 1px solid #25D366;
             padding: 6px 12px;
             border-radius: 20px;
             text-decoration: none;
@@ -129,16 +132,35 @@
             align-items: center;
             gap: 5px;
             transition: all 0.3s;
-        }
-
-        .btn-action:hover {
-            background: #25D366;
-            color: #000;
+            cursor: pointer;
+            font-family: inherit;
         }
 
         .btn-action svg {
             width: 14px;
             height: 14px;
+        }
+
+        .btn-whatsapp {
+            background: rgba(37, 211, 102, 0.2);
+            color: #25D366;
+            border: 1px solid #25D366;
+        }
+
+        .btn-whatsapp:hover {
+            background: #25D366;
+            color: #000;
+        }
+
+        .btn-email {
+            background: rgba(52, 152, 219, 0.2);
+            color: #3498db;
+            border: 1px solid #3498db;
+        }
+
+        .btn-email:hover {
+            background: #3498db;
+            color: #000;
         }
 
         .badge {
@@ -183,6 +205,135 @@
             opacity: 0.8;
         }
 
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background: rgba(17, 17, 17, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(242, 101, 34, 0.3);
+            border-radius: 16px;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 10px;
+        }
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: #f26522;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            color: #aaa;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+        }
+        .modal-close:hover {
+            color: #fff;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #fff;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 100px;
+            box-sizing: border-box;
+        }
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #f26522;
+        }
+        .btn-save {
+            background: #f26522;
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            font-family: inherit;
+            transition: opacity 0.3s;
+        }
+        .btn-save:hover {
+            opacity: 0.8;
+        }
+        .variables-hint {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 5px;
+            display: block;
+        }
+        .variables-hint span {
+            color: #f26522;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+        .btn-config {
+            background: rgba(30, 30, 30, 0.6);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+        .btn-config:hover {
+            background: rgba(242, 101, 34, 0.2);
+            border-color: #f26522;
+        }
+
     </style>
 </head>
 <body>
@@ -193,6 +344,10 @@
             <select id="proyecto-filter" class="table-container" style="background: rgba(30, 30, 30, 0.6); color: white; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px; cursor: pointer;" onchange="filtrarPorProyecto()">
                 <option value="todos">Todos los Proyectos</option>
             </select>
+            <button class="btn-config" onclick="abrirModalMensaje()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                Mensajes
+            </button>
             <button class="btn-export" onclick="exportToCSV()">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                 Exportar CSV
@@ -213,6 +368,10 @@
             <div class="stat-card">
                 <div class="stat-value" id="lotes-interes">0</div>
                 <div class="stat-label">Lotes con Interés</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="total-lotes">0</div>
+                <div class="stat-label">Total de Lotes</div>
             </div>
         </div>
 
@@ -236,6 +395,39 @@
 
     </div>
 
+    <!-- Modal Mensajes -->
+    <div id="mensaje-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Configurar Mensajes</h2>
+                <button class="modal-close" onclick="cerrarModalMensaje()">&times;</button>
+            </div>
+            <div class="form-group">
+                <label for="whatsapp-template">Plantilla de WhatsApp / Correo</label>
+                <textarea id="whatsapp-template">Hola {nombre}, te contacto sobre tu interés en el lote {lote} del proyecto {proyecto}.</textarea>
+                <div class="variables-hint">
+                    Variables disponibles:
+                    <span onclick="insertVar('whatsapp-template', '{nombre}')">{nombre}</span>
+                    <span onclick="insertVar('whatsapp-template', '{lote}')">{lote}</span>
+                    <span onclick="insertVar('whatsapp-template', '{proyecto}')">{proyecto}</span>
+                    <span onclick="insertVar('whatsapp-template', '{cuota_inicial}')">{cuota_inicial}</span>
+                    <span onclick="insertVar('whatsapp-template', '{meses}')">{meses}</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="email-subject">Asunto del Correo</label>
+                <input type="text" id="email-subject" style="width: 100%; padding: 10px; background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: #fff; font-family: inherit; box-sizing: border-box;" value="Información sobre tu interés - {proyecto}">
+                <div class="variables-hint">
+                    Variables disponibles:
+                    <span onclick="insertVar('email-subject', '{nombre}')">{nombre}</span>
+                    <span onclick="insertVar('email-subject', '{lote}')">{lote}</span>
+                    <span onclick="insertVar('email-subject', '{proyecto}')">{proyecto}</span>
+                </div>
+            </div>
+            <button class="btn-save" onclick="guardarPlantillas()">Guardar Cambios</button>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         const supabaseUrl = 'https://mungbffwwjobinfcympd.supabase.co';
@@ -245,7 +437,11 @@
         let supabaseClient;
         let currentUser = null;
         let allLeads = [];
+        let allLotes = [];
         let proyectosData = {};
+
+        let templateWhatsApp = localStorage.getItem('templateWhatsApp') || "Hola {nombre}, te contacto sobre tu interés en el lote {lote} del proyecto {proyecto}.";
+        let templateEmailSubject = localStorage.getItem('templateEmailSubject') || "Información sobre tu interés - {proyecto}";
 
         async function checkAuthAndInit() {
             try {
@@ -274,6 +470,7 @@
         async function init() {
             try {
                 await fetchProyectos();
+                await fetchLotes();
                 await fetchLeads();
             } catch (error) {
                 console.error("Error init:", error);
@@ -288,6 +485,28 @@
             } catch (error) {
                 console.error("Error al cerrar sesión", error);
             }
+        }
+
+        async function fetchLotes() {
+            const validProjectIds = Object.keys(proyectosData);
+
+            let query = supabaseClient.from('lotes').select('id, proyecto_id');
+
+            if (currentUser && currentUser.email !== MASTER_ADMIN_EMAIL) {
+                if (validProjectIds.length > 0) {
+                     query = query.in('proyecto_id', validProjectIds);
+                } else {
+                    allLotes = [];
+                    return;
+                }
+            }
+
+            const { data, error } = await query;
+            if (error) {
+                console.error("Error fetching lotes:", error);
+                return;
+            }
+            allLotes = data || [];
         }
 
         async function fetchProyectos() {
@@ -316,7 +535,7 @@
             // Get valid project IDs for this user
             const validProjectIds = Object.keys(proyectosData);
 
-            let query = supabaseClient.from('interesados').select('*').order('fecha_registro', { ascending: false });
+            let query = supabaseClient.from('interesados').select('*').order('fecha', { ascending: false });
 
             // If there are valid projects and it's not the master admin
             if (currentUser && currentUser.email !== MASTER_ADMIN_EMAIL) {
@@ -345,15 +564,19 @@
         function updateUI() {
             const proyectoFilterId = document.getElementById('proyecto-filter').value;
             let leadsAMostrar = allLeads;
+            let lotesAMostrar = allLotes;
 
             if (proyectoFilterId !== 'todos') {
                 leadsAMostrar = allLeads.filter(l => l.proyecto_id === proyectoFilterId);
+                lotesAMostrar = allLotes.filter(l => l.proyecto_id === proyectoFilterId);
             }
 
             document.getElementById('total-leads').innerText = leadsAMostrar.length;
 
             const lotesUnicos = new Set(leadsAMostrar.map(l => l.lote));
             document.getElementById('lotes-interes').innerText = lotesUnicos.size;
+
+            document.getElementById('total-lotes').innerText = lotesAMostrar.length;
 
             const tbody = document.getElementById('leads-body');
             tbody.innerHTML = '';
@@ -365,7 +588,7 @@
 
             leadsAMostrar.forEach(lead => {
                 const nombreProyecto = lead.proyecto_id && proyectosData[lead.proyecto_id] ? proyectosData[lead.proyecto_id] : 'Desconocido';
-                const date = new Date(lead.fecha_registro);
+                const date = new Date(lead.fecha);
                 const dateStr = date.toLocaleDateString('es-CO') + ' ' + date.toLocaleTimeString('es-CO', {hour: '2-digit', minute:'2-digit'});
 
                 const tr = document.createElement('tr');
@@ -390,14 +613,80 @@
                         </div>
                     </td>
                     <td>
-                        <a href="https://wa.me/57${lead.telefono.replace(/\D/g, '')}?text=Hola%20${encodeURIComponent(lead.nombre)},%20te%20contacto%20sobre%20tu%20inter%C3%A9s%20en%20el%20lote%20${encodeURIComponent(lead.lote)}%20del%20proyecto%20${encodeURIComponent(nombreProyecto)}." target="_blank" class="btn-action">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
-                            Contactar
-                        </a>
+                        <div class="action-buttons">
+                            <button onclick="contactarWhatsApp('${lead.telefono}', '${lead.nombre}', '${lead.lote}', '${nombreProyecto}', '${lead.cuota_inicial}', '${lead.meses}')" class="btn-action btn-whatsapp">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                                WhatsApp
+                            </button>
+                            ${lead.correo ? `
+                            <button onclick="enviarCorreo('${lead.correo}', '${lead.nombre}', '${lead.lote}', '${nombreProyecto}', '${lead.cuota_inicial}', '${lead.meses}')" class="btn-action btn-email">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                                Correo
+                            </button>
+                            ` : ''}
+                        </div>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
+        }
+
+        function contactarWhatsApp(telefono, nombre, lote, proyecto, cuota, meses) {
+            let msg = templateWhatsApp
+                .replace(/{nombre}/g, nombre)
+                .replace(/{lote}/g, lote)
+                .replace(/{proyecto}/g, proyecto)
+                .replace(/{cuota_inicial}/g, cuota)
+                .replace(/{meses}/g, meses);
+
+            const url = `https://wa.me/57${telefono.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`;
+            window.open(url, '_blank');
+        }
+
+        function enviarCorreo(correo, nombre, lote, proyecto, cuota, meses) {
+            let subject = templateEmailSubject
+                .replace(/{nombre}/g, nombre)
+                .replace(/{lote}/g, lote)
+                .replace(/{proyecto}/g, proyecto);
+
+            let body = templateWhatsApp
+                .replace(/{nombre}/g, nombre)
+                .replace(/{lote}/g, lote)
+                .replace(/{proyecto}/g, proyecto)
+                .replace(/{cuota_inicial}/g, cuota)
+                .replace(/{meses}/g, meses);
+
+            const url = `mailto:${correo}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            window.location.href = url;
+        }
+
+        function abrirModalMensaje() {
+            document.getElementById('whatsapp-template').value = templateWhatsApp;
+            document.getElementById('email-subject').value = templateEmailSubject;
+            document.getElementById('mensaje-modal').classList.add('active');
+        }
+
+        function cerrarModalMensaje() {
+            document.getElementById('mensaje-modal').classList.remove('active');
+        }
+
+        function guardarPlantillas() {
+            templateWhatsApp = document.getElementById('whatsapp-template').value;
+            templateEmailSubject = document.getElementById('email-subject').value;
+            localStorage.setItem('templateWhatsApp', templateWhatsApp);
+            localStorage.setItem('templateEmailSubject', templateEmailSubject);
+            cerrarModalMensaje();
+            alert("Plantilla guardada correctamente");
+        }
+
+        function insertVar(inputId, variable) {
+            const input = document.getElementById(inputId);
+            const startPos = input.selectionStart;
+            const endPos = input.selectionEnd;
+            input.value = input.value.substring(0, startPos) + variable + input.value.substring(endPos, input.value.length);
+            input.focus();
+            input.selectionStart = startPos + variable.length;
+            input.selectionEnd = startPos + variable.length;
         }
 
         function filtrarPorProyecto() {
@@ -418,7 +707,7 @@
 
             leadsAExportar.forEach(lead => {
                 const nombreProyecto = lead.proyecto_id && proyectosData[lead.proyecto_id] ? proyectosData[lead.proyecto_id] : 'Desconocido';
-                const date = new Date(lead.fecha_registro).toLocaleDateString('es-CO');
+                const date = new Date(lead.fecha).toLocaleDateString('es-CO');
                 const row = [
                     date,
                     `"${nombreProyecto}"`,
