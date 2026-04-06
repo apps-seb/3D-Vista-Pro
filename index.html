@@ -1361,7 +1361,7 @@
                     margin:       0,
                     filename:     `Cotizacion_${simuladorLoteActual.nombre.replace(/\s+/g, '_')}_${cNombre.replace(/\s+/g, '_')}.pdf`,
                     image:        { type: 'jpeg', quality: 1 },
-                    html2canvas:  { scale: 2, useCORS: true, allowTaint: true, logging: false, width: 800, windowWidth: 800 },
+                    html2canvas:  { scale: 2, useCORS: true, allowTaint: true, logging: false, width: 800 },
                     jsPDF:        { unit: 'px', format: [800, contentHeight], orientation: 'portrait' }
                 };
 
@@ -1372,11 +1372,25 @@
 
                 // Re-create the element to pass to html2pdf to ensure width is respected
                 const renderElement = document.createElement('div');
-                renderElement.style.width = '800px';
                 renderElement.innerHTML = htmlTemplate;
+                const pdfContainer = renderElement.firstElementChild;
+
+                const wrapper = document.createElement('div');
+                wrapper.style.position = 'absolute';
+                wrapper.style.left = '0';
+                wrapper.style.top = '0';
+                wrapper.style.width = '800px';
+                wrapper.style.zIndex = '-9999';
+                wrapper.style.margin = '0';
+                wrapper.style.padding = '0';
+                wrapper.appendChild(pdfContainer);
+                document.body.appendChild(wrapper);
 
                 try {
-                    pdfBlobGlobal = await html2pdf().set(opt).from(renderElement).output('blob');
+                    pdfBlobGlobal = await html2pdf().set(opt).from(pdfContainer).output('blob');
+                    if (document.body.contains(wrapper)) {
+                        document.body.removeChild(wrapper);
+                    }
 
                     // Guardar lead en la tabla 'interesados'
                     try {
@@ -1421,6 +1435,9 @@
                     }, 1500);
 
                 } catch (error) {
+                    if (document.body.contains(wrapper)) {
+                        document.body.removeChild(wrapper);
+                    }
                     window.mostrarProgreso(100);
                     btn.innerText = originalText;
                     window.mostrarError("generarPDF", error);
