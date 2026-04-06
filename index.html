@@ -437,6 +437,10 @@
         let globalAsesorNombre = "";
         let globalAsesorTel = "";
         
+        // URL de tu archivo PHP para envío de correos.
+        // Cámbiala por la URL real donde subas el archivo en tu Hostinger.
+        const urlPhpCorreo = "https://tudominio.com/enviar_correo.php";
+
         window.lotesDataMap = {}; // Para acceso directo desde onclick
 
         function hexToRgb(hex) {
@@ -1214,6 +1218,24 @@
         let pdfClientTelGlobal = "";
         let pdfClientNombreGlobal = "";
 
+        async function enviarCorreoSimulacion(datos) {
+            try {
+                const response = await fetch(urlPhpCorreo, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(datos)
+                });
+                const result = await response.json();
+                if(result.status !== 'success') {
+                    console.warn("Aviso: No se pudo enviar el correo (" + result.message + ")");
+                } else {
+                    console.log("Correo enviado exitosamente.");
+                }
+            } catch (error) {
+                console.warn("Aviso: Error de red al intentar enviar el correo. ¿El archivo PHP está configurado correctamente en urlPhpCorreo?", error);
+            }
+        }
+
         async function generarPDF() {
             const cTelInput = document.getElementById('sim-cliente-tel').value;
             const telFormateado = cTelInput ? cTelInput.replace(/\D/g, '') : '';
@@ -1248,6 +1270,33 @@
                 const logoDisplay = document.getElementById('display-logo').style.display !== 'none' ? `<img src="${logoSrc}" crossorigin="anonymous" style="max-height: 80px; max-width: 200px;">` : '';
                 const titleText = document.getElementById('display-title').innerText;
                 const refText = simuladorLoteActual.id ? (simuladorLoteActual.id.split('-')[1] || simuladorLoteActual.id) : Date.now();
+
+                // Preparar datos para enviar por correo si el cliente ingresó email
+                if (cEmail && cEmail !== 'N/A' && cEmail.includes('@')) {
+                    const datosCorreo = {
+                        cliente_nombre: cNombre,
+                        cliente_email: cEmail,
+                        cliente_tel: cTel,
+                        cliente_dir: cDir,
+                        lote_nombre: simuladorLoteActual.nombre,
+                        lote_area: simuladorLoteActual.area,
+                        valor_total: formatearDinero(valorTotalNum),
+                        cuota_inicial: formatearDinero(cuotaInicialNum),
+                        meses: meses,
+                        saldo_financiar: saldoFinanciarStr,
+                        cuota_mensual: cuotaMensualStr,
+                        titulo_proyecto: titleText,
+                        logo_url: document.getElementById('display-logo').style.display !== 'none' ? logoSrc : '',
+                        color_primario: globalTemaColor,
+                        fecha: fechaStr,
+                        ref_text: refText,
+                        asesor_nombre: aNombre,
+                        asesor_tel: aTel
+                    };
+
+                    // Se lanza en background (no esperamos a que termine para no bloquear al usuario)
+                    enviarCorreoSimulacion(datosCorreo);
+                }
 
                 // Plantilla HTML para el PDF (Diseño Elegante y Profesional)
                 const htmlTemplate = `
