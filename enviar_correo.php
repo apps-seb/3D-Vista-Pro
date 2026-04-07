@@ -61,7 +61,12 @@ $cuota_mensual = htmlspecialchars($data['cuota_mensual'] ?? '$0');
 
 // Extraer datos del proyecto
 $titulo_proyecto = htmlspecialchars($data['titulo_proyecto'] ?? 'Proyecto Inmobiliario');
-$logo_url = filter_var($data['logo_url'] ?? '', FILTER_VALIDATE_URL) ? $data['logo_url'] : '';
+// Permitir URLs normales o strings base64 (data:image/...)
+$raw_logo_url = $data['logo_url'] ?? '';
+$logo_url = '';
+if (filter_var($raw_logo_url, FILTER_VALIDATE_URL) || strpos($raw_logo_url, 'data:image/') === 0) {
+    $logo_url = $raw_logo_url;
+}
 $color_primario = htmlspecialchars($data['color_primario'] ?? '#f26522');
 $fecha = htmlspecialchars($data['fecha'] ?? date("d/m/Y"));
 $ref_text = htmlspecialchars($data['ref_text'] ?? time());
@@ -85,100 +90,125 @@ $html_template = "
 <html lang='es'>
 <head>
 <meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
 <title>Bienvenido - {$titulo_proyecto}</title>
 <style>
-    body { margin: 0; padding: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f4f4; }
-    .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-top: 20px; margin-bottom: 20px; }
-    .header-bar { height: 8px; background: linear-gradient(90deg, {$color_primario}, #333333); width: 100%; }
-    .header { padding: 40px 40px 20px 40px; text-align: center; border-bottom: 1px solid #eeeeee; }
-    .content { padding: 40px; color: #333333; line-height: 1.6; }
-    .title { font-size: 24px; font-weight: bold; color: #111111; letter-spacing: 1px; margin-bottom: 10px; }
-    .subtitle { font-size: 16px; color: #555555; margin-top: 0; margin-bottom: 30px; }
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap');
+    body { margin: 0; padding: 0; font-family: 'Montserrat', 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f8f9fa; -webkit-font-smoothing: antialiased; }
+    .wrapper { width: 100%; table-layout: fixed; background-color: #f8f9fa; padding-bottom: 60px; }
+    .webkit { max-width: 600px; margin: 0 auto; }
+    .outer { margin: 0 auto; width: 100%; max-width: 600px; border-spacing: 0; font-family: 'Montserrat', sans-serif; color: #333333; }
 
-    .lote-box { background-color: #f9f9f9; border: 1px solid #eeeeee; padding: 25px; border-radius: 8px; margin-bottom: 30px; text-align: center; }
-    .lote-box-title { color: {$color_primario}; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; font-weight: bold; }
-    .lote-box-name { font-size: 24px; font-weight: bold; margin: 0 0 10px 0; color: #111; }
-    .lote-box-area { font-size: 16px; color: #666; }
+    .header-gradient { height: 6px; background: linear-gradient(90deg, {$color_primario}, #ff8c00); }
+    .header { background-color: #ffffff; padding: 40px 30px; text-align: center; }
 
-    .table { width: 100%; border-collapse: collapse; margin-bottom: 30px; border: 1px solid #eeeeee; border-radius: 8px; overflow: hidden; }
-    .table td { padding: 15px 20px; border-bottom: 1px solid #eeeeee; font-size: 15px; }
-    .table tr:nth-child(even) { background-color: #fafafa; }
-    .td-label { color: #555555; }
-    .td-value { text-align: right; font-weight: bold; color: #111111; }
+    .main-body { background-color: #ffffff; padding: 0 40px 40px 40px; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); }
+
+    .title { font-size: 26px; font-weight: 700; color: #111111; letter-spacing: -0.5px; margin-bottom: 8px; margin-top: 0; }
+    .subtitle { font-size: 18px; color: {$color_primario}; font-weight: 600; margin-top: 0; margin-bottom: 35px; }
+
+    .intro-text { font-size: 15px; line-height: 1.6; color: #555555; margin-bottom: 30px; }
+
+    .card { background: linear-gradient(145deg, #ffffff, #fcfcfc); border: 1px solid #eeeeee; border-radius: 12px; padding: 30px; margin-bottom: 30px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
+    .card-title { color: #888888; font-size: 12px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; font-weight: 600; }
+    .card-value-main { font-size: 28px; font-weight: 700; color: #111111; margin: 0 0 10px 0; }
+    .card-value-sub { font-size: 16px; color: #666666; font-weight: 400; }
+
+    .table-container { border: 1px solid #eeeeee; border-radius: 12px; overflow: hidden; margin-bottom: 35px; }
+    .table { width: 100%; border-collapse: collapse; }
+    .table td { padding: 18px 25px; border-bottom: 1px solid #eeeeee; font-size: 14px; }
+    .table tr:last-child td { border-bottom: none; }
+    .table tr:nth-child(even) { background-color: #fdfdfd; }
+    .td-label { color: #666666; font-weight: 400; }
+    .td-value { text-align: right; font-weight: 600; color: #222222; }
 
     .total-row { background-color: #111111 !important; }
-    .total-row .td-label { color: #ffffff; font-size: 15px; text-transform: uppercase; }
-    .total-row .td-value { color: {$color_primario}; font-size: 18px; }
+    .total-row .td-label { color: #ffffff; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+    .total-row .td-value { color: {$color_primario}; font-size: 20px; font-weight: 700; }
 
-    .next-steps { text-align: center; margin-bottom: 30px; padding: 20px; background-color: rgba(" . hexdec(substr($color_primario, 1, 2)) . ", " . hexdec(substr($color_primario, 3, 2)) . ", " . hexdec(substr($color_primario, 5, 2)) . ", 0.05); border-radius: 8px; border: 1px solid rgba(" . hexdec(substr($color_primario, 1, 2)) . ", " . hexdec(substr($color_primario, 3, 2)) . ", " . hexdec(substr($color_primario, 5, 2)) . ", 0.2); }
-    .next-steps-title { font-size: 16px; font-weight: bold; color: {$color_primario}; margin-bottom: 10px; }
+    .next-steps { text-align: center; padding: 25px; background-color: rgba(" . hexdec(substr($color_primario, 1, 2)) . ", " . hexdec(substr($color_primario, 3, 2)) . ", " . hexdec(substr($color_primario, 5, 2)) . ", 0.05); border-radius: 12px; border-left: 4px solid {$color_primario}; margin-bottom: 35px; }
+    .next-steps-title { font-size: 15px; font-weight: 700; color: #111111; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+    .next-steps-text { margin: 0; color: #555555; font-size: 14px; line-height: 1.5; }
 
-    .button-container { text-align: center; margin-top: 30px; display: block; }
-    .btn { display: inline-block; padding: 14px 24px; text-decoration: none; font-weight: bold; border-radius: 6px; font-size: 15px; margin: 5px; text-transform: uppercase; letter-spacing: 1px; }
-    .btn-primary { background-color: #25D366; color: #ffffff; }
-    .btn-secondary { background-color: #111111; color: #ffffff; }
+    .button-container { text-align: center; margin-top: 10px; }
+    .btn { display: inline-block; padding: 16px 28px; text-decoration: none; font-weight: 600; border-radius: 8px; font-size: 14px; margin: 8px; text-transform: uppercase; letter-spacing: 1px; transition: opacity 0.3s; }
+    .btn-primary { background-color: #25D366; color: #ffffff !important; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3); }
+    .btn-secondary { background-color: #111111; color: #ffffff !important; box-shadow: 0 4px 15px rgba(17, 17, 17, 0.2); }
 
-    .footer { padding: 30px 40px; text-align: center; background-color: #fcfcfc; border-top: 1px solid #eeeeee; font-size: 12px; color: #888888; }
+    .footer { padding: 40px 30px; text-align: center; color: #999999; font-size: 11px; line-height: 1.6; }
+    .footer-logo { max-height: 40px; margin-bottom: 15px; opacity: 0.6; filter: grayscale(100%); }
+    .divider { height: 1px; background-color: #dddddd; margin: 20px auto; width: 50%; }
 </style>
 </head>
 <body>
-<div style='background-color: #f4f4f4; padding: 40px 0;'>
-    <div class='container'>
-        <div class='header-bar'></div>
-        <div class='header'>
-            {$logo_html}
-        </div>
-        <div class='content'>
-            <h1 class='title'>¡Bienvenido {$cliente_nombre} al proyecto {$titulo_proyecto}!</h1>
-            <p class='subtitle'>Tu {$lote_nombre} te espera.</p>
+<div class='wrapper'>
+    <div class='webkit'>
+        <table class='outer' align='center'>
+            <tr>
+                <td>
+                    <div class='header-gradient'></div>
+                    <div class='header'>
+                        {$logo_html}
+                    </div>
+                    <div class='main-body'>
+                        <h1 class='title'>¡Bienvenido, {$cliente_nombre}!</h1>
+                        <p class='subtitle'>Tu {$lote_nombre} te espera en {$titulo_proyecto}</p>
 
-            <p style='font-size: 16px; margin-top: 0;'>Nos emociona compartir contigo el resumen de tu inversión. Has dado el primer paso hacia una gran oportunidad en <strong>{$titulo_proyecto}</strong>.</p>
+                        <p class='intro-text'>Nos emociona compartir contigo el resumen de tu inversión. Has dado el primer paso hacia una gran oportunidad y estamos aquí para acompañarte en todo el proceso.</p>
 
-            <div class='lote-box'>
-                <div class='lote-box-title'>Información del Lote</div>
-                <h2 class='lote-box-name'>{$lote_nombre}</h2>
-                <div class='lote-box-area'>Área Total: <strong>{$lote_area}</strong></div>
-            </div>
+                        <div class='card'>
+                            <div class='card-title'>Información del Inmueble</div>
+                            <h2 class='card-value-main'>{$lote_nombre}</h2>
+                            <div class='card-value-sub'>Área Total: <strong>{$lote_area}</strong></div>
+                        </div>
 
-            <h3 style='font-size: 15px; text-transform: uppercase; text-align: center; margin-bottom: 15px; letter-spacing: 1px; color: #333;'>Resumen de Inversión</h3>
-            <table class='table'>
-                <tr>
-                    <td class='td-label'>Valor Total</td>
-                    <td class='td-value'>{$valor_total}</td>
-                </tr>
-                <tr>
-                    <td class='td-label'>Aporte Inicial Sugerido</td>
-                    <td class='td-value'>{$cuota_inicial}</td>
-                </tr>
-                <tr>
-                    <td class='td-label'>Saldo a Financiar</td>
-                    <td class='td-value'>{$saldo_financiar}</td>
-                </tr>
-                <tr>
-                    <td class='td-label'>Plazo</td>
-                    <td class='td-value'>{$meses} Meses</td>
-                </tr>
-                <tr class='total-row'>
-                    <td class='td-label'>Cuota Mensual Estimada</td>
-                    <td class='td-value'>{$cuota_mensual}</td>
-                </tr>
-            </table>
+                        <div class='card-title' style='text-align: center; margin-bottom: 15px;'>Resumen Financiero</div>
+                        <div class='table-container'>
+                            <table class='table'>
+                                <tr>
+                                    <td class='td-label'>Valor Total</td>
+                                    <td class='td-value'>{$valor_total}</td>
+                                </tr>
+                                <tr>
+                                    <td class='td-label'>Aporte Inicial Sugerido</td>
+                                    <td class='td-value'>{$cuota_inicial}</td>
+                                </tr>
+                                <tr>
+                                    <td class='td-label'>Saldo a Financiar</td>
+                                    <td class='td-value'>{$saldo_financiar}</td>
+                                </tr>
+                                <tr>
+                                    <td class='td-label'>Plazo Estimado</td>
+                                    <td class='td-value'>{$meses} Meses</td>
+                                </tr>
+                                <tr class='total-row'>
+                                    <td class='td-label'>Inversión Mensual</td>
+                                    <td class='td-value'>{$cuota_mensual}</td>
+                                </tr>
+                            </table>
+                        </div>
 
-            <div class='next-steps'>
-                <div class='next-steps-title'>Paso a paso a seguir</div>
-                <p style='margin: 0; color: #444; font-size: 15px;'>Un asesor te contactará muy pronto para ampliar la información, resolver tus dudas y acompañarte en el proceso.</p>
-            </div>
+                        <div class='next-steps'>
+                            <div class='next-steps-title'>Paso a paso a seguir</div>
+                            <p class='next-steps-text'>Un asesor especializado de nuestro equipo se pondrá en contacto contigo muy pronto para ampliar la información, resolver tus dudas y guiarte.</p>
+                        </div>
 
-            <div class='button-container'>
-                <a href='{$wa_link}' class='btn btn-primary' style='color: #ffffff;'>Escribir por WhatsApp</a>
-                <a href='{$project_url}' class='btn btn-secondary' style='color: #ffffff;'>Hacer otra cotización</a>
-            </div>
+                        <div class='button-container'>
+                            <a href='{$wa_link}' class='btn btn-primary'>Escribir por WhatsApp</a>
+                            <a href='{$project_url}' class='btn btn-secondary'>Hacer otra cotización</a>
+                        </div>
+                    </div>
 
-        </div>
-        <div class='footer'>
-            <p>Referencia: {$ref_text} | Fecha: {$fecha}</p>
-            <p>Este documento es de carácter informativo y no representa un compromiso legal ni una promesa de compraventa. Los valores, áreas y condiciones están sujetos a verificación y posibles modificaciones sin previo aviso.</p>
-        </div>
+                    <div class='footer'>
+                        " . ($logo_url ? "<img src='{$logo_url}' class='footer-logo' alt='Logo'>" : "") . "
+                        <p style='margin: 0;'><strong>Referencia de cotización:</strong> {$ref_text} &nbsp;|&nbsp; <strong>Fecha:</strong> {$fecha}</p>
+                        <div class='divider'></div>
+                        <p style='margin: 0;'>Este documento es de carácter informativo y no representa un compromiso legal ni una promesa de compraventa. Los valores, áreas y condiciones están sujetos a verificación y posibles modificaciones sin previo aviso.</p>
+                        <p style='margin: 15px 0 0 0; color: #bbbbbb;'>&copy; " . date('Y') . " {$titulo_proyecto}. Todos los derechos reservados.</p>
+                    </div>
+                </td>
+            </tr>
+        </table>
     </div>
 </div>
 </body>
@@ -191,42 +221,93 @@ $html_admin_template = "
 <html lang='es'>
 <head>
 <meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
 <title>Nuevo Lead - {$titulo_proyecto}</title>
 <style>
-    body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px; }
-    .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-radius: 8px; border-top: 4px solid {$color_primario}; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-    h2 { color: #111; margin-top: 0; }
-    .info-group { margin-bottom: 20px; }
-    .label { font-size: 12px; color: #777; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
-    .value { font-size: 16px; color: #222; font-weight: bold; }
-    .divider { border-top: 1px solid #eee; margin: 20px 0; }
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
+    body { font-family: 'Montserrat', 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 40px 20px; -webkit-font-smoothing: antialiased; }
+    .wrapper { width: 100%; table-layout: fixed; }
+    .webkit { max-width: 600px; margin: 0 auto; }
+    .outer { margin: 0 auto; width: 100%; max-width: 600px; border-spacing: 0; background-color: #ffffff; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); overflow: hidden; }
+
+    .header { background: linear-gradient(135deg, #111111, #2a2a2a); padding: 30px; text-align: center; border-bottom: 4px solid {$color_primario}; }
+    .header h2 { color: #ffffff; margin: 0; font-size: 22px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+    .header p { color: #aaaaaa; margin: 5px 0 0 0; font-size: 14px; }
+
+    .content { padding: 30px; }
+
+    .section-title { font-size: 14px; color: {$color_primario}; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 2px solid #eeeeee; padding-bottom: 8px; margin-bottom: 20px; margin-top: 0; }
+
+    .info-grid { display: block; margin-bottom: 30px; }
+    .info-row { display: block; margin-bottom: 15px; }
+    .label { font-size: 11px; color: #888888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; font-weight: 600; }
+    .value { font-size: 16px; color: #111111; font-weight: 600; background-color: #f8f9fa; padding: 12px 15px; border-radius: 6px; border: 1px solid #eeeeee; }
+
+    .footer { background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #888888; border-top: 1px solid #eeeeee; }
 </style>
 </head>
 <body>
-    <div class='container'>
-        <h2>Nueva Simulación de Inversión</h2>
-        <p>Se ha generado una nueva cotización en el proyecto <strong>{$titulo_proyecto}</strong>.</p>
+<div class='wrapper'>
+    <div class='webkit'>
+        <table class='outer' align='center'>
+            <tr>
+                <td>
+                    <div class='header'>
+                        <h2>Nuevo Lead Capturado</h2>
+                        <p>{$titulo_proyecto}</p>
+                    </div>
 
-        <div class='divider'></div>
+                    <div class='content'>
+                        <h3 class='section-title'>Datos de Contacto</h3>
+                        <div class='info-grid'>
+                            <div class='info-row'>
+                                <div class='label'>Nombre del Cliente</div>
+                                <div class='value'>{$cliente_nombre}</div>
+                            </div>
+                            <div class='info-row'>
+                                <div class='label'>Teléfono / Celular</div>
+                                <div class='value'>{$cliente_tel}</div>
+                            </div>
+                            <div class='info-row'>
+                                <div class='label'>Correo Electrónico</div>
+                                <div class='value'>{$cliente_email}</div>
+                            </div>
+                            <div class='info-row'>
+                                <div class='label'>Dirección Registrada</div>
+                                <div class='value'>{$cliente_dir}</div>
+                            </div>
+                        </div>
 
-        <h3>Datos del Cliente</h3>
-        <div class='info-group'><div class='label'>Nombre</div><div class='value'>{$cliente_nombre}</div></div>
-        <div class='info-group'><div class='label'>Teléfono</div><div class='value'>{$cliente_tel}</div></div>
-        <div class='info-group'><div class='label'>Email</div><div class='value'>{$cliente_email}</div></div>
-        <div class='info-group'><div class='label'>Dirección</div><div class='value'>{$cliente_dir}</div></div>
+                        <h3 class='section-title'>Detalles de Inversión</h3>
+                        <div class='info-grid'>
+                            <div class='info-row'>
+                                <div class='label'>Inmueble / Lote de Interés</div>
+                                <div class='value'>{$lote_nombre} ({$lote_area})</div>
+                            </div>
+                            <div class='info-row'>
+                                <div class='label'>Valor Total</div>
+                                <div class='value' style='color: {$color_primario};'>{$valor_total}</div>
+                            </div>
+                            <div class='info-row'>
+                                <div class='label'>Plan de Pagos (Cuota Inicial / Saldo / Plazo)</div>
+                                <div class='value'>{$cuota_inicial} / {$saldo_financiar} ({$meses} meses)</div>
+                            </div>
+                            <div class='info-row'>
+                                <div class='label'>Proyección Cuota Mensual</div>
+                                <div class='value'>{$cuota_mensual}</div>
+                            </div>
+                        </div>
+                    </div>
 
-        <div class='divider'></div>
-
-        <h3>Detalles de la Simulación</h3>
-        <div class='info-group'><div class='label'>Lote de Interés</div><div class='value'>{$lote_nombre} ({$lote_area})</div></div>
-        <div class='info-group'><div class='label'>Valor Total</div><div class='value'>{$valor_total}</div></div>
-        <div class='info-group'><div class='label'>Cuota Inicial Sugerida</div><div class='value'>{$cuota_inicial}</div></div>
-        <div class='info-group'><div class='label'>Saldo a Financiar</div><div class='value'>{$saldo_financiar} a {$meses} meses</div></div>
-        <div class='info-group'><div class='label'>Cuota Mensual Estimada</div><div class='value'>{$cuota_mensual}</div></div>
-
-        <div class='divider'></div>
-        <p style='font-size: 12px; color: #888;'>Notificación automática del sistema de cotizaciones de {$titulo_proyecto}.</p>
+                    <div class='footer'>
+                        Notificación automática del CRM de <strong>{$titulo_proyecto}</strong>.<br>
+                        Fecha de simulación: {$fecha}
+                    </div>
+                </td>
+            </tr>
+        </table>
     </div>
+</div>
 </body>
 </html>
 ";
@@ -243,7 +324,7 @@ $admin_email = "sebastianestupinanb@gmail.com";
 $asunto_admin = "Nuevo Lead: {$cliente_nombre} - {$titulo_proyecto}";
 $headers_admin = "MIME-Version: 1.0\r\n";
 $headers_admin .= "Content-Type: text/html; charset=UTF-8\r\n";
-$headers_admin .= "From: Notificaciones Plataforma <{$remitente}>\r\n";
+$headers_admin .= "From: {$nombre_remitente} <{$remitente}>\r\n";
 $headers_admin .= "Reply-To: {$cliente_email}\r\n";
 
 
