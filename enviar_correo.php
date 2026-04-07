@@ -85,99 +85,141 @@ $html_template = "
 <html lang='es'>
 <head>
 <meta charset='UTF-8'>
-<title>Bienvenido - {$titulo_proyecto}</title>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<title>Detalles de tu Inversión - {$titulo_proyecto}</title>
 <style>
-    body { margin: 0; padding: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f4f4; }
-    .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-top: 20px; margin-bottom: 20px; }
-    .header-bar { height: 8px; background: linear-gradient(90deg, {$color_primario}, #333333); width: 100%; }
-    .header { padding: 40px 40px 20px 40px; text-align: center; border-bottom: 1px solid #eeeeee; }
-    .content { padding: 40px; color: #333333; line-height: 1.6; }
-    .title { font-size: 24px; font-weight: bold; color: #111111; letter-spacing: 1px; margin-bottom: 10px; }
-    .subtitle { font-size: 16px; color: #555555; margin-top: 0; margin-bottom: 30px; }
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap');
+    body { margin: 0; padding: 0; font-family: 'Montserrat', Arial, sans-serif; background-color: #f5f7fa; color: #333333; -webkit-font-smoothing: antialiased; }
+    .wrapper { background-color: #f5f7fa; padding: 40px 20px; }
+    .container { max-width: 650px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
 
-    .lote-box { background-color: #f9f9f9; border: 1px solid #eeeeee; padding: 25px; border-radius: 8px; margin-bottom: 30px; text-align: center; }
-    .lote-box-title { color: {$color_primario}; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; font-weight: bold; }
-    .lote-box-name { font-size: 24px; font-weight: bold; margin: 0 0 10px 0; color: #111; }
-    .lote-box-area { font-size: 16px; color: #666; }
+    .header-accent { height: 6px; background: linear-gradient(90deg, {$color_primario}, #111111); width: 100%; }
+    .header { padding: 40px 40px 30px; text-align: center; border-bottom: 1px solid #f0f0f0; }
+    .logo-container { margin-bottom: 10px; }
 
-    .table { width: 100%; border-collapse: collapse; margin-bottom: 30px; border: 1px solid #eeeeee; border-radius: 8px; overflow: hidden; }
-    .table td { padding: 15px 20px; border-bottom: 1px solid #eeeeee; font-size: 15px; }
-    .table tr:nth-child(even) { background-color: #fafafa; }
-    .td-label { color: #555555; }
-    .td-value { text-align: right; font-weight: bold; color: #111111; }
+    .content { padding: 45px 40px; }
 
-    .total-row { background-color: #111111 !important; }
-    .total-row .td-label { color: #ffffff; font-size: 15px; text-transform: uppercase; }
-    .total-row .td-value { color: {$color_primario}; font-size: 18px; }
+    .greeting { font-size: 22px; font-weight: 300; color: #111111; margin-top: 0; margin-bottom: 10px; text-align: center; }
+    .greeting strong { font-weight: 700; }
+    .intro-text { font-size: 15px; color: #555555; line-height: 1.6; text-align: center; margin-bottom: 35px; }
 
-    .next-steps { text-align: center; margin-bottom: 30px; padding: 20px; background-color: rgba(" . hexdec(substr($color_primario, 1, 2)) . ", " . hexdec(substr($color_primario, 3, 2)) . ", " . hexdec(substr($color_primario, 5, 2)) . ", 0.05); border-radius: 8px; border: 1px solid rgba(" . hexdec(substr($color_primario, 1, 2)) . ", " . hexdec(substr($color_primario, 3, 2)) . ", " . hexdec(substr($color_primario, 5, 2)) . ", 0.2); }
-    .next-steps-title { font-size: 16px; font-weight: bold; color: {$color_primario}; margin-bottom: 10px; }
+    .lote-highlight { background: linear-gradient(135deg, rgba(" . hexdec(substr($color_primario, 1, 2)) . ", " . hexdec(substr($color_primario, 3, 2)) . ", " . hexdec(substr($color_primario, 5, 2)) . ", 0.05), rgba(" . hexdec(substr($color_primario, 1, 2)) . ", " . hexdec(substr($color_primario, 3, 2)) . ", " . hexdec(substr($color_primario, 5, 2)) . ", 0.15)); border: 1px solid rgba(" . hexdec(substr($color_primario, 1, 2)) . ", " . hexdec(substr($color_primario, 3, 2)) . ", " . hexdec(substr($color_primario, 5, 2)) . ", 0.2); padding: 30px; border-radius: 12px; margin-bottom: 35px; text-align: center; position: relative; }
+    .lote-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background-color: {$color_primario}; color: white; padding: 4px 15px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+    .lote-name { font-size: 28px; font-weight: 700; margin: 15px 0 5px; color: #111; }
+    .lote-area { font-size: 15px; color: #555; font-weight: 400; }
 
-    .button-container { text-align: center; margin-top: 30px; display: block; }
-    .btn { display: inline-block; padding: 14px 24px; text-decoration: none; font-weight: bold; border-radius: 6px; font-size: 15px; margin: 5px; text-transform: uppercase; letter-spacing: 1px; }
+    .section-title { font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; color: #888; text-align: center; margin-bottom: 20px; font-weight: 600; }
+
+    .financial-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 35px; border: 1px solid #eaeaea; border-radius: 8px; overflow: hidden; }
+    .financial-table td { padding: 18px 25px; border-bottom: 1px solid #eaeaea; font-size: 15px; }
+    .financial-table tr:last-child td { border-bottom: none; }
+    .financial-table tr:nth-child(odd) { background-color: #fafbfc; }
+    .label-col { color: #666666; font-weight: 400; }
+    .value-col { text-align: right; font-weight: 600; color: #111111; }
+
+    .total-row td { background-color: #111111 !important; }
+    .total-row .label-col { color: #ffffff; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .total-row .value-col { color: {$color_primario}; font-size: 20px; font-weight: 700; }
+
+    .steps-container { background-color: #ffffff; border: 1px dashed #cccccc; padding: 25px; border-radius: 8px; margin-bottom: 35px; }
+    .steps-title { font-size: 16px; font-weight: 700; color: #111; margin-top: 0; margin-bottom: 15px; text-align: center; }
+    .step-item { display: table; width: 100%; margin-bottom: 12px; }
+    .step-number { display: table-cell; width: 28px; height: 28px; background-color: {$color_primario}; color: white; text-align: center; border-radius: 50%; font-size: 14px; font-weight: bold; vertical-align: middle; }
+    .step-text { display: table-cell; padding-left: 15px; font-size: 14px; color: #555; vertical-align: middle; line-height: 1.5; }
+
+    .cta-section { text-align: center; padding-top: 10px; }
+    .btn { display: inline-block; padding: 16px 32px; text-decoration: none; font-weight: 600; border-radius: 30px; font-size: 15px; margin: 10px 5px; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
     .btn-primary { background-color: #25D366; color: #ffffff; }
-    .btn-secondary { background-color: #111111; color: #ffffff; }
+    .btn-secondary { background-color: #ffffff; color: #111111; border: 1px solid #111111; }
 
-    .footer { padding: 30px 40px; text-align: center; background-color: #fcfcfc; border-top: 1px solid #eeeeee; font-size: 12px; color: #888888; }
+    .footer { padding: 35px 40px; text-align: center; background-color: #111111; color: #999999; font-size: 12px; border-radius: 0 0 12px 12px; }
+    .footer p { margin: 8px 0; line-height: 1.5; }
+    .ref-line { font-family: monospace; color: #777; margin-bottom: 15px !important; }
+
+    @media only screen and (max-width: 600px) {
+        .content { padding: 30px 20px; }
+        .header { padding: 30px 20px 20px; }
+        .financial-table td { padding: 15px; }
+        .btn { display: block; margin: 10px 0; width: 100%; box-sizing: border-box; }
+    }
 </style>
 </head>
 <body>
-<div style='background-color: #f4f4f4; padding: 40px 0;'>
+<div class='wrapper'>
     <div class='container'>
-        <div class='header-bar'></div>
+        <div class='header-accent'></div>
         <div class='header'>
-            {$logo_html}
+            <div class='logo-container'>
+                {$logo_html}
+            </div>
         </div>
+
         <div class='content'>
-            <h1 class='title'>¡Bienvenido {$cliente_nombre} al proyecto {$titulo_proyecto}!</h1>
-            <p class='subtitle'>Tu {$lote_nombre} te espera.</p>
+            <h1 class='greeting'>Hola, <strong>{$cliente_nombre}</strong></h1>
+            <p class='intro-text'>Nos emociona compartir contigo el resumen de tu proyección de inversión. Has dado un paso excelente hacia tu futuro en <strong>{$titulo_proyecto}</strong>.</p>
 
-            <p style='font-size: 16px; margin-top: 0;'>Nos emociona compartir contigo el resumen de tu inversión. Has dado el primer paso hacia una gran oportunidad en <strong>{$titulo_proyecto}</strong>.</p>
-
-            <div class='lote-box'>
-                <div class='lote-box-title'>Información del Lote</div>
-                <h2 class='lote-box-name'>{$lote_nombre}</h2>
-                <div class='lote-box-area'>Área Total: <strong>{$lote_area}</strong></div>
+            <div class='lote-highlight'>
+                <div class='lote-badge'>Tu Selección</div>
+                <div class='lote-name'>{$lote_nombre}</div>
+                <div class='lote-area'>Área Total: <strong>{$lote_area}</strong></div>
             </div>
 
-            <h3 style='font-size: 15px; text-transform: uppercase; text-align: center; margin-bottom: 15px; letter-spacing: 1px; color: #333;'>Resumen de Inversión</h3>
-            <table class='table'>
+            <div class='section-title'>Proyección Financiera</div>
+
+            <table class='financial-table'>
                 <tr>
-                    <td class='td-label'>Valor Total</td>
-                    <td class='td-value'>{$valor_total}</td>
+                    <td class='label-col'>Valor Total de Inversión</td>
+                    <td class='value-col'>{$valor_total}</td>
                 </tr>
                 <tr>
-                    <td class='td-label'>Aporte Inicial Sugerido</td>
-                    <td class='td-value'>{$cuota_inicial}</td>
+                    <td class='label-col'>Aporte Inicial Sugerido</td>
+                    <td class='value-col'>{$cuota_inicial}</td>
                 </tr>
                 <tr>
-                    <td class='td-label'>Saldo a Financiar</td>
-                    <td class='td-value'>{$saldo_financiar}</td>
+                    <td class='label-col'>Saldo a Financiar</td>
+                    <td class='value-col'>{$saldo_financiar}</td>
                 </tr>
                 <tr>
-                    <td class='td-label'>Plazo</td>
-                    <td class='td-value'>{$meses} Meses</td>
+                    <td class='label-col'>Plazo Seleccionado</td>
+                    <td class='value-col'>{$meses} Meses</td>
                 </tr>
                 <tr class='total-row'>
-                    <td class='td-label'>Cuota Mensual Estimada</td>
-                    <td class='td-value'>{$cuota_mensual}</td>
+                    <td class='label-col'>Cuota Mensual Estimada</td>
+                    <td class='value-col'>{$cuota_mensual}</td>
                 </tr>
             </table>
 
-            <div class='next-steps'>
-                <div class='next-steps-title'>Paso a paso a seguir</div>
-                <p style='margin: 0; color: #444; font-size: 15px;'>Un asesor te contactará muy pronto para ampliar la información, resolver tus dudas y acompañarte en el proceso.</p>
+            <div class='steps-container'>
+                <h3 class='steps-title'>¿Qué sigue ahora?</h3>
+
+                <div class='step-item'>
+                    <div style='display:table-cell; width:28px;'><div style='width:28px; height:28px; background-color:{$color_primario}; color:white; border-radius:50%; text-align:center; line-height:28px; font-weight:bold; font-size:14px;'>1</div></div>
+                    <div class='step-text'>Revisa detenidamente esta propuesta financiera diseñada para ti.</div>
+                </div>
+
+                <div class='step-item'>
+                    <div style='display:table-cell; width:28px;'><div style='width:28px; height:28px; background-color:{$color_primario}; color:white; border-radius:50%; text-align:center; line-height:28px; font-weight:bold; font-size:14px;'>2</div></div>
+                    <div class='step-text'>Contacta a tu asesor asignado para agendar una visita o llamada.</div>
+                </div>
+
+                <div class='step-item'>
+                    <div style='display:table-cell; width:28px;'><div style='width:28px; height:28px; background-color:{$color_primario}; color:white; border-radius:50%; text-align:center; line-height:28px; font-weight:bold; font-size:14px;'>3</div></div>
+                    <div class='step-text'>Reserva tu lote y asegura las condiciones de esta cotización.</div>
+                </div>
             </div>
 
-            <div class='button-container'>
-                <a href='{$wa_link}' class='btn btn-primary' style='color: #ffffff;'>Escribir por WhatsApp</a>
-                <a href='{$project_url}' class='btn btn-secondary' style='color: #ffffff;'>Hacer otra cotización</a>
+            <div class='cta-section'>
+                <a href='{$wa_link}' class='btn btn-primary' style='color: #ffffff;'>Contactar Asesor por WhatsApp</a>
+                <a href='{$project_url}' class='btn btn-secondary' style='color: #111111;'>Regresar al Proyecto</a>
             </div>
 
         </div>
+
         <div class='footer'>
-            <p>Referencia: {$ref_text} | Fecha: {$fecha}</p>
-            <p>Este documento es de carácter informativo y no representa un compromiso legal ni una promesa de compraventa. Los valores, áreas y condiciones están sujetos a verificación y posibles modificaciones sin previo aviso.</p>
+            <p class='ref-line'>Ref: {$ref_text} | Fecha: {$fecha}</p>
+            <p>Este documento es de carácter informativo y no representa un compromiso legal ni una promesa de compraventa.</p>
+            <p>Los valores, áreas y condiciones están sujetos a verificación y posibles modificaciones sin previo aviso por parte de la constructora.</p>
+            <p style='margin-top: 15px; font-size: 10px;'>&copy; " . date('Y') . " {$titulo_proyecto}. Todos los derechos reservados.</p>
         </div>
     </div>
 </div>
@@ -185,48 +227,135 @@ $html_template = "
 </html>
 ";
 
+// Formatear el teléfono del cliente para enlaces
+$cliente_wa_tel = preg_replace('/[^0-9]/', '', $cliente_tel);
+// Si no empieza con código de país (ej. 57), podríamos agregarlo o asumir que el usuario lo incluye.
+// Por seguridad, si tiene 10 dígitos (típico de Colombia), le agregamos el 57
+if (strlen($cliente_wa_tel) == 10) {
+    $cliente_wa_tel = "57" . $cliente_wa_tel;
+}
+$wa_admin_link = "https://wa.me/{$cliente_wa_tel}?text=" . urlencode("Hola {$cliente_nombre}, soy {$asesor_nombre} de {$titulo_proyecto}. Recibí tu solicitud de cotización por el {$lote_nombre} y me encantaría ayudarte.");
+
 // Plantilla HTML para el correo del administrador (Notificación de nuevo lead)
 $html_admin_template = "
 <!DOCTYPE html>
 <html lang='es'>
 <head>
 <meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
 <title>Nuevo Lead - {$titulo_proyecto}</title>
 <style>
-    body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px; }
-    .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-radius: 8px; border-top: 4px solid {$color_primario}; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-    h2 { color: #111; margin-top: 0; }
-    .info-group { margin-bottom: 20px; }
-    .label { font-size: 12px; color: #777; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
-    .value { font-size: 16px; color: #222; font-weight: bold; }
-    .divider { border-top: 1px solid #eee; margin: 20px 0; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body { font-family: 'Inter', Helvetica, Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; color: #333; -webkit-font-smoothing: antialiased; }
+    .wrapper { padding: 40px 20px; }
+    .crm-container { max-width: 650px; margin: 0 auto; background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+
+    .crm-header { background-color: #1a1f36; padding: 30px; display: flex; align-items: center; justify-content: space-between; }
+    .crm-title { margin: 0; color: #ffffff; font-size: 20px; font-weight: 600; }
+    .crm-badge { background-color: {$color_primario}; color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+
+    .crm-content { padding: 30px; }
+
+    .crm-intro { font-size: 15px; color: #555; margin-bottom: 25px; line-height: 1.5; }
+    .crm-intro strong { color: #111; }
+
+    .data-card { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 25px; margin-bottom: 25px; }
+    .card-title { font-size: 14px; text-transform: uppercase; color: #64748b; font-weight: 700; margin-top: 0; margin-bottom: 20px; letter-spacing: 0.5px; display: flex; align-items: center; }
+    .card-title::before { content: ''; display: inline-block; width: 4px; height: 16px; background-color: {$color_primario}; margin-right: 10px; border-radius: 2px; }
+
+    .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .data-item { margin-bottom: 5px; }
+    .data-label { font-size: 12px; color: #64748b; text-transform: uppercase; margin-bottom: 5px; font-weight: 600; }
+    .data-value { font-size: 15px; color: #0f172a; font-weight: 500; word-break: break-word; }
+    .data-value-highlight { font-size: 18px; color: {$color_primario}; font-weight: 700; }
+
+    .actions-container { display: flex; gap: 15px; margin-top: 30px; justify-content: center; flex-wrap: wrap; }
+    .action-btn { display: inline-block; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: 600; text-align: center; transition: all 0.2s; }
+    .btn-whatsapp { background-color: #25D366; color: white; border: 1px solid #20b958; }
+    .btn-email { background-color: #3b82f6; color: white; border: 1px solid #2563eb; }
+    .btn-call { background-color: #ffffff; color: #0f172a; border: 1px solid #cbd5e1; }
+
+    .crm-footer { background-color: #f8fafc; padding: 20px 30px; text-align: center; border-top: 1px solid #e2e8f0; font-size: 12px; color: #64748b; }
+
+    @media (max-width: 600px) {
+        .data-grid { grid-template-columns: 1fr; gap: 15px; }
+        .crm-header { flex-direction: column; align-items: flex-start; gap: 15px; }
+        .action-btn { width: 100%; box-sizing: border-box; }
+    }
 </style>
 </head>
 <body>
-    <div class='container'>
-        <h2>Nueva Simulación de Inversión</h2>
-        <p>Se ha generado una nueva cotización en el proyecto <strong>{$titulo_proyecto}</strong>.</p>
+<div class='wrapper'>
+    <div class='crm-container'>
+        <div class='crm-header'>
+            <h2 class='crm-title'>Nuevo Lead Recibido</h2>
+            <div class='crm-badge'>ALTA INTENCIÓN</div>
+        </div>
 
-        <div class='divider'></div>
+        <div class='crm-content'>
+            <p class='crm-intro'>El sistema ha registrado una nueva simulación de inversión para el proyecto <strong>{$titulo_proyecto}</strong>.</p>
 
-        <h3>Datos del Cliente</h3>
-        <div class='info-group'><div class='label'>Nombre</div><div class='value'>{$cliente_nombre}</div></div>
-        <div class='info-group'><div class='label'>Teléfono</div><div class='value'>{$cliente_tel}</div></div>
-        <div class='info-group'><div class='label'>Email</div><div class='value'>{$cliente_email}</div></div>
-        <div class='info-group'><div class='label'>Dirección</div><div class='value'>{$cliente_dir}</div></div>
+            <div class='data-card'>
+                <h3 class='card-title'>Datos del Contacto</h3>
+                <div class='data-grid'>
+                    <div class='data-item'>
+                        <div class='data-label'>Nombre Completo</div>
+                        <div class='data-value'>{$cliente_nombre}</div>
+                    </div>
+                    <div class='data-item'>
+                        <div class='data-label'>Teléfono</div>
+                        <div class='data-value'>{$cliente_tel}</div>
+                    </div>
+                    <div class='data-item'>
+                        <div class='data-label'>Correo Electrónico</div>
+                        <div class='data-value'><a href='mailto:{$cliente_email}' style='color:#3b82f6; text-decoration:none;'>{$cliente_email}</a></div>
+                    </div>
+                    <div class='data-item'>
+                        <div class='data-label'>Ubicación</div>
+                        <div class='data-value'>{$cliente_dir}</div>
+                    </div>
+                </div>
 
-        <div class='divider'></div>
+                <div class='actions-container'>
+                    <a href='{$wa_admin_link}' class='action-btn btn-whatsapp'>Contactar por WhatsApp</a>
+                    <a href='tel:{$cliente_tel}' class='action-btn btn-call'>Llamar</a>
+                    <a href='mailto:{$cliente_email}?subject=Información sobre {$lote_nombre} en {$titulo_proyecto}&body=Hola {$cliente_nombre},' class='action-btn btn-email'>Enviar Correo</a>
+                </div>
+            </div>
 
-        <h3>Detalles de la Simulación</h3>
-        <div class='info-group'><div class='label'>Lote de Interés</div><div class='value'>{$lote_nombre} ({$lote_area})</div></div>
-        <div class='info-group'><div class='label'>Valor Total</div><div class='value'>{$valor_total}</div></div>
-        <div class='info-group'><div class='label'>Cuota Inicial Sugerida</div><div class='value'>{$cuota_inicial}</div></div>
-        <div class='info-group'><div class='label'>Saldo a Financiar</div><div class='value'>{$saldo_financiar} a {$meses} meses</div></div>
-        <div class='info-group'><div class='label'>Cuota Mensual Estimada</div><div class='value'>{$cuota_mensual}</div></div>
+            <div class='data-card'>
+                <h3 class='card-title'>Detalles de la Proyección</h3>
+                <div class='data-grid'>
+                    <div class='data-item'>
+                        <div class='data-label'>Lote Seleccionado</div>
+                        <div class='data-value' style='font-weight: 700;'>{$lote_nombre} ({$lote_area})</div>
+                    </div>
+                    <div class='data-item'>
+                        <div class='data-label'>Valor Total</div>
+                        <div class='data-value'>{$valor_total}</div>
+                    </div>
+                    <div class='data-item'>
+                        <div class='data-label'>Cuota Inicial Sugerida</div>
+                        <div class='data-value'>{$cuota_inicial}</div>
+                    </div>
+                    <div class='data-item'>
+                        <div class='data-label'>Plan de Financiación</div>
+                        <div class='data-value'>{$saldo_financiar} a {$meses} meses</div>
+                    </div>
+                    <div class='data-item' style='grid-column: 1 / -1; margin-top: 10px; background-color: white; padding: 15px; border-radius: 6px; border: 1px dashed #cbd5e1;'>
+                        <div class='data-label'>Cuota Mensual Estimada</div>
+                        <div class='data-value-highlight'>{$cuota_mensual}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        <div class='divider'></div>
-        <p style='font-size: 12px; color: #888;'>Notificación automática del sistema de cotizaciones de {$titulo_proyecto}.</p>
+        <div class='crm-footer'>
+            <p style='margin: 0;'>Notificación automática del CRM de Cotizaciones - <strong>{$titulo_proyecto}</strong></p>
+            <p style='margin: 5px 0 0 0;'>Ref: {$ref_text} | Fecha: {$fecha}</p>
+        </div>
     </div>
+</div>
 </body>
 </html>
 ";
