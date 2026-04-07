@@ -85,137 +85,146 @@ $logo_html = $logo_url ? "<img src='{$logo_url}' style='max-height: 80px; max-wi
 $wa_mensaje = urlencode("Hola {$asesor_nombre}, me gustaría ampliar la información sobre la cotización del {$lote_nombre} en {$titulo_proyecto}.");
 $wa_link = "https://wa.me/{$wa_tel}?text={$wa_mensaje}";
 
+// Se asegura de usar estilos inline en la medida de lo posible para máxima compatibilidad con clientes de correo.
 $html_template = "
 <!DOCTYPE html>
 <html lang='es'>
 <head>
 <meta charset='UTF-8'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-<title>Bienvenido - {$titulo_proyecto}</title>
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap');
-    body { margin: 0; padding: 0; font-family: 'Montserrat', 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f8f9fa; -webkit-font-smoothing: antialiased; }
-    .wrapper { width: 100%; table-layout: fixed; background-color: #f8f9fa; padding-bottom: 60px; }
-    .webkit { max-width: 600px; margin: 0 auto; }
-    .outer { margin: 0 auto; width: 100%; max-width: 600px; border-spacing: 0; font-family: 'Montserrat', sans-serif; color: #333333; }
-
-    .header-gradient { height: 6px; background: linear-gradient(90deg, {$color_primario}, #ff8c00); }
-    .header { background-color: #ffffff; padding: 40px 30px; text-align: center; }
-
-    .main-body { background-color: #ffffff; padding: 0 40px 40px 40px; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); }
-
-    .title { font-size: 26px; font-weight: 700; color: #111111; letter-spacing: -0.5px; margin-bottom: 8px; margin-top: 0; }
-    .subtitle { font-size: 18px; color: {$color_primario}; font-weight: 600; margin-top: 0; margin-bottom: 35px; }
-
-    .intro-text { font-size: 15px; line-height: 1.6; color: #555555; margin-bottom: 30px; }
-
-    .card { background: linear-gradient(145deg, #ffffff, #fcfcfc); border: 1px solid #eeeeee; border-radius: 12px; padding: 30px; margin-bottom: 30px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
-    .card-title { color: #888888; font-size: 12px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; font-weight: 600; }
-    .card-value-main { font-size: 28px; font-weight: 700; color: #111111; margin: 0 0 10px 0; }
-    .card-value-sub { font-size: 16px; color: #666666; font-weight: 400; }
-
-    .table-container { border: 1px solid #eeeeee; border-radius: 12px; overflow: hidden; margin-bottom: 35px; }
-    .table { width: 100%; border-collapse: collapse; }
-    .table td { padding: 18px 25px; border-bottom: 1px solid #eeeeee; font-size: 14px; }
-    .table tr:last-child td { border-bottom: none; }
-    .table tr:nth-child(even) { background-color: #fdfdfd; }
-    .td-label { color: #666666; font-weight: 400; }
-    .td-value { text-align: right; font-weight: 600; color: #222222; }
-
-    .total-row { background-color: #111111 !important; }
-    .total-row .td-label { color: #ffffff; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
-    .total-row .td-value { color: {$color_primario}; font-size: 20px; font-weight: 700; }
-
-    .next-steps { text-align: center; padding: 25px; background-color: rgba(" . hexdec(substr($color_primario, 1, 2)) . ", " . hexdec(substr($color_primario, 3, 2)) . ", " . hexdec(substr($color_primario, 5, 2)) . ", 0.05); border-radius: 12px; border-left: 4px solid {$color_primario}; margin-bottom: 35px; }
-    .next-steps-title { font-size: 15px; font-weight: 700; color: #111111; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
-    .next-steps-text { margin: 0; color: #555555; font-size: 14px; line-height: 1.5; }
-
-    .button-container { text-align: center; margin-top: 10px; }
-    .btn { display: inline-block; padding: 16px 28px; text-decoration: none; font-weight: 600; border-radius: 8px; font-size: 14px; margin: 8px; text-transform: uppercase; letter-spacing: 1px; transition: opacity 0.3s; }
-    .btn-primary { background-color: #25D366; color: #ffffff !important; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3); }
-    .btn-secondary { background-color: #111111; color: #ffffff !important; box-shadow: 0 4px 15px rgba(17, 17, 17, 0.2); }
-
-    .footer { padding: 40px 30px; text-align: center; color: #999999; font-size: 11px; line-height: 1.6; }
-    .footer-logo { max-height: 40px; margin-bottom: 15px; opacity: 0.6; filter: grayscale(100%); }
-    .divider { height: 1px; background-color: #dddddd; margin: 20px auto; width: 50%; }
-</style>
+<title>Bienvenido a {$titulo_proyecto}</title>
 </head>
-<body>
-<div class='wrapper'>
-    <div class='webkit'>
-        <table class='outer' align='center'>
-            <tr>
-                <td>
-                    <div class='header-gradient'></div>
-                    <div class='header'>
+<body style=\"margin: 0; padding: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f3f4f6; -webkit-font-smoothing: antialiased;\">
+
+<table width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"background-color: #f3f4f6; padding: 40px 0;\">
+    <tr>
+        <td align=\"center\">
+
+            <!-- Contenedor Principal -->
+            <table width=\"100%\" max-width=\"600\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width: 600px; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin: 0 auto;\">
+
+                <!-- Barra superior de color -->
+                <tr>
+                    <td style=\"height: 8px; background-color: {$color_primario}; background: linear-gradient(90deg, {$color_primario}, #333333);\"></td>
+                </tr>
+
+                <!-- Encabezado con Logo -->
+                <tr>
+                    <td align=\"center\" style=\"padding: 40px 30px 20px 30px; background-color: #ffffff;\">
                         {$logo_html}
-                    </div>
-                    <div class='main-body'>
-                        <h1 class='title'>¡Bienvenido, {$cliente_nombre}!</h1>
-                        <p class='subtitle'>Tu {$lote_nombre} te espera en {$titulo_proyecto}</p>
+                    </td>
+                </tr>
 
-                        <p class='intro-text'>Nos emociona compartir contigo el resumen de tu inversión. Has dado el primer paso hacia una gran oportunidad y estamos aquí para acompañarte en todo el proceso.</p>
+                <!-- Título y Bienvenida -->
+                <tr>
+                    <td align=\"center\" style=\"padding: 0 40px 30px 40px;\">
+                        <h1 style=\"margin: 0; font-size: 28px; color: #111111; font-weight: bold; letter-spacing: -0.5px;\">¡Bienvenido, {$cliente_nombre}!</h1>
+                        <p style=\"margin: 10px 0 0 0; font-size: 18px; color: {$color_primario}; font-weight: bold;\">Tu {$lote_nombre} te espera.</p>
+                        <p style=\"margin: 20px 0 0 0; font-size: 16px; color: #555555; line-height: 1.6;\">Nos emociona compartir contigo el detalle de tu inversión en <strong>{$titulo_proyecto}</strong>. Has dado un gran paso y estamos aquí para acompañarte.</p>
+                    </td>
+                </tr>
 
-                        <div class='card'>
-                            <div class='card-title'>Información del Inmueble</div>
-                            <h2 class='card-value-main'>{$lote_nombre}</h2>
-                            <div class='card-value-sub'>Área Total: <strong>{$lote_area}</strong></div>
-                        </div>
+                <!-- Ficha del Inmueble -->
+                <tr>
+                    <td align=\"center\" style=\"padding: 0 40px;\">
+                        <table width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px;\">
+                            <tr>
+                                <td align=\"center\" style=\"padding: 25px;\">
+                                    <p style=\"margin: 0 0 5px 0; font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; font-weight: bold;\">Información del Inmueble</p>
+                                    <h2 style=\"margin: 0 0 5px 0; font-size: 26px; color: #111111;\">{$lote_nombre}</h2>
+                                    <p style=\"margin: 0; font-size: 16px; color: #4b5563;\">Área Total: <strong>{$lote_area}</strong></p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
 
-                        <div class='card-title' style='text-align: center; margin-bottom: 15px;'>Resumen Financiero</div>
-                        <div class='table-container'>
-                            <table class='table'>
-                                <tr>
-                                    <td class='td-label'>Valor Total</td>
-                                    <td class='td-value'>{$valor_total}</td>
-                                </tr>
-                                <tr>
-                                    <td class='td-label'>Aporte Inicial Sugerido</td>
-                                    <td class='td-value'>{$cuota_inicial}</td>
-                                </tr>
-                                <tr>
-                                    <td class='td-label'>Saldo a Financiar</td>
-                                    <td class='td-value'>{$saldo_financiar}</td>
-                                </tr>
-                                <tr>
-                                    <td class='td-label'>Plazo Estimado</td>
-                                    <td class='td-value'>{$meses} Meses</td>
-                                </tr>
-                                <tr class='total-row'>
-                                    <td class='td-label'>Inversión Mensual</td>
-                                    <td class='td-value'>{$cuota_mensual}</td>
-                                </tr>
-                            </table>
-                        </div>
+                <!-- Tabla de Inversión -->
+                <tr>
+                    <td style=\"padding: 30px 40px;\">
+                        <h3 style=\"margin: 0 0 15px 0; font-size: 15px; color: #111111; text-transform: uppercase; letter-spacing: 1px; text-align: center;\">Resumen de Inversión</h3>
+                        <table width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;\">
+                            <tr>
+                                <td style=\"padding: 16px 20px; border-bottom: 1px solid #e5e7eb; color: #4b5563; font-size: 15px;\">Valor Total</td>
+                                <td align=\"right\" style=\"padding: 16px 20px; border-bottom: 1px solid #e5e7eb; color: #111111; font-weight: bold; font-size: 15px;\">{$valor_total}</td>
+                            </tr>
+                            <tr style=\"background-color: #f9fafb;\">
+                                <td style=\"padding: 16px 20px; border-bottom: 1px solid #e5e7eb; color: #4b5563; font-size: 15px;\">Aporte Inicial Sugerido</td>
+                                <td align=\"right\" style=\"padding: 16px 20px; border-bottom: 1px solid #e5e7eb; color: #111111; font-weight: bold; font-size: 15px;\">{$cuota_inicial}</td>
+                            </tr>
+                            <tr>
+                                <td style=\"padding: 16px 20px; border-bottom: 1px solid #e5e7eb; color: #4b5563; font-size: 15px;\">Saldo a Financiar</td>
+                                <td align=\"right\" style=\"padding: 16px 20px; border-bottom: 1px solid #e5e7eb; color: #111111; font-weight: bold; font-size: 15px;\">{$saldo_financiar}</td>
+                            </tr>
+                            <tr style=\"background-color: #f9fafb;\">
+                                <td style=\"padding: 16px 20px; border-bottom: 1px solid #e5e7eb; color: #4b5563; font-size: 15px;\">Plazo de Financiación</td>
+                                <td align=\"right\" style=\"padding: 16px 20px; border-bottom: 1px solid #e5e7eb; color: #111111; font-weight: bold; font-size: 15px;\">{$meses} Meses</td>
+                            </tr>
+                            <tr style=\"background-color: #111111;\">
+                                <td style=\"padding: 20px; color: #ffffff; font-size: 15px; font-weight: bold; text-transform: uppercase;\">Cuota Mensual Estimada</td>
+                                <td align=\"right\" style=\"padding: 20px; color: {$color_primario}; font-weight: bold; font-size: 18px;\">{$cuota_mensual}</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
 
-                        <div class='next-steps'>
-                            <div class='next-steps-title'>Paso a paso a seguir</div>
-                            <p class='next-steps-text'>Un asesor especializado de nuestro equipo se pondrá en contacto contigo muy pronto para ampliar la información, resolver tus dudas y guiarte.</p>
-                        </div>
+                <!-- Siguientes Pasos -->
+                <tr>
+                    <td align=\"center\" style=\"padding: 0 40px 30px 40px;\">
+                        <table width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"background-color: #f9fafb; border-left: 4px solid {$color_primario}; padding: 20px;\">
+                            <tr>
+                                <td>
+                                    <p style=\"margin: 0 0 5px 0; font-size: 16px; color: #111111; font-weight: bold;\">Próximos pasos a seguir</p>
+                                    <p style=\"margin: 0; font-size: 14px; color: #4b5563; line-height: 1.5;\">Un asesor especializado se pondrá en contacto contigo muy pronto para brindarte más información, resolver tus dudas y acompañarte en tu proceso de inversión.</p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
 
-                        <div class='button-container'>
-                            <a href='{$wa_link}' class='btn btn-primary'>Escribir por WhatsApp</a>
-                            <a href='{$project_url}' class='btn btn-secondary'>Hacer otra cotización</a>
-                        </div>
-                    </div>
+                <!-- Botones de Acción -->
+                <tr>
+                    <td align=\"center\" style=\"padding: 0 40px 40px 40px;\">
+                        <!-- Botón WhatsApp -->
+                        <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"margin-bottom: 15px; width: 100%; max-width: 300px;\">
+                            <tr>
+                                <td align=\"center\" style=\"border-radius: 6px; background-color: #25D366;\">
+                                    <a href=\"{$wa_link}\" target=\"_blank\" style=\"display: inline-block; padding: 15px 20px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; color: #ffffff; text-decoration: none; font-weight: bold; text-transform: uppercase; width: 100%; box-sizing: border-box;\">Escribir por WhatsApp</a>
+                                </td>
+                            </tr>
+                        </table>
+                        <!-- Botón Cotizar -->
+                        <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"width: 100%; max-width: 300px;\">
+                            <tr>
+                                <td align=\"center\" style=\"border-radius: 6px; background-color: #111111;\">
+                                    <a href=\"{$project_url}\" target=\"_blank\" style=\"display: inline-block; padding: 15px 20px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; color: #ffffff; text-decoration: none; font-weight: bold; text-transform: uppercase; width: 100%; box-sizing: border-box;\">Hacer otra cotización</a>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
 
-                    <div class='footer'>
-                        " . ($logo_url ? "<img src='{$logo_url}' class='footer-logo' alt='Logo'>" : "") . "
-                        <p style='margin: 0;'><strong>Referencia de cotización:</strong> {$ref_text} &nbsp;|&nbsp; <strong>Fecha:</strong> {$fecha}</p>
-                        <div class='divider'></div>
-                        <p style='margin: 0;'>Este documento es de carácter informativo y no representa un compromiso legal ni una promesa de compraventa. Los valores, áreas y condiciones están sujetos a verificación y posibles modificaciones sin previo aviso.</p>
-                        <p style='margin: 15px 0 0 0; color: #bbbbbb;'>&copy; " . date('Y') . " {$titulo_proyecto}. Todos los derechos reservados.</p>
-                    </div>
-                </td>
-            </tr>
-        </table>
-    </div>
-</div>
+                <!-- Footer -->
+                <tr>
+                    <td align=\"center\" style=\"padding: 30px 40px; background-color: #f9fafb; border-top: 1px solid #e5e7eb;\">
+                        <p style=\"margin: 0 0 10px 0; font-size: 12px; color: #6b7280;\"><strong>Referencia:</strong> {$ref_text} &nbsp;|&nbsp; <strong>Fecha:</strong> {$fecha}</p>
+                        <p style=\"margin: 0; font-size: 11px; color: #9ca3af; line-height: 1.5;\">Este documento es de carácter informativo y no representa un compromiso legal ni una promesa de compraventa. Los valores, áreas y condiciones están sujetos a verificación y posibles modificaciones sin previo aviso.</p>
+                        <p style=\"margin: 15px 0 0 0; font-size: 11px; color: #d1d5db;\">&copy; " . date('Y') . " {$titulo_proyecto}. Todos los derechos reservados.</p>
+                    </td>
+                </tr>
+
+            </table>
+            <!-- Fin Contenedor Principal -->
+
+        </td>
+    </tr>
+</table>
+
 </body>
 </html>
 ";
 
-// Plantilla HTML para el correo del administrador (Notificación de nuevo lead)
+// Plantilla HTML para el correo del administrador (Notificación de nuevo lead) usando diseño tabular robusto en línea
 $html_admin_template = "
 <!DOCTYPE html>
 <html lang='es'>
@@ -223,91 +232,120 @@ $html_admin_template = "
 <meta charset='UTF-8'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0'>
 <title>Nuevo Lead - {$titulo_proyecto}</title>
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
-    body { font-family: 'Montserrat', 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 40px 20px; -webkit-font-smoothing: antialiased; }
-    .wrapper { width: 100%; table-layout: fixed; }
-    .webkit { max-width: 600px; margin: 0 auto; }
-    .outer { margin: 0 auto; width: 100%; max-width: 600px; border-spacing: 0; background-color: #ffffff; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); overflow: hidden; }
-
-    .header { background: linear-gradient(135deg, #111111, #2a2a2a); padding: 30px; text-align: center; border-bottom: 4px solid {$color_primario}; }
-    .header h2 { color: #ffffff; margin: 0; font-size: 22px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
-    .header p { color: #aaaaaa; margin: 5px 0 0 0; font-size: 14px; }
-
-    .content { padding: 30px; }
-
-    .section-title { font-size: 14px; color: {$color_primario}; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 2px solid #eeeeee; padding-bottom: 8px; margin-bottom: 20px; margin-top: 0; }
-
-    .info-grid { display: block; margin-bottom: 30px; }
-    .info-row { display: block; margin-bottom: 15px; }
-    .label { font-size: 11px; color: #888888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; font-weight: 600; }
-    .value { font-size: 16px; color: #111111; font-weight: 600; background-color: #f8f9fa; padding: 12px 15px; border-radius: 6px; border: 1px solid #eeeeee; }
-
-    .footer { background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #888888; border-top: 1px solid #eeeeee; }
-</style>
 </head>
-<body>
-<div class='wrapper'>
-    <div class='webkit'>
-        <table class='outer' align='center'>
-            <tr>
-                <td>
-                    <div class='header'>
-                        <h2>Nuevo Lead Capturado</h2>
-                        <p>{$titulo_proyecto}</p>
-                    </div>
+<body style=\"margin: 0; padding: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f0f2f5; -webkit-font-smoothing: antialiased;\">
 
-                    <div class='content'>
-                        <h3 class='section-title'>Datos de Contacto</h3>
-                        <div class='info-grid'>
-                            <div class='info-row'>
-                                <div class='label'>Nombre del Cliente</div>
-                                <div class='value'>{$cliente_nombre}</div>
-                            </div>
-                            <div class='info-row'>
-                                <div class='label'>Teléfono / Celular</div>
-                                <div class='value'>{$cliente_tel}</div>
-                            </div>
-                            <div class='info-row'>
-                                <div class='label'>Correo Electrónico</div>
-                                <div class='value'>{$cliente_email}</div>
-                            </div>
-                            <div class='info-row'>
-                                <div class='label'>Dirección Registrada</div>
-                                <div class='value'>{$cliente_dir}</div>
-                            </div>
-                        </div>
+<table width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"background-color: #f0f2f5; padding: 40px 0;\">
+    <tr>
+        <td align=\"center\">
 
-                        <h3 class='section-title'>Detalles de Inversión</h3>
-                        <div class='info-grid'>
-                            <div class='info-row'>
-                                <div class='label'>Inmueble / Lote de Interés</div>
-                                <div class='value'>{$lote_nombre} ({$lote_area})</div>
-                            </div>
-                            <div class='info-row'>
-                                <div class='label'>Valor Total</div>
-                                <div class='value' style='color: {$color_primario};'>{$valor_total}</div>
-                            </div>
-                            <div class='info-row'>
-                                <div class='label'>Plan de Pagos (Cuota Inicial / Saldo / Plazo)</div>
-                                <div class='value'>{$cuota_inicial} / {$saldo_financiar} ({$meses} meses)</div>
-                            </div>
-                            <div class='info-row'>
-                                <div class='label'>Proyección Cuota Mensual</div>
-                                <div class='value'>{$cuota_mensual}</div>
-                            </div>
-                        </div>
-                    </div>
+            <table width=\"100%\" max-width=\"600\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width: 600px; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.08); margin: 0 auto;\">
 
-                    <div class='footer'>
-                        Notificación automática del CRM de <strong>{$titulo_proyecto}</strong>.<br>
+                <!-- Encabezado oscuro -->
+                <tr>
+                    <td align=\"center\" style=\"background-color: #111111; padding: 30px; border-bottom: 4px solid {$color_primario};\">
+                        <h2 style=\"margin: 0; color: #ffffff; font-size: 22px; letter-spacing: 1px; text-transform: uppercase;\">Nuevo Lead Capturado</h2>
+                        <p style=\"margin: 5px 0 0 0; color: #aaaaaa; font-size: 14px;\">{$titulo_proyecto}</p>
+                    </td>
+                </tr>
+
+                <!-- Contenido -->
+                <tr>
+                    <td style=\"padding: 30px;\">
+
+                        <!-- Sección Datos de Contacto -->
+                        <table width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">
+                            <tr>
+                                <td style=\"padding-bottom: 10px; border-bottom: 2px solid #eeeeee; margin-bottom: 20px;\">
+                                    <h3 style=\"margin: 0; font-size: 14px; color: {$color_primario}; text-transform: uppercase; letter-spacing: 1.5px;\">Datos de Contacto</h3>
+                                </td>
+                            </tr>
+                            <tr><td style=\"height: 15px;\"></td></tr>
+
+                            <tr>
+                                <td>
+                                    <p style=\"margin: 0 0 4px 0; font-size: 11px; color: #888888; text-transform: uppercase; letter-spacing: 1px; font-weight: bold;\">Nombre del Cliente</p>
+                                    <div style=\"background-color: #f8f9fa; padding: 12px 15px; border-radius: 6px; border: 1px solid #eeeeee; font-size: 16px; color: #111111; font-weight: bold;\">{$cliente_nombre}</div>
+                                </td>
+                            </tr>
+                            <tr><td style=\"height: 15px;\"></td></tr>
+                            <tr>
+                                <td>
+                                    <p style=\"margin: 0 0 4px 0; font-size: 11px; color: #888888; text-transform: uppercase; letter-spacing: 1px; font-weight: bold;\">Teléfono / Celular</p>
+                                    <div style=\"background-color: #f8f9fa; padding: 12px 15px; border-radius: 6px; border: 1px solid #eeeeee; font-size: 16px; color: #111111; font-weight: bold;\">{$cliente_tel}</div>
+                                </td>
+                            </tr>
+                            <tr><td style=\"height: 15px;\"></td></tr>
+                            <tr>
+                                <td>
+                                    <p style=\"margin: 0 0 4px 0; font-size: 11px; color: #888888; text-transform: uppercase; letter-spacing: 1px; font-weight: bold;\">Correo Electrónico</p>
+                                    <div style=\"background-color: #f8f9fa; padding: 12px 15px; border-radius: 6px; border: 1px solid #eeeeee; font-size: 16px; color: #111111; font-weight: bold;\">{$cliente_email}</div>
+                                </td>
+                            </tr>
+                            <tr><td style=\"height: 15px;\"></td></tr>
+                            <tr>
+                                <td>
+                                    <p style=\"margin: 0 0 4px 0; font-size: 11px; color: #888888; text-transform: uppercase; letter-spacing: 1px; font-weight: bold;\">Dirección Registrada</p>
+                                    <div style=\"background-color: #f8f9fa; padding: 12px 15px; border-radius: 6px; border: 1px solid #eeeeee; font-size: 16px; color: #111111; font-weight: bold;\">{$cliente_dir}</div>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <table width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">
+                            <tr><td style=\"height: 30px;\"></td></tr>
+                            <tr>
+                                <td style=\"padding-bottom: 10px; border-bottom: 2px solid #eeeeee; margin-bottom: 20px;\">
+                                    <h3 style=\"margin: 0; font-size: 14px; color: {$color_primario}; text-transform: uppercase; letter-spacing: 1.5px;\">Detalles de Inversión</h3>
+                                </td>
+                            </tr>
+                            <tr><td style=\"height: 15px;\"></td></tr>
+
+                            <tr>
+                                <td>
+                                    <p style=\"margin: 0 0 4px 0; font-size: 11px; color: #888888; text-transform: uppercase; letter-spacing: 1px; font-weight: bold;\">Inmueble / Lote de Interés</p>
+                                    <div style=\"background-color: #f8f9fa; padding: 12px 15px; border-radius: 6px; border: 1px solid #eeeeee; font-size: 16px; color: #111111; font-weight: bold;\">{$lote_nombre} ({$lote_area})</div>
+                                </td>
+                            </tr>
+                            <tr><td style=\"height: 15px;\"></td></tr>
+                            <tr>
+                                <td>
+                                    <p style=\"margin: 0 0 4px 0; font-size: 11px; color: #888888; text-transform: uppercase; letter-spacing: 1px; font-weight: bold;\">Valor Total</p>
+                                    <div style=\"background-color: #f8f9fa; padding: 12px 15px; border-radius: 6px; border: 1px solid #eeeeee; font-size: 16px; color: {$color_primario}; font-weight: bold;\">{$valor_total}</div>
+                                </td>
+                            </tr>
+                            <tr><td style=\"height: 15px;\"></td></tr>
+                            <tr>
+                                <td>
+                                    <p style=\"margin: 0 0 4px 0; font-size: 11px; color: #888888; text-transform: uppercase; letter-spacing: 1px; font-weight: bold;\">Plan de Pagos (Cuota Inicial / Saldo / Plazo)</p>
+                                    <div style=\"background-color: #f8f9fa; padding: 12px 15px; border-radius: 6px; border: 1px solid #eeeeee; font-size: 16px; color: #111111; font-weight: bold;\">{$cuota_inicial} / {$saldo_financiar} ({$meses} meses)</div>
+                                </td>
+                            </tr>
+                            <tr><td style=\"height: 15px;\"></td></tr>
+                            <tr>
+                                <td>
+                                    <p style=\"margin: 0 0 4px 0; font-size: 11px; color: #888888; text-transform: uppercase; letter-spacing: 1px; font-weight: bold;\">Proyección Cuota Mensual</p>
+                                    <div style=\"background-color: #f8f9fa; padding: 12px 15px; border-radius: 6px; border: 1px solid #eeeeee; font-size: 16px; color: #111111; font-weight: bold;\">{$cuota_mensual}</div>
+                                </td>
+                            </tr>
+                        </table>
+
+                    </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                    <td align=\"center\" style=\"background-color: #f8f9fa; padding: 20px; font-size: 12px; color: #888888; border-top: 1px solid #eeeeee;\">
+                        Notificación automática del sistema de cotizaciones de <strong>{$titulo_proyecto}</strong>.<br>
                         Fecha de simulación: {$fecha}
-                    </div>
-                </td>
-            </tr>
-        </table>
-    </div>
-</div>
+                    </td>
+                </tr>
+
+            </table>
+
+        </td>
+    </tr>
+</table>
+
 </body>
 </html>
 ";
