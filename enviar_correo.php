@@ -9,7 +9,7 @@
  */
 
 // 1. CONFIGURA TU CORREO AQUÍ
-$remitente = "contacto@tudominio.com"; // <-- CAMBIAR POR TU CORREO DE HOSTINGER
+$remitente = "clientes@proyectaconstructora.com"; // <-- CAMBIAR POR TU CORREO DE HOSTINGER
 $nombre_remitente = "Asesoría Inmobiliaria";
 
 // Configurar encabezados CORS para permitir peticiones desde cualquier dominio
