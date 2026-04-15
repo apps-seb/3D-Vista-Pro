@@ -38,6 +38,11 @@
             text-transform: uppercase;
         }
 
+        html, body {
+            max-width: 100vw;
+            overflow-x: hidden;
+        }
+
         body {
             background-color: var(--primary-bg);
             color: var(--text-dark);
@@ -425,43 +430,62 @@
             flex-direction: column;
             box-shadow: 0 20px 50px rgba(0,0,0,0.3);
             max-width: 1400px;
+            padding: 40px;
+            align-items: center;
+        }
+
+        .typo-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .typo-header h2 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: #ffffff;
+        }
+
+        .typo-header h2 span {
+            color: var(--primary-accent);
+        }
+
+        .typo-header p {
+            color: #aaaaaa;
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
         }
 
         .typo-content {
             display: flex;
-            flex-wrap: wrap;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        .typo-visual {
+            width: 100%;
+            min-height: 500px;
+            position: relative;
+            background-color: #111;
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 40px;
         }
 
         .typo-info {
-            flex: 1;
-            min-width: 300px;
-            padding: 50px;
-            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            width: 100%;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-        }
-
-        .typo-info h2 {
-            font-size: 2.5rem;
-            margin-bottom: 20px;
-            color: #ffffff;
-        }
-
-        .typo-info h2 span {
-            color: var(--primary-accent);
-        }
-
-        .typo-info p {
-            color: #aaaaaa;
-            margin-bottom: 30px;
-            font-size: 1.1rem;
+            align-items: center;
         }
 
         .typo-features {
             display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
             gap: 20px;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
         }
 
         .typo-feat {
@@ -469,9 +493,16 @@
             align-items: center;
             gap: 10px;
             background: rgba(255,255,255,0.05);
-            padding: 10px 15px;
-            border-radius: 12px;
+            padding: 15px 25px;
+            border-radius: 50px;
             border: 1px solid rgba(255,255,255,0.1);
+            transition: var(--transition);
+        }
+
+        .typo-feat:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateY(-3px);
+            border-color: var(--primary-accent);
         }
 
         .typo-feat svg {
@@ -484,14 +515,7 @@
 
         .typo-feat span {
             font-weight: 600;
-            font-size: 0.95rem;
-        }
-
-        .typo-visual {
-            flex: 2;
-            min-width: 400px;
-            position: relative;
-            background-color: #111;
+            font-size: 1rem;
         }
 
         .typo-tabs {
@@ -587,6 +611,46 @@
             margin: 40px 0;
             position: relative;
             background: #000;
+        }
+
+        @keyframes bounceDown {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(10px); }
+            60% { transform: translateY(5px); }
+        }
+
+        .scroll-down-arrow {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: var(--primary-gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 100;
+            text-decoration: none;
+            animation: bounceDown 2s infinite;
+            transition: var(--transition);
+        }
+
+        .scroll-down-arrow:hover {
+            transform: scale(1.1);
+            background: var(--primary-accent-dark);
+        }
+
+        .scroll-down-arrow svg {
+            width: 24px;
+            height: 24px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
         }
 
         /* Animated Steps */
@@ -941,7 +1005,10 @@
             <a href="#beneficios">Beneficios</a>
             <a href="#galeria">Galería</a>
         </nav>
-        <a href="#tour" class="btn-cta">Escoge tu lote</a>
+        <a href="#tour" class="btn-cta" style="white-space: nowrap;">
+            <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;"><path d="M12 2l10 6.5v7L12 22 2 15.5v-7L12 2z"></path><path d="M12 22v-6.5"></path><path d="M22 8.5l-10 7-10-7"></path><path d="M2 15.5l10-7 10 7"></path></svg>
+            Escoge tu lote
+        </a>
     </header>
 
     <!-- Hero Section con Slider -->
@@ -1004,11 +1071,30 @@
     <!-- Tipologías 3D -->
     <section class="section" id="tipologias" style="padding-top: 50px;">
         <div class="typology-section fade-up">
+            <div class="typo-header fade-up">
+                <h2>Conoce tu <span>futuro hogar</span></h2>
+                <p>Diseño arquitectónico moderno y funcional, pensado para maximizar los espacios y la iluminación natural.</p>
+            </div>
             <div class="typo-content">
-                <div class="typo-info">
-                    <h2>Tipología <span>2 Niveles</span></h2>
-                    <p>Diseño arquitectónico moderno y funcional pensado para maximizar los espacios y la iluminación natural.</p>
-
+                <div class="typo-visual fade-up">
+                    <div class="typo-tabs">
+                        <div class="typo-tab active" data-target="fachada">Fachada</div>
+                        <div class="typo-tab" data-target="planta-baja">Planta Baja</div>
+                        <div class="typo-tab" data-target="planta-alta">Planta Alta</div>
+                    </div>
+                    <div class="typo-panes">
+                        <div class="typo-pane active" id="fachada">
+                            <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Fachada 3D">
+                        </div>
+                        <div class="typo-pane" id="planta-baja">
+                            <img src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Plano Planta Baja" style="object-fit: contain; max-height: 90%;">
+                        </div>
+                        <div class="typo-pane" id="planta-alta">
+                            <img src="https://images.unsplash.com/photo-1600585154526-990dced4ea0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Plano Planta Alta" style="object-fit: contain; max-height: 90%;">
+                        </div>
+                    </div>
+                </div>
+                <div class="typo-info fade-up">
                     <div class="typo-features">
                         <div class="typo-feat">
                             <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
@@ -1023,25 +1109,7 @@
                             <span>215 m²</span>
                         </div>
                     </div>
-                    <a href="#contacto" class="btn-cta" style="align-self: flex-start;">Solicitar Planos</a>
-                </div>
-                <div class="typo-visual">
-                    <div class="typo-tabs">
-                        <div class="typo-tab active" data-target="fachada">Fachada</div>
-                        <div class="typo-tab" data-target="planta-baja">Planta Baja</div>
-                        <div class="typo-tab" data-target="planta-alta">Planta Alta</div>
-                    </div>
-                    <div class="typo-panes">
-                        <div class="typo-pane active" id="fachada">
-                            <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Fachada 3D">
-                        </div>
-                        <div class="typo-pane" id="planta-baja">
-                            <img src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Plano Planta Baja">
-                        </div>
-                        <div class="typo-pane" id="planta-alta">
-                            <img src="https://images.unsplash.com/photo-1600585154526-990dced4ea0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Plano Planta Alta">
-                        </div>
-                    </div>
+                    <a href="#contacto" class="btn-cta">Solicitar Planos</a>
                 </div>
             </div>
         </div>
@@ -1055,45 +1123,31 @@
         <div class="tour-section fade-up">
 
             <!-- Pasos Animados -->
-            <div class="steps-wrapper fade-up">
-                <div class="step-card">
-                    <div class="step-number">01</div>
-                    <div class="step-icon">
+            <div class="steps-wrapper fade-up" style="display: flex; justify-content: center;">
+                <div class="step-card dynamic-step-card" style="width: 100%; max-width: 400px; min-height: 250px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    <div class="step-number" id="dynamic-step-number" style="transition: opacity 0.5s ease;">01</div>
+                    <div class="step-icon" id="dynamic-step-icon" style="transition: opacity 0.5s ease;">
                         <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
                     </div>
-                    <h3>Busca el lote ideal</h3>
-                    <p>Explora todo el proyecto sin salir de casa.</p>
-                </div>
-                <div class="step-card">
-                    <div class="step-number">02</div>
-                    <div class="step-icon">
-                        <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                    <h3 id="dynamic-step-title" style="transition: opacity 0.5s ease;">Busca el lote ideal</h3>
+                    <p id="dynamic-step-desc" style="transition: opacity 0.5s ease;">Explora todo el proyecto sin salir de casa.</p>
+
+                    <div class="step-indicators" style="display: flex; gap: 8px; margin-top: 20px;">
+                        <div class="step-dot active" style="width: 8px; height: 8px; border-radius: 50%; background: var(--primary-accent); transition: background 0.3s;"></div>
+                        <div class="step-dot" style="width: 8px; height: 8px; border-radius: 50%; background: rgba(0,0,0,0.1); transition: background 0.3s;"></div>
+                        <div class="step-dot" style="width: 8px; height: 8px; border-radius: 50%; background: rgba(0,0,0,0.1); transition: background 0.3s;"></div>
+                        <div class="step-dot" style="width: 8px; height: 8px; border-radius: 50%; background: rgba(0,0,0,0.1); transition: background 0.3s;"></div>
                     </div>
-                    <h3>Selecciona ubicación</h3>
-                    <p>Encuentra la posición que más te guste en el lote real.</p>
-                </div>
-                <div class="step-card">
-                    <div class="step-number">03</div>
-                    <div class="step-icon">
-                        <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-                    </div>
-                    <h3>Simula financiamiento</h3>
-                    <p>Calcula cuotas y plazos que se ajusten a ti.</p>
-                </div>
-                <div class="step-card">
-                    <div class="step-number">04</div>
-                    <div class="step-icon">
-                        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                    </div>
-                    <h3>Descarga tu plan</h3>
-                    <p>Obtén el plan de financiamiento detallado en PDF.</p>
                 </div>
             </div>
 
             <div class="tour-container">
+                <a href="#continuar-explorando" class="scroll-down-arrow" aria-label="Continuar explorando">
+                    <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </a>
                 <iframe src="https://apps-seb.github.io/3D-Vista-Pro/index.html?proyecto=deb29d97-4d68-4a8c-893d-bb5658a09d20" allowfullscreen></iframe>
             </div>
-            <div style="text-align: center; margin-top: 20px;">
+            <div id="continuar-explorando" style="text-align: center; margin-top: 20px;">
                 <h3 style="margin-bottom: 15px; font-size: 1.2rem; color: var(--text-dark);">¿Encontraste tu lugar ideal?</h3>
                 <a href="#contacto" class="btn-cta">Escoge tu lote ahora</a>
             </div>
@@ -1320,6 +1374,76 @@
                 }
             }
         });
+
+        // Lógica para tarjeta de pasos animada
+        const stepsData = [
+            {
+                number: "01",
+                icon: '<svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>',
+                title: "Busca el lote ideal",
+                desc: "Explora todo el proyecto sin salir de casa."
+            },
+            {
+                number: "02",
+                icon: '<svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>',
+                title: "Selecciona ubicación",
+                desc: "Encuentra la posición que más te guste en el lote real."
+            },
+            {
+                number: "03",
+                icon: '<svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>',
+                title: "Simula financiamiento",
+                desc: "Calcula cuotas y plazos que se ajusten a ti."
+            },
+            {
+                number: "04",
+                icon: '<svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>',
+                title: "Descarga tu plan",
+                desc: "Obtén el plan de financiamiento detallado en PDF."
+            }
+        ];
+
+        let currentStepIndex = 0;
+        const stepNumberEl = document.getElementById('dynamic-step-number');
+        const stepIconEl = document.getElementById('dynamic-step-icon');
+        const stepTitleEl = document.getElementById('dynamic-step-title');
+        const stepDescEl = document.getElementById('dynamic-step-desc');
+        const stepDots = document.querySelectorAll('.step-dot');
+
+        function updateStepCard() {
+            if(!stepNumberEl) return;
+            // Fade out
+            stepNumberEl.style.opacity = '0';
+            stepIconEl.style.opacity = '0';
+            stepTitleEl.style.opacity = '0';
+            stepDescEl.style.opacity = '0';
+
+            setTimeout(() => {
+                currentStepIndex = (currentStepIndex + 1) % stepsData.length;
+                const data = stepsData[currentStepIndex];
+
+                stepNumberEl.textContent = data.number;
+                stepIconEl.innerHTML = data.icon;
+                stepTitleEl.textContent = data.title;
+                stepDescEl.textContent = data.desc;
+
+                stepDots.forEach((dot, index) => {
+                    if (index === currentStepIndex) {
+                        dot.style.background = 'var(--primary-accent)';
+                    } else {
+                        dot.style.background = 'rgba(0,0,0,0.1)';
+                    }
+                });
+
+                // Fade in
+                stepNumberEl.style.opacity = '0.2'; // Mantenemos la opacidad base
+                stepIconEl.style.opacity = '1';
+                stepTitleEl.style.opacity = '1';
+                stepDescEl.style.opacity = '1';
+            }, 500); // Esperar que termine el fadeOut
+        }
+
+        setInterval(updateStepCard, 4000); // Cambiar cada 4 segundos
     </script>
 </body>
 </html>
