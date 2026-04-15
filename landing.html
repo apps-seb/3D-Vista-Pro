@@ -132,12 +132,12 @@
             top: 0;
             left: 0;
             width: 100%;
-            padding: 10px 50px;
+            padding: 15px 50px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             z-index: 1000;
-            transition: var(--transition);
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
         .header.scrolled {
@@ -156,12 +156,61 @@
             letter-spacing: 2px;
         }
 
-        .header.scrolled .logo {
-            color: var(--text-dark);
+        /* Animación y estilos del Logo Imagen */
+        .header-logo-container {
+            display: inline-block;
+            perspective: 1000px;
         }
 
-        /* En el top (sin scroll), sobre las fotos hero oscuras, el texto del logo/nav es blanco */
-        .header:not(.scrolled) .logo,
+        .header-logo-img {
+            height: 60px; /* Tamaño inicial */
+            width: auto;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-origin: center left;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+        }
+
+        .header.scrolled .header-logo-img {
+            height: 45px; /* Tamaño reducido al hacer scroll */
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        }
+
+        .header-logo-container:hover .header-logo-img {
+            transform: scale(1.05) rotateY(10deg);
+            filter: drop-shadow(0 8px 12px rgba(242, 101, 34, 0.4));
+        }
+
+        /* Estilo para el botón de icono del Tour 360 */
+        .btn-tour-icon {
+            padding: 8px !important;
+            border-radius: 50% !important;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary-gradient);
+            box-shadow: 0 4px 15px rgba(242, 101, 34, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .btn-tour-icon img {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+            transition: transform 0.4s ease;
+        }
+
+        .btn-tour-icon:hover {
+            transform: scale(1.1) translateY(-2px);
+            box-shadow: 0 8px 25px rgba(242, 101, 34, 0.5);
+        }
+        
+        .btn-tour-icon:hover img {
+            transform: rotate(360deg);
+        }
+
+        /* En el top (sin scroll), sobre las fotos hero oscuras, el texto del nav es blanco */
         .header:not(.scrolled) .nav-links a {
             color: #ffffff;
             text-shadow: 0 2px 4px rgba(0,0,0,0.5);
@@ -369,44 +418,11 @@
             font-weight: 500;
         }
 
-        /* Descripción del Proyecto */
+        /* Descripción del Proyecto (Rediseño con Carrusel 3D) */
         .about-section {
             display: flex;
             align-items: center;
             gap: 60px;
-        }
-
-        .about-image {
-            flex: 1;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: var(--shadow-soft);
-            position: relative;
-        }
-
-        .about-image::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: 2px solid rgba(255,255,255,0.2);
-            border-radius: 20px;
-            z-index: 2;
-            pointer-events: none;
-        }
-
-        .about-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-            transition: transform 0.8s ease;
-        }
-
-        .about-image:hover img {
-            transform: scale(1.05);
         }
 
         .about-text {
@@ -417,10 +433,131 @@
             margin-left: 0;
         }
 
-        .about-text p {
-            margin-bottom: 20px;
+        /* Estilos del Carrusel 3D Pequeño */
+        .about-carousel-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            perspective: 1000px;
+            z-index: 1;
+        }
+
+        .about-carousel-3d {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .about-carousel-item {
+            position: absolute;
+            width: 70%;
+            max-width: 400px;
+            aspect-ratio: 4/3;
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            border: 2px solid rgba(255,255,255,0.8);
+        }
+
+        .about-carousel-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .about-carousel-item.active {
+            opacity: 1;
+            transform: translateX(0) scale(1) translateZ(0);
+            z-index: 3;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            border-color: var(--primary-accent);
+        }
+
+        .about-carousel-item.prev {
+            opacity: 0.6;
+            transform: translateX(-40%) scale(0.85) translateZ(-50px);
+            z-index: 2;
+            filter: blur(1px);
+        }
+
+        .about-carousel-item.next {
+            opacity: 0.6;
+            transform: translateX(40%) scale(0.85) translateZ(-50px);
+            z-index: 2;
+            filter: blur(1px);
+        }
+
+        /* Tarjetas Animadas (Mini Cards) */
+        .about-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .about-mini-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .about-mini-card:hover {
+            transform: translateY(-5px);
+            background: #ffffff;
+            box-shadow: 0 10px 25px rgba(242, 101, 34, 0.15);
+            border-color: rgba(242, 101, 34, 0.2);
+        }
+
+        .mini-card-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: #ffffff;
+        }
+
+        .mini-card-icon svg {
+            width: 20px;
+            height: 20px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .mini-card-text h4 {
+            font-size: 0.9rem;
+            color: var(--text-dark);
+            margin-bottom: 2px;
+            font-weight: 700;
+            text-transform: none;
+        }
+
+        .mini-card-text p {
+            font-size: 0.75rem;
             color: var(--text-muted);
-            font-size: 1.1rem;
+            margin: 0;
+            line-height: 1.2;
         }
 
         /* Nuevos Estilos Tipologías 3D (Tarjetas Verticales) */
@@ -1110,16 +1247,20 @@
         /* Responsiveness */
         @media (max-width: 992px) {
             .hero-title { font-size: 3.5rem; }
-            .about-section { flex-direction: column; }
+            .about-section { flex-direction: column; gap: 40px; }
             .header { padding: 15px 20px; }
             .nav-links { display: none; }
             .tour-container { height: 500px; }
+            .about-carousel-container { min-height: 350px; width: 100%; }
         }
 
         @media (max-width: 768px) {
             .hero-title { font-size: 2.5rem; letter-spacing: 2px; }
             .hero-subtitle { font-size: 1.1rem; }
             .section { padding: 60px 20px; }
+            .about-carousel-container { min-height: 250px; }
+            .about-carousel-item { width: 85%; }
+            .about-cards-grid { grid-template-columns: 1fr; }
             
             /* Full screen mobile tour modifications */
             .tour-section { 
@@ -1382,8 +1523,8 @@
 
     <!-- Header Fijo -->
     <header class="header" id="header">
-        <a href="#" class="logo">
-            <span class="accent-text">Rincón</span> de Baviera
+        <a href="#" class="logo header-logo-container">
+            <img src="https://mercacol.com.co/wp-content/uploads/2026/04/LOGORINCONDEBAVIERA.png" alt="Rincón de Baviera Logo" class="header-logo-img">
         </a>
         <nav class="nav-links">
             <a href="#inicio">Inicio</a>
@@ -1392,9 +1533,8 @@
             <a href="#beneficios">Beneficios</a>
             <a href="#galeria">Galería</a>
         </nav>
-        <a href="#tour" class="btn-cta" style="white-space: nowrap;">
-            <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;"><path d="M12 2l10 6.5v7L12 22 2 15.5v-7L12 2z"></path><path d="M12 22v-6.5"></path><path d="M22 8.5l-10 7-10-7"></path><path d="M2 15.5l10-7 10 7"></path></svg>
-            Escoge tu lote
+        <a href="#tour" class="btn-cta btn-tour-icon" title="Escoge tu lote">
+            <img src="https://mercacol.com.co/wp-content/uploads/2026/04/TOUR360.webp" alt="Tour 360">
         </a>
     </header>
 
@@ -1441,16 +1581,61 @@
         </div>
     </section>
 
-    <!-- Descripción del Proyecto -->
-    <section class="section bg-light" id="proyecto">
-        <div class="container about-section fade-up">
-            <div class="about-image">
-                <img src="https://mercacol.com.co/wp-content/uploads/2026/04/RENDER-3.webp" alt="Vista del Proyecto">
+    <!-- Descripción del Proyecto Rediseñada -->
+    <section class="section bg-light" id="proyecto" style="overflow: hidden; padding-top: 100px; padding-bottom: 100px;">
+        <div class="container about-section fade-up" style="gap: 40px; align-items: stretch;">
+            <!-- Carrusel 3D Pequeño -->
+            <div class="about-carousel-container">
+                <div class="about-carousel-3d" id="proyecto-carousel">
+                    <div class="about-carousel-item active">
+                        <img src="https://mercacol.com.co/wp-content/uploads/2026/04/RENDER-3.webp" alt="Render 3">
+                    </div>
+                    <div class="about-carousel-item next">
+                        <img src="https://mercacol.com.co/wp-content/uploads/2026/04/RENDER-7.webp" alt="Render 7">
+                    </div>
+                    <div class="about-carousel-item prev">
+                        <img src="https://mercacol.com.co/wp-content/uploads/2026/04/RENDER-5.webp" alt="Render 5">
+                    </div>
+                </div>
             </div>
-            <div class="about-text">
-                <h2 class="section-title" style="text-align: left; margin-bottom: 30px;">El Proyecto</h2>
-                <p>Rincón de Baviera nace con la visión de crear un espacio único donde la elegancia arquitectónica se funde en perfecta armonía con el entorno natural. Cada detalle ha sido cuidadosamente planificado para ofrecer un estilo de vida superior.</p>
-                <p>Con solo 90 lotes disponibles, garantizamos exclusividad y privacidad para nuestros residentes. Imagina despertar cada día rodeado de naturaleza, con la seguridad y el confort que tu familia merece, en un proyecto respaldado por los más altos estándares de calidad.</p>
+
+            <!-- Texto y Tarjetas Animadas -->
+            <div class="about-text" style="display: flex; flex-direction: column; justify-content: center;">
+                <h2 class="section-title" style="text-align: left; margin-bottom: 20px;">
+                    <span style="display: block; font-size: 1.2rem; color: var(--primary-accent); letter-spacing: 3px; font-weight: 600; margin-bottom: 10px; font-family: 'Montserrat', sans-serif;">VISIÓN ARQUITECTÓNICA</span>
+                    El Proyecto
+                </h2>
+                <p style="font-size: 1.15rem; color: var(--text-dark); margin-bottom: 30px; font-weight: 400; line-height: 1.8;">Rincón de Baviera redefine el concepto de vida exclusiva. Un desarrollo meticulosamente planeado donde el urbanismo contemporáneo se integra orgánicamente con el paisaje natural, creando un santuario de paz y distinción para tu familia.</p>
+                
+                <div class="about-cards-grid">
+                    <div class="about-mini-card">
+                        <div class="mini-card-icon">
+                            <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                        </div>
+                        <div class="mini-card-text">
+                            <h4>Privacidad Absoluta</h4>
+                            <p>Solo 90 lotes exclusivos</p>
+                        </div>
+                    </div>
+                    <div class="about-mini-card">
+                        <div class="mini-card-icon">
+                            <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+                        </div>
+                        <div class="mini-card-text">
+                            <h4>Diseño Inteligente</h4>
+                            <p>Lotes desde 66 m²</p>
+                        </div>
+                    </div>
+                    <div class="about-mini-card">
+                        <div class="mini-card-icon">
+                            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path></svg>
+                        </div>
+                        <div class="mini-card-text">
+                            <h4>Entorno Natural</h4>
+                            <p>Armonía y bienestar</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -1665,35 +1850,60 @@
     </div>
 
     <!-- Footer Profesional -->
-    <footer class="footer" id="contacto">
-        <div class="footer-content">
+    <footer class="footer" id="contacto" style="background: linear-gradient(to bottom, #1a1a1a, #0d0d0d); padding: 100px 50px 30px; position: relative; overflow: hidden;">
+        <!-- Decoración de fondo footer -->
+        <div style="position: absolute; top: -50px; right: -50px; width: 300px; height: 300px; background: radial-gradient(circle, rgba(242,101,34,0.05) 0%, rgba(0,0,0,0) 70%); border-radius: 50%; pointer-events: none;"></div>
+        
+        <div class="footer-content" style="gap: 60px; align-items: start;">
             <div class="footer-col">
-                <a href="#" class="logo" style="font-size: 1.2rem; margin-bottom: 20px; display: inline-block;">
-                    <span class="accent-text">Rincón</span> de Baviera
+                <a href="#" class="logo footer-logo-container" style="display: inline-block; margin-bottom: 25px;">
+                    <img src="https://mercacol.com.co/wp-content/uploads/2026/04/LOGORINCONDEBAVIERA.png" alt="Rincón de Baviera Logo" style="height: 60px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)) brightness(0) invert(1);">
                 </a>
-                <p>El lugar perfecto para construir el hogar de tus sueños. Invierte en tu futuro hoy.</p>
+                <p style="color: #a0a0a0; font-size: 1rem; line-height: 1.8; max-width: 300px;">El lugar perfecto para construir el hogar de tus sueños. Invierte en tu futuro hoy, en un entorno de exclusividad y naturaleza.</p>
             </div>
             <div class="footer-col">
-                <h3>Contacto</h3>
-                <p>📍 Dirección de la Sala de Ventas, Ciudad</p>
-                <p>📞 +57 321 7399818</p>
-                <p>✉️ ventas@rincondeabaviera.com</p>
+                <h3 style="color: #ffffff; font-family: 'Montserrat', sans-serif; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 30px; position: relative; padding-bottom: 10px;">Contacto
+                    <span style="content: ''; position: absolute; left: 0; bottom: 0; width: 40px; height: 2px; background: var(--primary-gradient);"></span>
+                </h3>
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <a href="#" style="display: flex; align-items: center; gap: 12px; color: #a0a0a0; text-decoration: none; transition: color 0.3s ease;">
+                        <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: none; stroke: var(--primary-accent); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                        <span>Dirección de la Sala de Ventas, Ciudad</span>
+                    </a>
+                    <a href="tel:+573217399818" style="display: flex; align-items: center; gap: 12px; color: #a0a0a0; text-decoration: none; transition: color 0.3s ease;">
+                        <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: none; stroke: var(--primary-accent); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                        <span>+57 321 7399818</span>
+                    </a>
+                    <a href="mailto:ventas@rincondeabaviera.com" style="display: flex; align-items: center; gap: 12px; color: #a0a0a0; text-decoration: none; transition: color 0.3s ease;">
+                        <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: none; stroke: var(--primary-accent); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                        <span>ventas@rincondeabaviera.com</span>
+                    </a>
+                </div>
             </div>
             <div class="footer-col">
-                <h3>Enlaces Rápidos</h3>
-                <a href="#inicio">Inicio</a>
-                <a href="#proyecto">El Proyecto</a>
-                <a href="#tour">Recorrido 360</a>
-                <a href="#">Términos y Condiciones</a>
+                <h3 style="color: #ffffff; font-family: 'Montserrat', sans-serif; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 30px; position: relative; padding-bottom: 10px;">Enlaces Rápidos
+                    <span style="content: ''; position: absolute; left: 0; bottom: 0; width: 40px; height: 2px; background: var(--primary-gradient);"></span>
+                </h3>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <a href="#inicio" style="color: #a0a0a0; text-decoration: none; transition: all 0.3s ease; display: inline-block;">Inicio</a>
+                    <a href="#proyecto" style="color: #a0a0a0; text-decoration: none; transition: all 0.3s ease; display: inline-block;">El Proyecto</a>
+                    <a href="#tour" style="color: #a0a0a0; text-decoration: none; transition: all 0.3s ease; display: inline-block;">Recorrido 360</a>
+                    <a href="#" style="color: #a0a0a0; text-decoration: none; transition: all 0.3s ease; display: inline-block;">Términos y Condiciones</a>
+                </div>
             </div>
             <div class="footer-col">
-                <h3>¿Listo para invertir?</h3>
-                <p>Déjanos tus datos o contáctanos por WhatsApp para recibir asesoría personalizada.</p>
-                <a href="https://wa.me/573217399818?text=Hola,%20quiero%20m%C3%A1s%20informaci%C3%B3n%20sobre%20Rinc%C3%B3n%20de%20Baviera" target="_blank" class="btn-cta" style="margin-top: 15px; background: #25D366; color: white !important; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);">Contactar Asesor</a>
+                <h3 style="color: #ffffff; font-family: 'Montserrat', sans-serif; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 30px; position: relative; padding-bottom: 10px;">¿Listo para invertir?
+                    <span style="content: ''; position: absolute; left: 0; bottom: 0; width: 40px; height: 2px; background: var(--primary-gradient);"></span>
+                </h3>
+                <p style="color: #a0a0a0; margin-bottom: 20px;">Déjanos tus datos o contáctanos por WhatsApp para recibir asesoría personalizada y exclusiva.</p>
+                <a href="https://wa.me/573217399818?text=Hola,%20quiero%20m%C3%A1s%20informaci%C3%B3n%20sobre%20Rinc%C3%B3n%20de%20Baviera" target="_blank" class="btn-cta" style="margin-top: 5px; background: #25D366; color: white !important; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3); border-radius: 50px; display: inline-flex; align-items: center; gap: 10px; padding: 12px 25px; transition: transform 0.3s ease, box-shadow 0.3s ease;">
+                    <svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: currentColor;"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+                    Contactar Asesor
+                </a>
             </div>
         </div>
-        <div class="footer-bottom">
-            &copy; <span id="year"></span> Rincón de Baviera. Todos los derechos reservados.
+        <div class="footer-bottom" style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 25px; display: flex; justify-content: center; align-items: center;">
+            <p style="color: #666666; font-size: 0.9rem; margin: 0;">&copy; <span id="year"></span> Rincón de Baviera. Todos los derechos reservados.</p>
         </div>
     </footer>
 
@@ -2024,6 +2234,36 @@
             }
         });
         // --- Fin Carrusel 3D Lógica ---
+
+        // --- Lógica Carrusel 3D Pequeño (Sección Proyecto) ---
+        function initAboutCarousel() {
+            const aboutCarouselItems = document.querySelectorAll('.about-carousel-item');
+            if (aboutCarouselItems.length === 0) return;
+
+            let aboutCurrentIndex = 0;
+
+            function updateAboutCarousel() {
+                aboutCarouselItems.forEach((item, index) => {
+                    item.className = 'about-carousel-item'; // Reset classes
+                    
+                    if (index === aboutCurrentIndex) {
+                        item.classList.add('active');
+                    } else if (index === (aboutCurrentIndex - 1 + aboutCarouselItems.length) % aboutCarouselItems.length) {
+                        item.classList.add('prev');
+                    } else if (index === (aboutCurrentIndex + 1) % aboutCarouselItems.length) {
+                        item.classList.add('next');
+                    }
+                });
+            }
+
+            // Cambiar cada 3 segundos
+            setInterval(() => {
+                aboutCurrentIndex = (aboutCurrentIndex + 1) % aboutCarouselItems.length;
+                updateAboutCarousel();
+            }, 3000);
+        }
+
+        document.addEventListener('DOMContentLoaded', initAboutCarousel);
 
     </script>
 
