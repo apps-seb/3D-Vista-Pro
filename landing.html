@@ -423,172 +423,220 @@
             font-size: 1.1rem;
         }
 
-        /* Typology Section (Tipologías 3D) */
-        .typology-section {
-            background-color: #1a1a1a;
-            color: #ffffff;
-            border-radius: 24px;
-            overflow: hidden;
-            margin: 50px auto;
+        /* Nuevos Estilos Tipologías 3D (Tarjetas Verticales) */
+        .floor-plans-container {
             display: flex;
-            flex-direction: column;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-            max-width: 1400px;
-            padding: 40px;
-            align-items: center;
-        }
-
-        .typo-header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .typo-header h2 {
-            font-size: 2.5rem;
-            margin-bottom: 15px;
-            color: #ffffff;
-        }
-
-        .typo-header h2 span {
-            color: var(--primary-accent);
-        }
-
-        .typo-header p {
-            color: #aaaaaa;
-            font-size: 1.1rem;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .typo-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-        }
-
-        .typo-visual {
-            width: 100%;
-            min-height: 500px;
-            position: relative;
-            background-color: #111;
-            border-radius: 16px;
-            overflow: hidden;
-            margin-bottom: 40px;
-        }
-
-        .typo-info {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .typo-features {
-            display: flex;
+            flex-direction: row;
+            gap: 30px;
             justify-content: center;
-            flex-wrap: wrap;
-            gap: 20px;
-            margin-bottom: 30px;
+            align-items: stretch;
+            max-width: 1200px;
+            margin: 0 auto;
+            perspective: 1000px; /* Para el efecto 3D */
+            padding: 20px;
         }
 
-        .typo-feat {
+        .floor-card {
+            background-color: transparent;
+            flex: 1;
+            min-width: 300px;
+            max-width: 500px;
+            height: 600px; /* Altura fija para mantener consistencia */
+            cursor: pointer;
+            border-radius: 20px;
+            position: relative;
+        }
+
+        .floor-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            border-radius: 20px;
+        }
+
+        .floor-card.flipped .floor-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .floor-card-front, .floor-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden; /* Safari */
+            backface-visibility: hidden;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: #ffffff; /* Tema claro premium */
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .floor-card-front {
+            padding: 20px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .floor-card-front h3 {
+            font-size: 1.8rem;
+            color: var(--primary-accent);
+            margin-bottom: 15px;
+            font-family: var(--font-primary);
+        }
+
+        .floor-img-container {
+            flex-grow: 1;
+            width: 100%;
             display: flex;
             align-items: center;
-            gap: 10px;
-            background: rgba(255,255,255,0.05);
-            padding: 15px 25px;
-            border-radius: 50px;
-            border: 1px solid rgba(255,255,255,0.1);
-            transition: var(--transition);
+            justify-content: center;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 12px;
+            margin-bottom: 15px;
         }
 
-        .typo-feat:hover {
-            background: rgba(255,255,255,0.1);
-            transform: translateY(-3px);
-            border-color: var(--primary-accent);
+        .floor-img-container img {
+            max-width: 100%;
+            max-height: 400px;
+            object-fit: contain;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
+            transition: transform 0.3s ease;
         }
 
-        .typo-feat svg {
-            width: 24px;
-            height: 24px;
-            fill: none;
-            stroke: var(--primary-accent);
-            stroke-width: 2;
+        .floor-card:hover .floor-img-container img {
+            transform: scale(1.05);
         }
 
-        .typo-feat span {
-            font-weight: 600;
-            font-size: 1rem;
+        .tap-hint {
+            font-size: 0.9rem;
+            color: #888;
+            font-style: italic;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
-        .typo-tabs {
+        .tap-hint::before, .tap-hint::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 1px;
+            background: #ccc;
+        }
+
+        .floor-card-back {
+            transform: rotateY(180deg);
+            padding: 30px 20px;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #ffffff 0%, #f4f4f4 100%);
+        }
+
+        .floor-card-back h3 {
+            font-size: 1.8rem;
+            color: var(--text-dark);
+            margin-bottom: 30px;
+            font-family: var(--font-primary);
+            position: relative;
+        }
+
+        .floor-card-back h3::after {
+            content: '';
             position: absolute;
-            top: 20px;
+            bottom: -10px;
             left: 50%;
             transform: translateX(-50%);
-            display: flex;
-            gap: 10px;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(10px);
-            padding: 10px;
-            border-radius: 50px;
-            z-index: 10;
-        }
-
-        .typo-tab {
-            padding: 8px 20px;
-            border-radius: 50px;
-            color: #fff;
-            font-size: 0.9rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .typo-tab.active {
+            width: 50px;
+            height: 3px;
             background: var(--primary-gradient);
-            box-shadow: 0 4px 15px rgba(242, 101, 34, 0.4);
+            border-radius: 2px;
         }
 
-        .typo-panes {
+        .floor-features {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
             width: 100%;
-            height: 100%;
-            min-height: 500px;
-            position: relative;
+            max-width: 80%;
         }
 
-        .typo-pane {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.5s ease;
+        .floor-feat {
             display: flex;
             align-items: center;
-            justify-content: center;
+            gap: 15px;
+            background: #ffffff;
+            padding: 15px 20px;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: var(--transition);
+            border: 1px solid rgba(0,0,0,0.02);
         }
 
-        .typo-pane.active {
-            opacity: 1;
-            visibility: visible;
+        .floor-feat:hover {
+            transform: translateX(5px);
+            box-shadow: 0 6px 20px rgba(242, 101, 34, 0.15);
+            border-color: rgba(242, 101, 34, 0.3);
         }
 
-        .typo-pane img {
-            max-width: 80%;
-            max-height: 80%;
-            object-fit: contain;
-            filter: drop-shadow(0 20px 30px rgba(0,0,0,0.5));
+        .floor-feat svg {
+            width: 24px;
+            height: 24px;
+            stroke: var(--primary-accent);
+            flex-shrink: 0;
+        }
+
+        .floor-feat span {
+            word-break: break-word;
+            text-align: left;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--text-dark);
         }
 
         @media (max-width: 768px) {
-            .typo-visual { min-width: 100%; min-height: 400px; }
-            .typo-tabs { width: 90%; justify-content: center; overflow-x: auto; }
-            .typo-tab { white-space: nowrap; }
-            .typo-features { flex-wrap: wrap; }
+            .floor-plans-container {
+                flex-direction: row; /* Mantener side-by-side en movil */
+                align-items: stretch;
+                padding: 10px;
+                gap: 15px;
+            }
+
+            .floor-card {
+                width: 50%;
+                height: 400px; /* Ajuste de altura para movil */
+                min-width: auto;
+            }
+
+            .floor-img-container img {
+                max-height: 200px;
+            }
+
+            .floor-card-front h3, .floor-card-back h3 {
+                font-size: 1.2rem;
+            }
+            .floor-feat {
+                padding: 10px;
+                gap: 8px;
+            }
+            .floor-feat svg {
+                width: 18px;
+                height: 18px;
+            }
+            .floor-feat span {
+            word-break: break-word;
+            text-align: left;
+                font-size: 0.9rem;
+            }
+            .floor-features {
+                max-width: 95%;
+            }
         }
 
         /* Tour 360 Sección */
@@ -1296,51 +1344,85 @@
 
     <!-- Tipologías 3D -->
     <section class="section" id="tipologias" style="padding-top: 50px;">
-        <div class="typology-section fade-up">
-            <div class="typo-header fade-up">
-                <h2>Conoce tu <span>futuro hogar</span></h2>
-                <p>Diseño arquitectónico moderno y funcional, pensado para maximizar los espacios y la iluminación natural.</p>
-            </div>
-            <div class="typo-content">
-                <div class="typo-visual fade-up">
-                    <div class="typo-tabs">
-                        <div class="typo-tab active" data-target="fachada">Fachada</div>
-                        <div class="typo-tab" data-target="planta-baja">Planta Baja</div>
-                        <div class="typo-tab" data-target="planta-alta">Planta Alta</div>
+        <div class="typo-header fade-up">
+            <h2 style="color: var(--text-dark);">Conoce tu <span>futuro hogar</span></h2>
+            <p style="color: var(--text-light);">Diseño arquitectónico moderno y funcional, pensado para maximizar los espacios y la iluminación natural.</p>
+        </div>
+
+        <div class="floor-plans-container fade-up">
+            <!-- Tarjeta Piso 1 -->
+            <div class="floor-card" onclick="this.classList.toggle('flipped')">
+                <div class="floor-card-inner">
+                    <div class="floor-card-front">
+                        <h3>Piso 1</h3>
+                        <div class="floor-img-container">
+                            <img src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Plano Piso 1">
+                        </div>
+                        <p class="tap-hint">Toca para ver detalles</p>
                     </div>
-                    <div class="typo-panes">
-                        <div class="typo-pane active" id="fachada">
-                            <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Fachada 3D">
-                        </div>
-                        <div class="typo-pane" id="planta-baja">
-                            <img src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Plano Planta Baja" style="object-fit: contain; max-height: 90%;">
-                        </div>
-                        <div class="typo-pane" id="planta-alta">
-                            <img src="https://images.unsplash.com/photo-1600585154526-990dced4ea0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Plano Planta Alta" style="object-fit: contain; max-height: 90%;">
+                    <div class="floor-card-back">
+                        <h3>Detalles Piso 1</h3>
+                        <div class="floor-features">
+                            <div class="floor-feat">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                                <span>Sala</span>
+                            </div>
+                            <div class="floor-feat">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4l3 3"></path></svg>
+                                <span>Comedor</span>
+                            </div>
+                            <div class="floor-feat">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                                <span>Cocina</span>
+                            </div>
+                            <div class="floor-feat">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                                <span>Patio</span>
+                            </div>
+                            <div class="floor-feat">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+                                <span>Estudio</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="typo-info fade-up">
-                    <div class="typo-features">
-                        <div class="typo-feat">
-                            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                            <span>3 Recámaras</span>
+            </div>
+
+            <!-- Tarjeta Piso 2 -->
+            <div class="floor-card" onclick="this.classList.toggle('flipped')">
+                <div class="floor-card-inner">
+                    <div class="floor-card-front">
+                        <h3>Piso 2</h3>
+                        <div class="floor-img-container">
+                            <img src="https://images.unsplash.com/photo-1600585154526-990dced4ea0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Plano Piso 2">
                         </div>
-                        <div class="typo-feat">
-                            <svg viewBox="0 0 24 24"><path d="M2 12h20M5 12V6a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v6M12 12v10M8 22h8"></path></svg>
-                            <span>3 Baños</span>
-                        </div>
-                        <div class="typo-feat">
-                            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
-                            <span>215 m²</span>
+                        <p class="tap-hint">Toca para ver detalles</p>
+                    </div>
+                    <div class="floor-card-back">
+                        <h3>Detalles Piso 2</h3>
+                        <div class="floor-features">
+                            <div class="floor-feat">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                                <span>3 Habitaciones</span>
+                            </div>
+                            <div class="floor-feat">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12h20M5 12V6a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v6M12 12v10M8 22h8"></path></svg>
+                                <span>3 Baños</span>
+                            </div>
+                            <div class="floor-feat">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                                <span>Balcón</span>
+                            </div>
                         </div>
                     </div>
-                    <a href="#contacto" class="btn-cta">Solicitar Planos</a>
                 </div>
             </div>
         </div>
-    </section>
 
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="#contacto" class="btn-cta">Solicitar Planos</a>
+        </div>
+    </section>
     <!-- Tour 360 Embebido -->
     <section class="section" id="tour" style="max-width: 100%; padding-left: 0; padding-right: 0;">
         <h2 class="section-title fade-up">Tour Virtual 360°</h2>
