@@ -423,159 +423,248 @@
             font-size: 1.1rem;
         }
 
-        /* Typology Section (Tipologías 3D) */
-        .typology-section {
-            background-color: #1a1a1a;
-            color: #ffffff;
-            border-radius: 24px;
-            overflow: hidden;
-            margin: 50px auto;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-            max-width: 1400px;
-            padding: 40px;
-            align-items: center;
-        }
-
-        .typo-header {
+        /* Typography 3D Cards */
+        .tipologias-header {
             text-align: center;
             margin-bottom: 40px;
         }
 
-        .typo-header h2 {
+        .tipologias-header h2 {
             font-size: 2.5rem;
             margin-bottom: 15px;
             color: #ffffff;
         }
 
-        .typo-header h2 span {
+        .tipologias-header h2 span {
             color: var(--primary-accent);
         }
 
-        .typo-header p {
+        .tipologias-header p {
             color: #aaaaaa;
             font-size: 1.1rem;
             max-width: 600px;
             margin: 0 auto;
         }
 
-        .typo-content {
+        .flip-cards-container {
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
+            flex-direction: row;
+            justify-content: flex-start;
+            align-items: stretch;
+            gap: 15px;
+            width: 100vw;
+            max-width: 100%;
+            margin: 0;
+            padding: 0 15px 30px 15px;
+            box-sizing: border-box;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
         }
 
-        .typo-visual {
+        .flip-cards-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Center items on larger screens where they don't overflow */
+        @media (min-width: 768px) {
+            .flip-cards-container {
+                justify-content: center;
+                padding: 0 20px 40px 20px;
+                overflow-x: visible;
+                gap: 30px;
+            }
+        }
+
+        .flip-card {
+            background-color: transparent;
             width: 100%;
-            min-height: 500px;
+            max-width: 350px;
+            aspect-ratio: 1080 / 1920;
+            perspective: 1000px;
+            cursor: pointer;
+
+            min-width: 260px; /* Safe size for mobile scroll */
+            flex: 0 0 auto;
+        }
+
+        .flip-card-inner {
             position: relative;
-            background-color: #111;
-            border-radius: 16px;
-            overflow: hidden;
-            margin-bottom: 40px;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
         }
 
-        .typo-info {
+        .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flip-card-front, .flip-card-back {
+            position: absolute;
             width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden; /* Safari */
+            backface-visibility: hidden;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .flip-card-front {
+            background-color: #111;
+        }
+
+        .flip-card-front img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .flip-card-front::after {
+             content: '';
+             position: absolute;
+             bottom: 0;
+             left: 0;
+             width: 100%;
+             height: 30%;
+             background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+             pointer-events: none;
+        }
+
+        .flip-card-title {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: #fff;
+            font-size: 1.8rem;
+            font-weight: 700;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            z-index: 2;
+        }
+
+        .flip-card-back {
+            background: rgba(17, 17, 17, 0.45);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            transform: rotateY(180deg);
             display: flex;
             flex-direction: column;
-            align-items: center;
-        }
-
-        .typo-features {
-            display: flex;
             justify-content: center;
-            flex-wrap: wrap;
-            gap: 20px;
-            margin-bottom: 30px;
+            align-items: center;
+            padding: 30px 20px;
+            box-sizing: border-box;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .typo-feat {
+        .flip-card-back::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            border-radius: 20px;
+            padding: 2px;
+            background: var(--primary-gradient);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        .flip-card-back h3 {
+            font-size: 2rem;
+            margin-bottom: 30px;
+            color: var(--primary-accent);
+        }
+
+        .pildora-lista {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .pildora {
             display: flex;
             align-items: center;
-            gap: 10px;
-            background: rgba(255,255,255,0.05);
-            padding: 15px 25px;
+            gap: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px 20px;
             border-radius: 50px;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             transition: var(--transition);
+            width: 100%;
+            box-sizing: border-box;
         }
 
-        .typo-feat:hover {
-            background: rgba(255,255,255,0.1);
+        .pildora:hover {
+            background: rgba(255, 255, 255, 0.1);
             transform: translateY(-3px);
             border-color: var(--primary-accent);
         }
 
-        .typo-feat svg {
-            width: 24px;
-            height: 24px;
-            fill: none;
-            stroke: var(--primary-accent);
-            stroke-width: 2;
-        }
-
-        .typo-feat span {
-            font-weight: 600;
-            font-size: 1rem;
-        }
-
-        .typo-tabs {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 10px;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(10px);
-            padding: 10px;
-            border-radius: 50px;
-            z-index: 10;
-        }
-
-        .typo-tab {
-            padding: 8px 20px;
-            border-radius: 50px;
-            color: #fff;
-            font-size: 0.9rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .typo-tab.active {
+        .pildora-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
             background: var(--primary-gradient);
-            box-shadow: 0 4px 15px rgba(242, 101, 34, 0.4);
-        }
-
-        .typo-panes {
-            width: 100%;
-            height: 100%;
-            min-height: 500px;
-            position: relative;
-        }
-
-        .typo-pane {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.5s ease;
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
         }
 
-        .typo-pane.active {
-            opacity: 1;
-            visibility: visible;
+        .pildora-icon svg {
+            width: 16px;
+            height: 16px;
+            fill: none;
+            stroke: #fff;
+            stroke-width: 2;
         }
+
+        .pildora-text {
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .flip-cards-container {
+                gap: 15px;
+                padding: 10px 15px 30px 15px;
+            }
+            .flip-card {
+                min-width: 240px; /* Slightly smaller on very small screens, but still safe */
+            }
+            .flip-card-title {
+                font-size: 1.4rem;
+            }
+            .flip-card-back h3 {
+                font-size: 1.5rem;
+                margin-bottom: 20px;
+            }
+            .pildora {
+                padding: 10px 15px;
+                gap: 10px;
+            }
+            .pildora-icon {
+                width: 24px;
+                height: 24px;
+            }
+            .pildora-icon svg {
+                width: 12px;
+                height: 12px;
+            }
+            .pildora-text {
+                font-size: 0.9rem;
+            }
+        }
+
+
+
 
         .typo-pane img {
             max-width: 80%;
@@ -1294,54 +1383,75 @@
         </div>
     </section>
 
+
     <!-- Tipologías 3D -->
     <section class="section" id="tipologias" style="padding-top: 50px;">
-        <div class="typology-section fade-up">
-            <div class="typo-header fade-up">
-                <h2>Conoce tu <span>futuro hogar</span></h2>
-                <p>Diseño arquitectónico moderno y funcional, pensado para maximizar los espacios y la iluminación natural.</p>
-            </div>
-            <div class="typo-content">
-                <div class="typo-visual fade-up">
-                    <div class="typo-tabs">
-                        <div class="typo-tab active" data-target="fachada">Fachada</div>
-                        <div class="typo-tab" data-target="planta-baja">Planta Baja</div>
-                        <div class="typo-tab" data-target="planta-alta">Planta Alta</div>
+        <div class="tipologias-header fade-up">
+            <h2>Descubre tu <span>nuevo hogar</span></h2>
+            <p>Diseño arquitectónico moderno y funcional, pensado para maximizar los espacios y la iluminación natural.</p>
+        </div>
+
+        <div class="flip-cards-container fade-up">
+            <!-- Tarjeta Piso 1 -->
+            <div class="flip-card" onclick="this.classList.toggle('flipped')">
+                <div class="flip-card-inner">
+                    <div class="flip-card-front">
+                        <img src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Plano Piso 1">
+                        <div class="flip-card-title">Piso 1</div>
                     </div>
-                    <div class="typo-panes">
-                        <div class="typo-pane active" id="fachada">
-                            <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Fachada 3D">
-                        </div>
-                        <div class="typo-pane" id="planta-baja">
-                            <img src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Plano Planta Baja" style="object-fit: contain; max-height: 90%;">
-                        </div>
-                        <div class="typo-pane" id="planta-alta">
-                            <img src="https://images.unsplash.com/photo-1600585154526-990dced4ea0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Plano Planta Alta" style="object-fit: contain; max-height: 90%;">
+                    <div class="flip-card-back">
+                        <h3>Piso 1</h3>
+                        <div class="pildora-lista">
+                            <div class="pildora">
+                                <div class="pildora-icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></div>
+                                <span class="pildora-text">Sala</span>
+                            </div>
+                            <div class="pildora">
+                                <div class="pildora-icon"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></div>
+                                <span class="pildora-text">Comedor</span>
+                            </div>
+                            <div class="pildora">
+                                <div class="pildora-icon"><svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg></div>
+                                <span class="pildora-text">Cocina</span>
+                            </div>
+                            <div class="pildora">
+                                <div class="pildora-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg></div>
+                                <span class="pildora-text">Patio</span>
+                            </div>
+                            <div class="pildora">
+                                <div class="pildora-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg></div>
+                                <span class="pildora-text">Estudio</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="typo-info fade-up">
-                    <div class="typo-features">
-                        <div class="typo-feat">
-                            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                            <span>3 Recámaras</span>
-                        </div>
-                        <div class="typo-feat">
-                            <svg viewBox="0 0 24 24"><path d="M2 12h20M5 12V6a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v6M12 12v10M8 22h8"></path></svg>
-                            <span>3 Baños</span>
-                        </div>
-                        <div class="typo-feat">
-                            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
-                            <span>215 m²</span>
+            </div>
+
+            <!-- Tarjeta Piso 2 -->
+            <div class="flip-card" onclick="this.classList.toggle('flipped')">
+                <div class="flip-card-inner">
+                    <div class="flip-card-front">
+                        <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Plano Piso 2">
+                        <div class="flip-card-title">Piso 2</div>
+                    </div>
+                    <div class="flip-card-back">
+                        <h3>Piso 2</h3>
+                        <div class="pildora-lista">
+                            <div class="pildora">
+                                <div class="pildora-icon"><svg viewBox="0 0 24 24"><path d="M2 12h20M5 12V6a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v6M12 12v10M8 22h8"></path></svg></div>
+                                <span class="pildora-text">3 Habitaciones</span>
+                            </div>
+                            <div class="pildora">
+                                <div class="pildora-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></div>
+                                <span class="pildora-text">3 Baños</span>
+                            </div>
                         </div>
                     </div>
-                    <a href="#contacto" class="btn-cta">Solicitar Planos</a>
                 </div>
             </div>
         </div>
     </section>
-
-    <!-- Tour 360 Embebido -->
+<!-- Tour 360 Embebido -->
     <section class="section" id="tour" style="max-width: 100%; padding-left: 0; padding-right: 0;">
         <h2 class="section-title fade-up">Tour Virtual 360°</h2>
         <p class="section-subtitle fade-up">Explora cada rincón de nuestro proyecto, camina por las zonas comunes y escoge el lote perfecto para tu futura casa, todo desde la comodidad de tu pantalla.</p>
@@ -1444,7 +1554,7 @@
                 <img src="https://images.unsplash.com/photo-1600566753086-00f18efc2291?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" alt="Render Zonas Verdes">
             </div>
             <div class="carousel-3d-item" data-title="Urbanismo Completo" data-cta="Infraestructura de primer nivel para tu inversión.">
-                <img src="https://images.unsplash.com/photo-1600585154526-990dced4ea0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" alt="Render Urbanismo">
+                <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" alt="Render Urbanismo">
             </div>
             <div class="carousel-3d-item" data-title="Distribución de Lotes" data-cta="Encuentra el espacio perfecto para construir tus sueños.">
                 <img src="https://images.unsplash.com/photo-1503387762-592deb58ef4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" alt="Plano General">
@@ -1577,23 +1687,6 @@
 
         // Cambiar slide cada 5 segundos
         setInterval(nextSlide, 5000);
-
-        // Lógica de Tabs para Tipologías
-        const typoTabs = document.querySelectorAll('.typo-tab');
-        const typoPanes = document.querySelectorAll('.typo-pane');
-
-        typoTabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                // Remove active classes
-                typoTabs.forEach(t => t.classList.remove('active'));
-                typoPanes.forEach(p => p.classList.remove('active'));
-
-                // Add active classes
-                tab.classList.add('active');
-                const targetId = tab.getAttribute('data-target');
-                document.getElementById(targetId).classList.add('active');
-            });
-        });
 
         // Actualizar URL del iframe si hay un ID de proyecto en la URL
         document.addEventListener("DOMContentLoaded", function() {
