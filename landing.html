@@ -180,33 +180,40 @@
             filter: drop-shadow(0 8px 12px rgba(242, 101, 34, 0.4));
         }
 
-        /* Estilo para el botón de icono del Tour 360 */
-        .btn-tour-icon {
-            padding: 8px !important;
-            border-radius: 50% !important;
-            width: 50px;
-            height: 50px;
+        /* Estilo para el botón de icono del Tour 360 en el Header */
+        .btn-tour-header {
+            padding: 8px 20px !important;
+            border-radius: 30px !important;
             display: flex;
             align-items: center;
-            justify-content: center;
+            gap: 10px;
             background: var(--primary-gradient);
             box-shadow: 0 4px 15px rgba(242, 101, 34, 0.3);
             transition: all 0.3s ease;
+            text-decoration: none;
         }
 
-        .btn-tour-icon img {
+        .btn-tour-header img {
             width: 28px;
             height: 28px;
             object-fit: contain;
             transition: transform 0.4s ease;
         }
 
-        .btn-tour-icon:hover {
-            transform: scale(1.1) translateY(-2px);
+        .btn-tour-header span {
+            color: #ffffff;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+
+        .btn-tour-header:hover {
+            transform: scale(1.05) translateY(-2px);
             box-shadow: 0 8px 25px rgba(242, 101, 34, 0.5);
         }
         
-        .btn-tour-icon:hover img {
+        .btn-tour-header:hover img {
             transform: rotate(360deg);
         }
 
@@ -1288,7 +1295,33 @@
                 background-color: var(--secondary-bg);
             }
 
-            .features-wrapper { margin-top: -30px; }
+            .features-wrapper {
+                margin-top: -30px;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+                padding: 0 10px;
+            }
+            .feature-box {
+                padding: 15px 5px;
+            }
+            .feature-icon {
+                width: 40px;
+                height: 40px;
+                margin: 0 auto 10px;
+            }
+            .feature-icon svg {
+                width: 20px;
+                height: 20px;
+            }
+            .feature-value {
+                font-size: 1.2rem !important;
+                line-height: 1.2 !important;
+                padding-top: 0 !important;
+            }
+            .feature-label {
+                font-size: 0.7rem;
+                margin-top: 2px !important;
+            }
             .header.scrolled { padding: 10px 20px; }
             .media-grid { grid-template-columns: 1fr; }
         }
@@ -1533,8 +1566,9 @@
             <a href="#beneficios">Beneficios</a>
             <a href="#galeria">Galería</a>
         </nav>
-        <a href="#tour" class="btn-cta btn-tour-icon" title="Escoge tu lote">
+        <a href="#tour" class="btn-tour-header" title="Tour 360">
             <img src="https://mercacol.com.co/wp-content/uploads/2026/04/TOUR360.webp" alt="Tour 360">
+            <span>Tour 360</span>
         </a>
     </header>
 
@@ -1550,7 +1584,7 @@
         <div class="hero-content fade-up">
             <h1 class="hero-title"><span class="accent-text">Exclusividad</span> y Naturaleza</h1>
             <p class="hero-subtitle">Descubre el lugar perfecto para construir el hogar de tus sueños. Un entorno diseñado para tu tranquilidad y el bienestar de tu familia.</p>
-            <a href="#tour" class="btn-cta" style="padding: 16px 45px; font-size: 1rem;">Escoge tu lote</a>
+            <a href="#tipologias" class="btn-cta" style="padding: 16px 45px; font-size: 1rem;">Ver planos</a>
         </div>
     </section>
 
@@ -1575,8 +1609,8 @@
                 <div class="feature-icon">
                     <svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
                 </div>
-                <div class="feature-value" style="font-size: 1.2rem; line-height: 2rem; padding-top: 10px;">Desde<br>$80 Mill</div>
-                <div class="feature-label" style="margin-top: 5px;">Excelente Inversión</div>
+                <div class="feature-value">$<span class="counter" data-target="80">1</span>M</div>
+                <div class="feature-label">Desde</div>
             </div>
         </div>
     </section>
