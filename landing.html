@@ -503,36 +503,64 @@
 
         /* Tarjetas Animadas (Mini Cards) */
         .about-cards-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            display: flex;
+            flex-wrap: nowrap;
+            justify-content: space-between;
+            align-items: stretch;
             gap: 15px;
             margin-top: 20px;
+            overflow-x: auto;
+            padding-bottom: 10px; /* Para el scrollbar si es necesario en móviles */
+        }
+
+        .about-cards-grid::-webkit-scrollbar {
+            height: 6px;
+        }
+        .about-cards-grid::-webkit-scrollbar-thumb {
+            background: var(--primary-accent);
+            border-radius: 3px;
         }
 
         .about-mini-card {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 16px;
             padding: 15px;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            transition: all 0.3s ease;
+            text-align: center;
+            gap: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.06);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            flex: 1;
+            min-width: 130px;
         }
 
         .about-mini-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-8px) scale(1.02);
             background: #ffffff;
-            box-shadow: 0 10px 25px rgba(242, 101, 34, 0.15);
-            border-color: rgba(242, 101, 34, 0.2);
+            box-shadow: 0 15px 35px rgba(242, 101, 34, 0.15);
+            border-color: rgba(242, 101, 34, 0.3);
+        }
+
+        @keyframes iconPulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(242, 101, 34, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(242, 101, 34, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(242, 101, 34, 0); }
+        }
+
+        @keyframes iconFloat {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-3px); }
+            100% { transform: translateY(0px); }
         }
 
         .mini-card-icon {
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
             background: var(--primary-gradient);
             border-radius: 50%;
             display: flex;
@@ -540,16 +568,19 @@
             justify-content: center;
             flex-shrink: 0;
             color: #ffffff;
+            animation: iconPulse 3s infinite cubic-bezier(0.66, 0, 0, 1);
+            position: relative;
         }
 
         .mini-card-icon svg {
-            width: 20px;
-            height: 20px;
+            width: 24px;
+            height: 24px;
             fill: none;
             stroke: currentColor;
             stroke-width: 2;
             stroke-linecap: round;
             stroke-linejoin: round;
+            animation: iconFloat 4s infinite ease-in-out;
         }
 
         .mini-card-text h4 {
@@ -565,6 +596,40 @@
             color: var(--text-muted);
             margin: 0;
             line-height: 1.2;
+        }
+
+        /* Título Animado Premium (Tipologías) */
+        .premium-title-animated {
+            font-size: 2.5rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            background: linear-gradient(90deg, #f26522, #ff8c00, #ffb347, #f26522);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            animation: gradientShine 5s ease-in-out infinite;
+        }
+
+        .premium-title-animated span {
+            color: var(--text-dark);
+            -webkit-text-fill-color: var(--text-dark);
+            background: none;
+            display: block;
+            font-size: 1.8rem;
+            font-weight: 400;
+            letter-spacing: 0;
+            text-transform: none;
+            margin-top: -5px;
+        }
+
+        @keyframes gradientShine {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
         /* Nuevos Estilos Tipologías 3D (Tarjetas Verticales) */
@@ -1636,10 +1701,10 @@
             <!-- Texto y Tarjetas Animadas -->
             <div class="about-text" style="display: flex; flex-direction: column; justify-content: center;">
                 <h2 class="section-title" style="text-align: left; margin-bottom: 20px;">
-                    <span style="display: block; font-size: 1.2rem; color: var(--primary-accent); letter-spacing: 3px; font-weight: 600; margin-bottom: 10px; font-family: 'Montserrat', sans-serif;">VISIÓN ARQUITECTÓNICA</span>
-                    El Proyecto
+                    <span style="display: block; font-size: 1.2rem; color: var(--primary-accent); letter-spacing: 3px; font-weight: 600; margin-bottom: 10px; font-family: 'Montserrat', sans-serif;">TU NUEVO ESTILO DE VIDA</span>
+                    Un Refugio Exclusivo
                 </h2>
-                <p style="font-size: 1.15rem; color: var(--text-dark); margin-bottom: 30px; font-weight: 400; line-height: 1.8;">Rincón de Baviera redefine el concepto de vida exclusiva. Un desarrollo meticulosamente planeado donde el urbanismo contemporáneo se integra orgánicamente con el paisaje natural, creando un santuario de paz y distinción para tu familia.</p>
+                <p style="font-size: 1.15rem; color: var(--text-dark); margin-bottom: 30px; font-weight: 400; line-height: 1.8;">Descubre un santuario donde el lujo contemporáneo y la serenidad de la naturaleza conviven en perfecta armonía. Cada detalle ha sido diseñado pensando en tu comodidad y la de tu familia, ofreciéndote un entorno premium, seguro y lleno de posibilidades inigualables.</p>
                 
                 <div class="about-cards-grid">
                     <div class="about-mini-card">
@@ -1677,7 +1742,7 @@
     <!-- Tipologías 3D -->
     <section class="section" id="tipologias" style="padding-top: 50px;">
         <div class="typo-header fade-up">
-            <h2 style="color: var(--text-dark);">Conoce tu <span>futuro hogar</span></h2>
+            <h2 class="premium-title-animated">Conoce <span>tu futuro hogar</span></h2>
             <p style="color: var(--text-light);">Diseño arquitectónico moderno y funcional, pensado para maximizar los espacios y la iluminación natural.</p>
         </div>
 
@@ -1695,23 +1760,23 @@
                     <div class="floor-card-back">
                         <h3>Detalles Piso 1</h3>
                         <div class="floor-features">
-                            <div class="floor-feat">
+                            <div class="floor-feat" onclick="event.stopPropagation(); openDetailModal('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80')">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
                                 <span>Sala</span>
                             </div>
-                            <div class="floor-feat">
+                            <div class="floor-feat" onclick="event.stopPropagation(); openDetailModal('https://images.unsplash.com/photo-1617806118233-18e1c0945594?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80')">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4l3 3"></path></svg>
                                 <span>Comedor</span>
                             </div>
-                            <div class="floor-feat">
+                            <div class="floor-feat" onclick="event.stopPropagation(); openDetailModal('https://images.unsplash.com/photo-1556910103-1c02745aae4d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80')">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
                                 <span>Cocina</span>
                             </div>
-                            <div class="floor-feat">
+                            <div class="floor-feat" onclick="event.stopPropagation(); openDetailModal('https://images.unsplash.com/photo-1584622650111-993a426fbf0a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80')">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
                                 <span>Patio</span>
                             </div>
-                            <div class="floor-feat">
+                            <div class="floor-feat" onclick="event.stopPropagation(); openDetailModal('https://images.unsplash.com/photo-1497366216548-37526070297c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80')">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
                                 <span>Estudio</span>
                             </div>
@@ -1733,15 +1798,15 @@
                     <div class="floor-card-back">
                         <h3>Detalles Piso 2</h3>
                         <div class="floor-features">
-                            <div class="floor-feat">
+                            <div class="floor-feat" onclick="event.stopPropagation(); openDetailModal('https://images.unsplash.com/photo-1540518614846-7eded433c457?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80')">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
                                 <span>3 Habitaciones</span>
                             </div>
-                            <div class="floor-feat">
+                            <div class="floor-feat" onclick="event.stopPropagation(); openDetailModal('https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80')">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12h20M5 12V6a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v6M12 12v10M8 22h8"></path></svg>
                                 <span>3 Baños</span>
                             </div>
-                            <div class="floor-feat">
+                            <div class="floor-feat" onclick="event.stopPropagation(); openDetailModal('https://images.unsplash.com/photo-1600607686527-6fb886090705?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80')">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
                                 <span>Balcón</span>
                             </div>
@@ -2218,6 +2283,15 @@
             stopCarouselAutoPlay();
             activeCarouselIndex = index;
             updateFsModalImg();
+            fsPrevBtn.style.display = 'block';
+            fsNextBtn.style.display = 'block';
+            fsModal.classList.add('active');
+        }
+
+        function openDetailModal(imgSrc) {
+            fsImg.src = imgSrc;
+            fsPrevBtn.style.display = 'none';
+            fsNextBtn.style.display = 'none';
             fsModal.classList.add('active');
         }
 
