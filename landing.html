@@ -1267,6 +1267,48 @@
             margin: 0;
         }
 
+        /* Marquee Section */
+        .builders-marquee-section {
+            background: var(--primary-gradient);
+            padding: 40px 0;
+            overflow: hidden;
+            position: relative;
+            z-index: 10;
+        }
+
+        .marquee-container {
+            display: flex;
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .marquee-content {
+            display: flex;
+            align-items: center;
+            width: max-content;
+            animation: scroll-marquee 20s linear infinite;
+        }
+
+        .marquee-content img {
+            height: 60px;
+            margin: 0 40px;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+            object-fit: contain;
+        }
+
+        @keyframes scroll-marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        @media (max-width: 768px) {
+            .marquee-content img {
+                height: 40px;
+                margin: 0 20px;
+            }
+        }
+
         /* Footer */
         .footer {
             background: #111111;
@@ -1947,6 +1989,27 @@
         <img src="" alt="Vista Completa" class="fs-gallery-img" id="fs-gallery-img">
         <button class="fs-nav-btn fs-next-btn" id="fs-next-btn">&#10095;</button>
     </div>
+
+    <!-- Sección Construyen (Marquesina) -->
+    <section class="builders-marquee-section">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <h3 style="color: #ffffff; font-family: 'Montserrat', sans-serif; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 3px; font-weight: 700; margin: 0;">CONSTRUYEN:</h3>
+        </div>
+        <div class="marquee-container">
+            <div class="marquee-content">
+                <!-- Set 1 -->
+                <img src="https://mercacol.com.co/wp-content/uploads/2026/04/Recurso-4.webp" alt="Proyecta SAS">
+                <img src="https://mercacol.com.co/wp-content/uploads/2026/04/Recurso-5.webp" alt="Baviera Desarrollador Inmobiliario">
+                <img src="https://mercacol.com.co/wp-content/uploads/2026/04/Recurso-4.webp" alt="Proyecta SAS">
+                <img src="https://mercacol.com.co/wp-content/uploads/2026/04/Recurso-5.webp" alt="Baviera Desarrollador Inmobiliario">
+                <!-- Set 2 (for looping) -->
+                <img src="https://mercacol.com.co/wp-content/uploads/2026/04/Recurso-4.webp" alt="Proyecta SAS">
+                <img src="https://mercacol.com.co/wp-content/uploads/2026/04/Recurso-5.webp" alt="Baviera Desarrollador Inmobiliario">
+                <img src="https://mercacol.com.co/wp-content/uploads/2026/04/Recurso-4.webp" alt="Proyecta SAS">
+                <img src="https://mercacol.com.co/wp-content/uploads/2026/04/Recurso-5.webp" alt="Baviera Desarrollador Inmobiliario">
+            </div>
+        </div>
+    </section>
 
     <!-- Footer Profesional -->
     <footer class="footer" id="contacto" style="background: linear-gradient(to bottom, #1a1a1a, #0d0d0d); padding: 100px 50px 30px; position: relative; overflow: hidden;">
