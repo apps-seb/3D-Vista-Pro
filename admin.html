@@ -1124,7 +1124,7 @@
                     touchmoveTwoFingers: false,
                     mousewheelCtrlKey: false,
                     defaultYaw: '0deg', defaultPitch: '-90deg',
-                    defaultZoomLvl: 0,
+                    defaultZoomLvl: 0, moveSpeed: 1.5, zoomSpeed: 1.5,
                     navbar: false,
                     plugins: [ [PhotoSphereViewer.MarkersPlugin, { markers: [] }] ]
                 });
@@ -1157,46 +1157,6 @@
 
                 markersPlugin.addEventListener('select-marker', (e) => {
                     
-                if (isCalibrating360) {
-                    calibratingPoints.push([e.data.yaw, e.data.pitch]);
-                    if (calibratingPoints.length === 1) {
-                        markersPlugin.addMarker({
-                            id: 'calib_temp_line',
-                            position: { yaw: calibratingPoints[0][0], pitch: calibratingPoints[0][1] },
-                            html: '<div style="width:10px;height:10px;background:#3498db;border-radius:50%;border:2px solid #fff;"></div>',
-                            anchor: 'center center'
-                        });
-                    } else if (calibratingPoints.length === 2) {
-                        if (markersPlugin.markers['calib_temp_line']) {
-                            markersPlugin.removeMarker('calib_temp_line');
-                        }
-                        markersPlugin.addMarker({
-                            id: 'calib_temp_line',
-                            polyline: calibratingPoints,
-                            svgStyle: { stroke: '#3498db', strokeWidth: '3px' }
-                        });
-                        
-                        setTimeout(() => {
-                            const distanceInMetersStr = prompt("Ingresa la longitud real de esta línea en metros (ej. 5.5):");
-                            if(distanceInMetersStr && !isNaN(parseFloat(distanceInMetersStr))) {
-                                const realDistance = parseFloat(distanceInMetersStr);
-                                const radDistance = angularDistance(calibratingPoints[0][0], calibratingPoints[0][1], calibratingPoints[1][0], calibratingPoints[1][1]);
-                                if(radDistance > 0) {
-                                    const factor = realDistance / radDistance;
-                                    guardarFactorCalibracion(factor);
-                                    alert("Calibración guardada exitosamente.");
-                                } else {
-                                    alert("La línea es demasiado corta.");
-                                    cancelarCalibracion360();
-                                }
-                            } else {
-                                cancelarCalibracion360();
-                            }
-                        }, 100);
-                    }
-                    return;
-                }
-
                 if (isPoly360Mode) {
 
                         const marker = e.marker;

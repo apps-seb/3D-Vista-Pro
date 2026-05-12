@@ -379,6 +379,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core@5.1.4/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin@5.1.4/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/gyroscope-plugin@5.1.4/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/autorotate-plugin@5.1.4/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
@@ -645,11 +646,12 @@
                     panorama: panoUrl, 
                     touchmoveTwoFingers: false, mousewheelCtrlKey: false,
                     defaultYaw: '0deg', defaultPitch: '-90deg',
-                    defaultZoomLvl: 0,
+                    defaultZoomLvl: 0, moveSpeed: 1.5, zoomSpeed: 1.5,
                     navbar: false,
                     plugins: [
                         [PhotoSphereViewer.MarkersPlugin, { markers: [] }],
                         [PhotoSphereViewer.GyroscopePlugin]
+                        ,[PhotoSphereViewer.AutorotatePlugin, { autostartDelay: 2000, autorotateSpeed: "1rpm", autorotatePitch: "-90deg" }]
                     ]
                 });
 
