@@ -1758,7 +1758,9 @@
                         }
                     })
                     .subscribe((status, err) => {
-                        if (err) throw err;
+                        if (err) {
+                            console.warn('Realtime subscription error:', err);
+                        }
                     });
             } catch (error) {
                 window.mostrarError("setupRealtimeSubscription", error);
