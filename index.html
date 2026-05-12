@@ -1758,7 +1758,7 @@
                         }
                     })
                     .subscribe((status, err) => {
-                        if (err) throw err;
+                        if (err) console.warn('Supabase realtime error:', err);
                     });
             } catch (error) {
                 window.mostrarError("setupRealtimeSubscription", error);
