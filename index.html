@@ -553,7 +553,17 @@
                                 return str;
                             };
 
+
+                            window.removeValue = (str, prefix) => {
+                                const regex = new RegExp(`(?:^|\\|)${prefix}:([^\\|]+)`, 'g');
+                                return str.replace(regex, '').replace(/^\|/, '').replace(/\|\|/g, '|');
+                            };
+
+                            let calibStr = extractValue(tempTitulo, "CALIB");
+                            globalCalibFactor = calibStr ? parseFloat(calibStr) : null;
+
                             const loadedPreloader = extractValue(tempTitulo, "PRELOADER");
+
                             if (loadedPreloader) {
                                 preloaderUrl = loadedPreloader;
                             }
@@ -674,7 +684,70 @@
 
                 let disp = 0, res = 0, vend = 0;
 
-                const activeMarkers = new Set();
+
+        const activeMarkers = new Set();
+        let globalCalibFactor = null;
+
+        function angularDistance(yaw1, pitch1, yaw2, pitch2) {
+            const cos_d = Math.sin(pitch1)*Math.sin(pitch2) + Math.cos(pitch1)*Math.cos(pitch2)*Math.cos(yaw1-yaw2);
+            return Math.acos(Math.max(-1, Math.min(1, cos_d)));
+        }
+
+        function interpolateSpherical(yaw1, pitch1, yaw2, pitch2, fraction) {
+            const phi1 = pitch1, theta1 = yaw1;
+            const x1 = Math.cos(phi1)*Math.cos(theta1), y1 = Math.cos(phi1)*Math.sin(theta1), z1 = Math.sin(phi1);
+
+            const phi2 = pitch2, theta2 = yaw2;
+            const x2 = Math.cos(phi2)*Math.cos(theta2), y2 = Math.cos(phi2)*Math.sin(theta2), z2 = Math.sin(phi2);
+
+            const x = x1 + fraction*(x2 - x1);
+            const y = y1 + fraction*(y2 - y1);
+            const z = z1 + fraction*(z2 - z1);
+
+            const r = Math.sqrt(x*x + y*y + z*z);
+            const resPitch = Math.asin(z/r);
+            const resYaw = Math.atan2(y, x);
+            return [resYaw, resPitch];
+        }
+
+        function formatDistance(dist) {
+            return dist.toFixed(2) + 'm';
+        }
+
+        function limpiarEtiquetasDistancia() {
+            Object.keys(markersPlugin.markers).forEach(id => {
+                if (id.startsWith('poly-dist-') || id.startsWith('poly-live-dist-')) {
+                    markersPlugin.removeMarker(id);
+                }
+            });
+        }
+
+        function drawPolyDistances(points, polyId, tipo, isLive = false) {
+            if (!globalCalibFactor || !points || points.length < 2) return;
+
+            const totalPoints = tipo === 'linea_abierta' ? points.length - 1 : points.length;
+            const prefix = isLive ? 'poly-live-dist-' : 'poly-dist-';
+
+            for (let i = 0; i < totalPoints; i++) {
+                const pt1 = points[i];
+                const pt2 = points[(i + 1) % points.length];
+
+                const angDist = angularDistance(pt1[0], pt1[1], pt2[0], pt2[1]);
+                const meters = angDist * globalCalibFactor;
+                const mid = interpolateSpherical(pt1[0], pt1[1], pt2[0], pt2[1], 0.5);
+                const markerId = prefix + polyId + '-' + i;
+
+                if (markersPlugin.markers[markerId]) markersPlugin.removeMarker(markerId);
+
+                markersPlugin.addMarker({
+                    id: markerId,
+                    position: { yaw: mid[0], pitch: mid[1] },
+                    html: '<div style="background:rgba(0,0,0,0.7);color:#fff;padding:2px 6px;border-radius:4px;border:1px solid #3498db;font-size:11px;font-weight:bold;pointer-events:none;white-space:nowrap;box-shadow:0 0 4px rgba(0,0,0,0.5);">' + formatDistance(meters) + '</div>',
+                    anchor: 'center center'
+                });
+            }
+        }
+
 
                 if (lotes) {
                     lotes.forEach(l => {
@@ -862,20 +935,31 @@
                             if(markersPlugin.markers[p.id]) {
                                 markersPlugin.removeMarker(p.id);
                             }
+
                             const points = JSON.parse(p.puntos);
-                            if(points && points.length >= 3) {
+                            if(points && points.length >= 2) {
                                 let fill = p.tipo === 'relleno' ? hexToRgbA(p.color_relleno, 0.4) : 'transparent';
-                                markersPlugin.addMarker({
+
+                                let markerConfig = {
                                     id: p.id,
-                                    polygon: points,
                                     svgStyle: {
                                         stroke: p.color_borde,
                                         strokeWidth: '2px',
-                                        fill: fill
+                                        fill: (p.tipo !== 'linea_abierta' && points.length >= 3) ? fill : 'transparent'
                                     },
                                     data: { isPoly360Db: true, nombre: p.nombre }
-                                });
+                                };
+
+                                if (p.tipo === 'linea_abierta') {
+                                    markerConfig.polyline = points;
+                                } else {
+                                    markerConfig.polygon = points;
+                                }
+
+                                markersPlugin.addMarker(markerConfig);
+                                drawPolyDistances(points, p.id, p.tipo, false);
                             }
+
                         });
                     }
                 } catch(e) {
@@ -884,11 +968,14 @@
 
                 window.mostrarProgreso(100);
 
+
+                limpiarEtiquetasDistancia();
                 Object.keys(markersPlugin.markers).forEach(markerId => {
-                    if (!activeMarkers.has(markerId)) {
+                    if (!activeMarkers.has(markerId) && !markerId.startsWith('poly-dist-')) {
                         markersPlugin.removeMarker(markerId);
                     }
                 });
+
             } catch (error) {
                 window.mostrarError("cargarDatosPublicos", error);
             }
