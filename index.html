@@ -429,9 +429,26 @@
         let supabaseClient;
         let currentProjectId = null;
         let viewer, markersPlugin, gyroscopePlugin;
+
+        // Helper para parsear poligonos (Retrocompatibilidad)
+        function parsePoligono(polyStr) {
+            if (!polyStr) return null;
+            try {
+                let parsed = JSON.parse(polyStr);
+                if (Array.isArray(parsed)) {
+                    return { points: parsed, strokeWidth: 2 }; // Default width si es formato antiguo
+                }
+                return parsed; // Asume que es el nuevo formato { points: [...], strokeWidth: X }
+            } catch (e) {
+                console.warn("Error parseando poligono", e);
+                return null;
+            }
+        }
+
         const fallbackImage = 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg';
         let globalPanoUrl = fallbackImage;
         let configuracionCuotaInicial = 30; // Valor por defecto
+        let globalLoteSize = 34;
         let globalTituloColor = 'var(--primary-color)';
         let globalTemaColor = '#f26522';
         let globalTituloFont = 'Montserrat';
@@ -765,9 +782,10 @@
                         let loteData = { type: 'lote', nombre: l.nombre, area: l.area + ' m²', precio: l.precio, estado: l.estado };
                         window.lotesDataMap[l.id] = loteData;
 
+                        const fontSize = Math.max(9, Math.floor(globalLoteSize / 3));
                         const htmlContent = `
-                            <div class="lote-marker-container" onclick="window.abrirLoteModal('${l.id}')">
-                                <div class="lote-marker-visual" style="background:${bg}; box-shadow: 0 0 15px ${shadow}">${shortName}</div>
+                            <div class="lote-marker-container" onclick="window.abrirLoteModal('${l.id}')" style="width: ${globalLoteSize + 16}px; height: ${globalLoteSize + 16}px;">
+                                <div class="lote-marker-visual" style="background:${bg}; box-shadow: 0 0 15px ${shadow}; width: ${globalLoteSize}px; height: ${globalLoteSize}px; font-size: ${fontSize}px;">${shortName}</div>
                             </div>
                         `;
 
@@ -775,7 +793,7 @@
                             id: l.id,
                             position: { yaw: l.yaw, pitch: l.pitch },
                             html: htmlContent,
-                            size: { width: 50, height: 50 }, // Tamaño del hitbox (container)
+                            size: { width: globalLoteSize + 16, height: globalLoteSize + 16 }, // Tamaño del hitbox (container)
                             anchor: 'center center',
                             data: loteData // Mantenemos la data por si el plugin de PhotoSphere captura el evento
                         };
@@ -788,15 +806,15 @@
                         let polyId = l.id + '_poly';
                         if (l.poligono) {
                             try {
-                                const polyPoints = JSON.parse(l.poligono);
-                                if (Array.isArray(polyPoints) && polyPoints.length >= 3) {
+                                const polyData = parsePoligono(l.poligono);
+                                if (polyData && polyData.points && polyData.points.length >= 3) {
                                     let markerConfigPoly = {
                                         id: polyId,
-                                        polygon: polyPoints,
+                                        polygon: polyData.points,
                                         svgStyle: {
                                             fill: bg.replace('0.9', '0.4'), // Más transparente
                                             stroke: shadow,
-                                            strokeWidth: '2px',
+                                            strokeWidth: (polyData.strokeWidth || 2) + 'px',
                                             pointerEvents: 'none',
                                             "pointer-events": "none"
                                         },
@@ -938,28 +956,28 @@
                                 markersPlugin.removeMarker(p.id);
                             }
 
-                            const points = JSON.parse(p.puntos);
-                            if(points && points.length >= 2) {
+                            const polyData = parsePoligono(p.puntos);
+                            if(polyData && polyData.points && polyData.points.length >= 2) {
                                 let fill = p.tipo === 'relleno' ? hexToRgbA(p.color_relleno, 0.4) : 'transparent';
 
                                 let markerConfig = {
                                     id: p.id,
                                     svgStyle: {
                                         stroke: p.color_borde,
-                                        strokeWidth: '2px',
-                                        fill: (p.tipo !== 'linea_abierta' && points.length >= 3) ? fill : 'transparent'
+                                        strokeWidth: (polyData.strokeWidth || 2) + 'px',
+                                        fill: (p.tipo !== 'linea_abierta' && polyData.points.length >= 3) ? fill : 'transparent'
                                     },
                                     data: { isPoly360Db: true, nombre: p.nombre }
                                 };
 
                                 if (p.tipo === 'linea_abierta') {
-                                    markerConfig.polyline = points;
+                                    markerConfig.polyline = polyData.points;
                                 } else {
-                                    markerConfig.polygon = points;
+                                    markerConfig.polygon = polyData.points;
                                 }
 
                                 markersPlugin.addMarker(markerConfig);
-                                drawPolyDistances(points, p.id, p.tipo, false);
+                                drawPolyDistances(polyData.points, p.id, p.tipo, false);
                             }
 
                         });
@@ -1708,6 +1726,12 @@
                             let extractedColor = extractValue(tempTitulo, "COLOR");
                             if (extractedColor) newColor = extractedColor;
                             tempTitulo = removeValue(tempTitulo, "COLOR");
+
+                            let loteSizeVal = extractValue(tempTitulo, "LOTE_SIZE");
+                            if (loteSizeVal) {
+                                globalLoteSize = parseInt(loteSizeVal) || 34;
+                            }
+                            tempTitulo = removeValue(tempTitulo, "LOTE_SIZE");
 
                             newTemaColor = extractValue(tempTitulo, "TEMA_COLOR");
                             if (newTemaColor) {

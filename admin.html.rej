@@ -1,0 +1,18 @@
+--- admin.html
++++ admin.html
+@@ -743,3 +743,15 @@
+         }
+         // -----------------------------------------------------
+
++        // Helper para parsear poligonos (Retrocompatibilidad)
++        function parsePoligono(polyStr) {
++            if (!polyStr) return null;
++            try {
++                let parsed = JSON.parse(polyStr);
++                if (Array.isArray(parsed)) {
++                    return { points: parsed, strokeWidth: 2 }; // Default width si es formato antiguo
++                }
++                return parsed; // Asume que es el nuevo formato { points: [...], strokeWidth: X }
++            } catch (e) {
++                console.warn("Error parseando poligono", e);
++                return null;
