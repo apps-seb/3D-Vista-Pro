@@ -1,0 +1,10 @@
+--- admin.html
++++ admin.html
+@@ -774,2 +774,3 @@
+         let globalAsesorTel = "";
++        let globalLoteSize = 34;
+
+@@ -2932,2 +2933,3 @@
+                 tituloAguardar += `|FONT:${globalTituloFont}`;
++                tituloAguardar += `|LOTE_SIZE:${globalLoteSize}`;
+                 tituloAguardar += `|TEMA_COLOR:${globalTemaColor}`;

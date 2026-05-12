@@ -1,0 +1,21 @@
+--- index.html
++++ index.html
+@@ -449,2 +449,3 @@
+         let globalAsesorTel = "";
++        let globalLoteSize = 34;
+
+@@ -782,4 +783,4 @@
+                             position: { yaw: l.yaw, pitch: l.pitch },
+                             html: htmlContent,
+-                            size: { width: 50, height: 50 }, // Tamaño del hitbox (container)
++                            size: { width: globalLoteSize + 16, height: globalLoteSize + 16 }, // Tamaño del hitbox (container)
+                             anchor: 'center center',
+@@ -1691,2 +1692,7 @@
+
++                            let loteSizeVal = extractValue(tempTitulo, "LOTE_SIZE");
++                            if (loteSizeVal) {
++                                globalLoteSize = parseInt(loteSizeVal) || 34;
++                            }
++                            tempTitulo = removeValue(tempTitulo, "LOTE_SIZE");
++
+                             newTemaColor = extractValue(tempTitulo, "TEMA_COLOR");

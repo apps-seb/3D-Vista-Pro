@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Rincón de Baviera</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
-    
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core@5.1.4/index.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin@5.1.4/index.min.css" />
-    
+
     <style>
         :root {
             --primary-color: #f26522;
@@ -137,12 +137,12 @@
             background: #000; border-bottom: 2px solid #e67e22; z-index: 10;
         }
         #panoflatten-header h2 { margin: 0; color: #e67e22; font-size: 1.2rem; }
-        
+
         #pf-workspace {
             position: relative; flex: 1; overflow: hidden; background: #222;
             cursor: crosshair; display: flex; justify-content: center; align-items: center;
         }
-        
+
         #pf-scroll-container {
             width: 100%; height: 100%; overflow: auto; position: relative;
         }
@@ -162,7 +162,7 @@
         #pf-svg-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: auto;
         }
-        
+
         .pf-svg-poly {
             pointer-events: auto;
             cursor: pointer;
@@ -178,7 +178,7 @@
             backdrop-filter: blur(10px); border: 1px solid #e67e22; border-radius: 8px; padding: 15px;
             z-index: 20; max-height: calc(100vh - 100px); overflow-y: auto; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
         }
-        
+
         .pf-zoom-controls {
             position: absolute; left: 20px; bottom: 20px; display: flex; gap: 10px; z-index: 20;
             background: rgba(0,0,0,0.7); padding: 10px; border-radius: 8px; border: 1px solid #444;
@@ -271,11 +271,11 @@
                 <button type="button" id="btn-edit-title" class="btn-edit-title" onclick="abrirModalTitulo()">✎ Editar</button>
             </div>
             <input type="text" id="input-title" class="input-text" placeholder="Nombre del proyecto" disabled style="opacity: 0.5;">
-            
+
             <div id="logo-preview-container" style="display: none; margin-bottom: 10px; text-align: center;">
                 <img id="admin-logo-preview" style="max-height: 50px; border-radius: 4px; border: 1px solid #444;" />
             </div>
-            
+
             <label class="btn btn-upload" id="btn-upload-logo-lbl" style="margin-bottom: 10px;">
                 Subir Logo (PNG/JPG)
                 <input type="file" id="upload-logo" accept="image/png, image/jpeg" style="display:none;" onchange="cargarLogo(event)">
@@ -290,7 +290,7 @@
                     <!-- Fav colors will go here -->
                 </div>
             </div>
-            
+
             <label class="control-label" style="margin-top: 10px; display: block;">% Cuota Inicial (Por defecto)</label>
             <input type="number" id="input-cuota" class="input-text" placeholder="Ej: 30" min="0" max="100">
 
@@ -345,7 +345,7 @@
         </div>
     </div>
 
-    
+
     <!-- TOOLTIP MEDICIÓN EN VIVO -->
     <div id="live-measure-tooltip" style="display: none; position: fixed; pointer-events: none; background: rgba(0,0,0,0.8); color: #fff; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 12px; border: 1px solid var(--primary-color); z-index: 10001; white-space: nowrap;">
         0.0m
@@ -357,7 +357,7 @@
             <span>Trazar Polígonos 360</span>
             <button class="editor-btn danger" style="padding: 2px 8px;" onclick="cerrarEditorPoligonos360()">X</button>
         </h3>
-        
+
         <div id="poly-360-draw-mode" style="display: none; margin-bottom: 15px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; border: 1px dashed var(--primary-color);">
             <p style="font-size: 0.8rem; color: var(--primary-color); font-weight: bold; margin-top: 0;">Modo Dibujo Activo</p>
             <p style="font-size: 0.75rem; color: #aaa; margin-bottom: 10px;">Haz clic en el visor 360 para añadir puntos. Arrastra los puntos verdes para ajustarlos.</p>
@@ -380,19 +380,13 @@
                     </div>
                 </div>
 
-                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                    <div style="flex: 1;">
-                        <label style="font-size: 0.7rem; color: #aaa; display: block; margin-bottom: 2px;">Tipo de renderizado</label>
-                        <select id="poly-360-tipo" class="input-select" style="padding: 6px; font-size: 0.8rem; margin-bottom: 0;">
-                            <option value="relleno">Con Relleno (Translúcido)</option>
-                            <option value="trazado">Solo Trazado (Línea)</option>
-                            <option value="linea_abierta">Línea Abierta (Polyline)</option>
-                        </select>
-                    </div>
-                    <div style="flex: 1;">
-                        <label style="font-size: 0.7rem; color: #aaa; display: block; margin-bottom: 2px;">Grosor Borde (px)</label>
-                        <input type="number" id="poly-360-stroke-width" class="input-text" value="2" min="1" max="10" style="padding: 6px; font-size: 0.8rem; margin-bottom: 0;">
-                    </div>
+                <div style="margin-bottom: 10px;">
+                    <label style="font-size: 0.7rem; color: #aaa; display: block; margin-bottom: 2px;">Tipo de renderizado</label>
+                    <select id="poly-360-tipo" class="input-select" style="padding: 6px; font-size: 0.8rem;">
+                        <option value="relleno">Con Relleno (Translúcido)</option>
+                        <option value="trazado">Solo Trazado (Línea)</option>
+                        <option value="linea_abierta">Línea Abierta (Polyline)</option>
+                    </select>
                 </div>
 
                 <button class="editor-btn" style="width: 100%; background: #2ecc71; color: #000; margin-bottom: 5px; font-size: 0.9rem;" onclick="guardarNuevoPoligono360()">✅ Guardar Polígono</button>
@@ -400,7 +394,7 @@
             </div>
         </div>
 
-        
+
         <div style="background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; border: 1px dashed #3498db; margin-bottom: 15px;">
             <p style="font-size: 0.8rem; color: #3498db; font-weight: bold; margin-top: 0; margin-bottom: 5px;">Calibración de Medidas</p>
             <p style="font-size: 0.75rem; color: #aaa; margin-bottom: 8px;" id="calib-status-text">Sin calibrar. Las medidas no se mostrarán.</p>
@@ -439,7 +433,7 @@
                 <button class="editor-btn danger" onclick="cerrarPanoFlattenEditor()">Cerrar Editor</button>
             </div>
         </div>
-        
+
         <div id="pf-workspace">
             <div id="pf-scroll-container">
                 <div id="pf-image-container">
@@ -448,7 +442,7 @@
                     <svg id="pf-svg-layer"></svg>
                 </div>
             </div>
-            
+
             <div class="pf-zoom-controls">
                 <button class="editor-btn" onclick="pfZoomIn()">➕ Zoom In</button>
                 <button class="editor-btn" onclick="pfZoomOut()">➖ Zoom Out</button>
@@ -458,32 +452,27 @@
             <!-- Panel Derecho PanoFlatten -->
             <div id="pf-panel-right">
                 <h3 style="color: #fff; margin-top: 0; font-size: 1rem; border-bottom: 1px solid #444; padding-bottom: 10px;">Herramientas PanoFlatten</h3>
-                
+
                 <div style="margin-bottom: 15px;">
                     <button id="pf-btn-draw" class="editor-btn" style="width: 100%; margin-bottom: 5px;" onclick="pfStartDrawing()">✏️ Nuevo Polígono</button>
                     <button class="editor-btn" style="width: 100%; margin-bottom: 5px;" onclick="pfUndoPoint()">↩️ Deshacer Punto</button>
                     <button class="editor-btn danger" style="width: 100%;" onclick="pfCancelDrawing()">Cancelar Dibujo</button>
                 </div>
-                
+
                 <div id="pf-save-panel" style="display: none; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; border: 1px dashed #e67e22; margin-bottom: 15px;">
                     <p style="font-size: 0.85rem; color: #e67e22; margin-top: 0;"><strong>Guardar Trazado</strong></p>
-                    
-                    <div style="margin-bottom: 10px;">
-                        <label style="font-size: 0.8rem; color: #ddd; display: block; margin-bottom: 5px;">Grosor del trazado (px):</label>
-                        <input type="number" id="pf-poly-stroke-width" class="input-text" value="2" min="1" max="10" style="padding: 6px; font-size: 0.8rem;">
-                    </div>
 
                     <label style="font-size: 0.8rem; color: #ddd; display: block; margin-bottom: 5px;">Asignar a Lote existente:</label>
                     <select id="pf-lote-select" class="input-select" style="background: rgba(0,0,0,0.8); border: 1px solid #e67e22; margin-bottom: 10px;">
                         <option value="">-- Selecciona un Lote --</option>
                     </select>
                     <button class="editor-btn" style="width: 100%; background: #2ecc71; color: #000; margin-bottom: 10px;" onclick="pfSaveToLote()">✅ Guardar en Lote</button>
-                    
+
                     <div style="border-top: 1px solid #444; margin: 10px 0;"></div>
-                    
+
                     <label style="font-size: 0.8rem; color: #ddd; display: block; margin-bottom: 5px;">O Guardar como Polígono 360 Libre:</label>
                     <input type="text" id="pf-poly360-nombre" class="input-text" placeholder="Nombre del polígono libre" style="padding: 6px; font-size: 0.8rem; margin-bottom: 5px;">
-                    
+
                     <div style="display: flex; gap: 5px; margin-bottom: 5px;">
                         <input type="color" id="pf-poly360-color" class="input-text" value="#e67e22" style="height: 30px; padding: 0; width: 50%;">
                         <select id="pf-poly360-tipo" class="input-select" style="padding: 4px; font-size: 0.75rem; width: 50%;">
@@ -556,9 +545,6 @@
 
                 <div id="panel-guardar-poligono" style="display: none; margin-top: 20px; border-top: 1px solid #444; padding-top: 15px;">
                     <h3 style="color:#2ecc71;">Polígono Listo</h3>
-                    <p style="font-size: 0.8rem; color: #ddd; margin-bottom: 5px;">Grosor del trazado (px):</p>
-                    <input type="number" id="poly-stroke-width" class="input-text" value="2" min="1" max="10" style="padding: 6px; font-size: 0.8rem; margin-bottom: 10px;">
-
                     <p style="font-size: 0.8rem; color: #ddd; margin-bottom: 10px;">Asigna el polígono dibujado a un Lote:</p>
                     <select id="poly-lote-select" class="input-select" style="background: rgba(0,0,0,0.8); border: 1px solid var(--primary-color);">
                         <option value="">-- Selecciona un Lote --</option>
@@ -626,7 +612,7 @@
                 <option value="tarjeta">Tarjeta Informativa</option>
             </select>
             <input type="text" id="poi-texto" class="input-text" placeholder="Texto (Ej: Zona Social)">
-            
+
             <div id="poi-imagen-container" style="display: none; margin-bottom: 10px;">
                 <label class="btn btn-upload" id="lbl-upload-poi-img">
                     Subir Imagen (PNG/JPG)
@@ -721,15 +707,15 @@
 
         const supabaseUrl = 'https://mungbffwwjobinfcympd.supabase.co';
         const supabaseKey = 'sb_publishable_yW5gsHp1w8ElbWRTeoMJYw_ZC-u0j9e';
-        
+
         let supabaseClient, viewer, markersPlugin;
         let currentProjectId = null;
         let isAddMode = false; let currentMode = ''; let tempCoords = { yaw: 0, pitch: 0 };
-        
+
         let isPoly360Mode = false;
         let poly360Points = [];
         let poly360TempId = 'temp_poly_360';
-        
+
         // --- VARIABLES Y FUNCIONES DE CALIBRACION / MEDIDAS ---
         let isCalibrating360 = false;
         let calibratingPoints = [];
@@ -743,14 +729,14 @@
         function interpolateSpherical(yaw1, pitch1, yaw2, pitch2, fraction) {
             const phi1 = pitch1, theta1 = yaw1;
             const x1 = Math.cos(phi1)*Math.cos(theta1), y1 = Math.cos(phi1)*Math.sin(theta1), z1 = Math.sin(phi1);
-            
+
             const phi2 = pitch2, theta2 = yaw2;
             const x2 = Math.cos(phi2)*Math.cos(theta2), y2 = Math.cos(phi2)*Math.sin(theta2), z2 = Math.sin(phi2);
-            
+
             const x = x1 + fraction*(x2 - x1);
             const y = y1 + fraction*(y2 - y1);
             const z = z1 + fraction*(z2 - z1);
-            
+
             const r = Math.sqrt(x*x + y*y + z*z);
             const resPitch = Math.asin(z/r);
             const resYaw = Math.atan2(y, x);
@@ -1055,12 +1041,12 @@
                                 return str;
                             };
 
-                            
+
                             window.removeValue = (str, prefix) => {
                                 const regex = new RegExp(`(?:^|\\|)${prefix}:([^\\|]+)`, 'g');
                                 return str.replace(regex, '').replace(/^\|/, '').replace(/\|\|/g, '|');
                             };
-                            
+
                             let calibStr = extractValue(tempTitulo, "CALIB");
                             if(calibStr) {
                                 globalCalibFactor = parseFloat(calibStr);
@@ -1092,12 +1078,6 @@
                             globalTituloColor = extractValue(tempTitulo, "COLOR");
                             tempTitulo = removeValue(tempTitulo, "COLOR");
 
-                            let loteSizeVal = extractValue(tempTitulo, "LOTE_SIZE");
-                            if (loteSizeVal) {
-                                globalLoteSize = parseInt(loteSizeVal) || 34;
-                            }
-                            tempTitulo = removeValue(tempTitulo, "LOTE_SIZE");
-
                             let temaColor = extractValue(tempTitulo, "TEMA_COLOR");
                             if (temaColor) {
                                 globalTemaColor = temaColor;
@@ -1114,7 +1094,7 @@
                             tempTitulo = removeValue(tempTitulo, "FAV_COLORS");
 
                             titulo = tempTitulo;
-                            
+
                         }
                     }
                 } catch (dbError) {
@@ -1146,10 +1126,6 @@
                 document.getElementById('display-title').style.fontFamily = globalTituloFont;
 
                 document.getElementById('input-tema-color').value = globalTemaColor;
-                let inputLoteSize = document.getElementById('input-lote-size');
-                if(inputLoteSize) inputLoteSize.value = globalLoteSize;
-                let loteSizeVal = document.getElementById('lote-size-val');
-                if(loteSizeVal) loteSizeVal.innerText = globalLoteSize + 'px';
                 renderColoresFavoritos();
 
                 if (logoUrl) {
@@ -1206,7 +1182,7 @@
                 });
 
                 markersPlugin.addEventListener('select-marker', (e) => {
-                    
+
                 if (isPoly360Mode) {
 
                         const marker = e.marker;
@@ -1301,7 +1277,7 @@
                         if (mimeType !== 'image/png' && mimeType !== 'image/jpeg' && mimeType !== 'image/webp') {
                             mimeType = 'image/jpeg';
                         }
-                        
+
                         // Si es PNG, mantener transparente si es posible
                         const dataUrl = canvas.toDataURL(mimeType, quality);
                         resolve(dataUrl);
@@ -1424,10 +1400,10 @@
         function pfChangeProjection() {
             const select = document.getElementById('pf-projection-select');
             pfCurrentProjection = select.value;
-            
+
             const img = document.getElementById('pf-pano-img');
             const canvas = document.getElementById('pf-nadir-canvas');
-            
+
             if (pfCurrentProjection === 'nadir') {
                 img.style.display = 'none';
                 canvas.style.display = 'block';
@@ -1440,7 +1416,7 @@
                 img.style.display = 'block';
                 canvas.style.display = 'none';
             }
-            
+
             pfZoomReset();
             pfRenderAllPolygons();
         }
@@ -1450,7 +1426,7 @@
             // Nadir view is a square. Use image width for high resolution.
             canvas.width = imgElement.naturalWidth;
             canvas.height = imgElement.naturalWidth;
-            
+
             const gl = canvas.getContext('webgl', { preserveDrawingBuffer: true });
             if (!gl) { alert("Tu navegador no soporta WebGL, necesario para la vista Ortogonal."); return; }
             pfNadirGl = gl;
@@ -1563,16 +1539,16 @@
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         }
 
-        
+
         window.abrirPanoFlattenEditor = function() {
             document.getElementById('panoflatten-overlay').style.display = 'flex';
             const img = document.getElementById('pf-pano-img');
-            
+
             let panoToLoad = globalPanoUrl;
             if (viewer && viewer.config.panorama) {
                 panoToLoad = viewer.config.panorama;
             }
-            
+
             img.onload = function() {
                 pfImageWidth = img.naturalWidth;
                 pfImageHeight = img.naturalHeight;
@@ -1586,7 +1562,7 @@
             // Add a cache-buster or crossOrigin if necessary
             img.crossOrigin = "anonymous";
             img.src = panoToLoad;
-            
+
             const svgLayer = document.getElementById('pf-svg-layer');
             // Ensure we don't attach multiple listeners
             svgLayer.removeEventListener('click', pfOnSvgClick);
@@ -1604,7 +1580,7 @@
             const container = document.getElementById('pf-scroll-container');
             const targetWidth = pfCurrentProjection === 'nadir' ? pfImageWidth : pfImageWidth;
             const targetHeight = pfCurrentProjection === 'nadir' ? pfImageWidth : pfImageHeight;
-            
+
             const scaleFitHeight = container.clientHeight / targetHeight;
             const scaleFitWidth = container.clientWidth / targetWidth;
             pfScale = Math.min(scaleFitHeight, scaleFitWidth) * 0.95; // fit to screen with a small margin
@@ -1619,16 +1595,16 @@
 
             imgContainer.style.width = (targetWidth * pfScale) + 'px';
             imgContainer.style.height = (targetHeight * pfScale) + 'px';
-            
+
             // Adjust canvas visually (CSS scaling via container width)
             const canvas = document.getElementById('pf-nadir-canvas');
             canvas.style.width = '100%';
             canvas.style.height = '100%';
-            
+
             const img = document.getElementById('pf-pano-img');
             img.style.width = '100%';
             img.style.height = '100%';
-            
+
             pfRenderAllPolygons();
         }
 
@@ -1639,11 +1615,11 @@
             // Coordinates relative to the scaled image
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
-            
+
             // Un-scale coordinates to get original image coordinates
             const origX = x / pfScale;
             const origY = y / pfScale;
-            
+
             pfDrawingPoints.push({x: origX, y: origY});
             pfRenderAllPolygons();
             pfCheckDrawingState();
@@ -1697,26 +1673,26 @@
         function pfRenderAllPolygons() {
             const svgLayer = document.getElementById('pf-svg-layer');
             svgLayer.innerHTML = '';
-            
+
             // 1. Render existing poly360s
             if(document.getElementById('pf-toggle-poly360').checked) {
                 polys360Data.forEach(p => {
-                    const polyData = parsePoligono(p.puntos);
-                    if(polyData && polyData.points && polyData.points.length >= 3) {
-                        const pixelPoints = polyData.points.map(pt => pfSphereToPixel(pt[0], pt[1]));
+                    const points = JSON.parse(p.puntos);
+                    if(points && points.length >= 3) {
+                        const pixelPoints = points.map(pt => pfSphereToPixel(pt[0], pt[1]));
                         const pointsAttr = pixelPoints.map(pt => `${pt.x * pfScale},${pt.y * pfScale}`).join(' ');
-                        
+
                         const poly = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
                         poly.setAttribute('points', pointsAttr);
                         poly.setAttribute('fill', p.tipo === 'relleno' ? hexToRgbA(p.color_relleno, 0.4) : 'transparent');
                         poly.setAttribute('stroke', p.color_borde);
-                        poly.setAttribute('stroke-width', polyData.strokeWidth || '2');
+                        poly.setAttribute('stroke-width', '2');
                         poly.classList.add('pf-svg-poly');
-                        
+
                         const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
                         title.textContent = p.nombre;
                         poly.appendChild(title);
-                        
+
                         svgLayer.appendChild(poly);
                     }
                 });
@@ -1727,28 +1703,28 @@
                 lotesDataEditor.forEach(l => {
                     if(l.poligono) {
                         try {
-                            const polyData = parsePoligono(l.poligono);
-                            if (polyData && polyData.points && polyData.points.length >= 3) {
-                                const pixelPoints = polyData.points.map(pt => pfSphereToPixel(pt[0], pt[1]));
+                            const points = JSON.parse(l.poligono);
+                            if (Array.isArray(points) && points.length >= 3) {
+                                const pixelPoints = points.map(pt => pfSphereToPixel(pt[0], pt[1]));
                                 const pointsAttr = pixelPoints.map(pt => `${pt.x * pfScale},${pt.y * pfScale}`).join(' ');
-                                
+
                                 let strokeColor = l.estado === 'Vendido' ? '#e74c3c' : (l.estado === 'Reservado' ? '#f39c12' : '#2ecc71');
                                 let fillColor = strokeColor.replace('rgb', 'rgba').replace(')', ', 0.4)'); // Simplified approximation
                                 if(strokeColor.startsWith('#')) {
                                     fillColor = hexToRgbA(strokeColor, 0.4);
                                 }
-                                
+
                                 const poly = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
                                 poly.setAttribute('points', pointsAttr);
                                 poly.setAttribute('fill', fillColor);
                                 poly.setAttribute('stroke', strokeColor);
-                                poly.setAttribute('stroke-width', polyData.strokeWidth || '2');
+                                poly.setAttribute('stroke-width', '2');
                                 poly.classList.add('pf-svg-poly');
-                                
+
                                 const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
                                 title.textContent = l.nombre;
                                 poly.appendChild(title);
-                                
+
                                 svgLayer.appendChild(poly);
                             }
                         } catch(e) {}
@@ -1759,7 +1735,7 @@
             // 3. Render the currently drawing polygon
             if(pfDrawingPoints.length > 0) {
                 const pointsAttr = pfDrawingPoints.map(pt => `${pt.x * pfScale},${pt.y * pfScale}`).join(' ');
-                
+
                 // Draw lines
                 const polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
                 polyline.setAttribute('points', pointsAttr);
@@ -1767,7 +1743,7 @@
                 polyline.setAttribute('stroke', '#e67e22');
                 polyline.setAttribute('stroke-width', '2');
                 svgLayer.appendChild(polyline);
-                
+
                 // Draw vertices
                 pfDrawingPoints.forEach((pt, index) => {
                     const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
@@ -1832,13 +1808,7 @@
             try {
                 // Convert to spherical
                 const sphericalPoints = pfDrawingPoints.map(pt => pfPixelToSphere(pt.x, pt.y));
-                const strokeWidth = parseInt(document.getElementById('pf-poly-stroke-width').value) || 2;
-
-                const poligonoObj = {
-                    points: sphericalPoints,
-                    strokeWidth: strokeWidth
-                };
-                const poligonoStr = JSON.stringify(poligonoObj);
+                const poligonoStr = JSON.stringify(sphericalPoints);
 
                 const { error } = await supabaseClient.from('lotes')
                     .update({ poligono: poligonoStr })
@@ -1858,7 +1828,7 @@
                 pfCancelDrawing();
                 pfUpdateLoteSelect(); // Refresh names
                 actualizarListaLotesEditor(); // If the other editor is open
-                
+
                 window.mostrarProgreso(100);
                 alert("Guardado en lote exitosamente.");
             } catch (error) {
@@ -1870,21 +1840,16 @@
             if(pfDrawingPoints.length < 3) return;
             const nombre = document.getElementById('pf-poly360-nombre').value;
             if(!nombre) { alert("Ingresa un nombre para el polígono."); return; }
-            
+
             const colorRelleno = document.getElementById('pf-poly360-color').value;
             const colorBorde = colorRelleno;
             const tipo = document.getElementById('pf-poly360-tipo').value;
-            const strokeWidth = parseInt(document.getElementById('pf-poly-stroke-width').value) || 2;
             const idUnico = 'poly360-' + Date.now();
 
             window.mostrarProgreso(10);
             try {
                 const sphericalPoints = pfDrawingPoints.map(pt => pfPixelToSphere(pt.x, pt.y));
-                const poligonoObj = {
-                    points: sphericalPoints,
-                    strokeWidth: strokeWidth
-                };
-                const poligonoStr = JSON.stringify(poligonoObj);
+                const poligonoStr = JSON.stringify(sphericalPoints);
 
                 const { error } = await supabaseClient.from('poligonos_360').insert([{
                     id: idUnico, nombre: nombre, puntos: poligonoStr,
@@ -1896,10 +1861,10 @@
 
                 // Update local & viewer
                 cargarInventarioPolys360();
-                
+
                 pfCancelDrawing();
                 document.getElementById('pf-poly360-nombre').value = '';
-                
+
                 window.mostrarProgreso(100);
                 alert("Polígono 360 libre guardado exitosamente.");
             } catch (error) {
@@ -2226,7 +2191,7 @@
             document.getElementById('polygon-360-ui').style.display = 'none';
         }
 
-        
+
         window.iniciarCalibracion360 = function() {
             if(isPoly360Mode) cancelarDibujoPoly360();
             isCalibrating360 = true;
@@ -2234,7 +2199,7 @@
             document.getElementById('btn-start-calib-poly360').style.display = 'none';
             document.getElementById('btn-cancel-calib-poly360').style.display = 'block';
             document.getElementById('calib-status-text').innerText = "Haz clic en 2 puntos en el mapa para definir la línea base.";
-            
+
             const viewerContainer = document.querySelector('.psv-container');
             if (viewerContainer) {
                 viewerContainer.style.cursor = "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"8\" height=\"8\" viewBox=\"0 0 8 8\"><circle cx=\"4\" cy=\"4\" r=\"4\" fill=\"red\" stroke=\"white\" stroke-width=\"1\"/></svg>') 4 4, crosshair";
@@ -2249,13 +2214,13 @@
             }
             document.getElementById('btn-start-calib-poly360').style.display = 'block';
             document.getElementById('btn-cancel-calib-poly360').style.display = 'none';
-            
+
             if(globalCalibFactor) {
                 document.getElementById('calib-status-text').innerText = "Medida base guardada. Factor: " + globalCalibFactor.toFixed(2) + " m/rad.";
             } else {
                 document.getElementById('calib-status-text').innerText = "Sin calibrar. Las medidas no se mostrarán.";
             }
-            
+
             const viewerContainer = document.querySelector('.psv-container');
             if (viewerContainer) {
                 viewerContainer.style.cursor = '';
@@ -2291,7 +2256,7 @@
             document.getElementById('poly-360-count').innerText = '0';
             document.getElementById('poly-360-save-panel').style.display = 'none';
             document.getElementById('poly-360-nombre').value = '';
-            
+
             // Cursor crosshair general para el modo dibujo
             const viewerContainer = document.querySelector('.psv-container');
             if (viewerContainer) {
@@ -2308,9 +2273,7 @@
             isPoly360Mode = true;
             isEditingPoly360 = true;
             editingPoly360Id = id;
-
-            const polyData = parsePoligono(poly.puntos);
-            poly360Points = polyData ? polyData.points : [];
+            poly360Points = JSON.parse(poly.puntos);
 
             document.getElementById('poly-360-draw-mode').style.display = 'block';
             document.getElementById('btn-start-draw-poly360').style.display = 'none';
@@ -2321,9 +2284,6 @@
             document.getElementById('poly-360-color-fill').value = poly.color_relleno;
             document.getElementById('poly-360-color-border').value = poly.color_borde;
             document.getElementById('poly-360-tipo').value = poly.tipo;
-            if (document.getElementById('poly-360-stroke-width')) {
-                document.getElementById('poly-360-stroke-width').value = polyData ? (polyData.strokeWidth || 2) : 2;
-            }
 
             const viewerContainer = document.querySelector('.psv-container');
             if (viewerContainer) {
@@ -2378,7 +2338,7 @@
             return hex; // fallback
         }
 
-        
+
         function limpiarEtiquetasDistancia() {
             Object.keys(markersPlugin.markers).forEach(id => {
                 if (id.startsWith('poly-dist-') || id.startsWith('poly-live-dist-')) {
@@ -2386,7 +2346,7 @@
                 }
             });
         }
-        
+
         window.actualizarVisibilidadMedidas = function() {
             const show = document.getElementById('toggle-medidas').checked;
             Object.keys(markersPlugin.markers).forEach(id => {
@@ -2402,22 +2362,22 @@
 
         function drawPolyDistances(points, polyId, tipo, isLive = false) {
             if (!globalCalibFactor || !points || points.length < 2) return;
-            
+
             const totalPoints = tipo === 'linea_abierta' ? points.length - 1 : points.length;
             const prefix = isLive ? 'poly-live-dist-' : 'poly-dist-';
             const show = document.getElementById('toggle-medidas') ? document.getElementById('toggle-medidas').checked : true;
-            
+
             for (let i = 0; i < totalPoints; i++) {
                 const pt1 = points[i];
                 const pt2 = points[(i + 1) % points.length];
-                
+
                 const angDist = angularDistance(pt1[0], pt1[1], pt2[0], pt2[1]);
                 const meters = angDist * globalCalibFactor;
                 const mid = interpolateSpherical(pt1[0], pt1[1], pt2[0], pt2[1], 0.5);
                 const markerId = prefix + polyId + '-' + i;
-                
+
                 if (markersPlugin.markers[markerId]) markersPlugin.removeMarker(markerId);
-                
+
                 markersPlugin.addMarker({
                     id: markerId,
                     position: { yaw: mid[0], pitch: mid[1] },
@@ -2440,7 +2400,7 @@
             });
         }
 
-        
+
         function actualizarPoly360Visual() {
             if (markersPlugin.markers[poly360TempId]) {
                 markersPlugin.removeMarker(poly360TempId);
@@ -2452,7 +2412,6 @@
                 let colorBorder = document.getElementById('poly-360-color-border').value || '#27ae60';
                 let colorFillHex = document.getElementById('poly-360-color-fill').value || '#2ecc71';
                 let tipo = document.getElementById('poly-360-tipo').value || 'relleno';
-                let strokeWidth = document.getElementById('poly-360-stroke-width') ? document.getElementById('poly-360-stroke-width').value : '2';
 
                 let fill = tipo === 'relleno' ? hexToRgbA(colorFillHex, 0.4) : 'transparent';
 
@@ -2461,21 +2420,21 @@
                         id: poly360TempId,
                         svgStyle: {
                             stroke: colorBorder,
-                            strokeWidth: strokeWidth + 'px',
+                            strokeWidth: '3px',
                             fill: (tipo !== 'linea_abierta' && poly360Points.length >= 3) ? fill : 'transparent',
                             pointerEvents: 'none'
                         }
                     };
-                    
+
                     if (tipo === 'linea_abierta') {
                         configMarker.polyline = poly360Points;
                     } else {
                         configMarker.polygon = poly360Points;
                     }
-                    
+
                     markersPlugin.addMarker(configMarker);
                 }
-                
+
                 drawPolyDistances(poly360Points, poly360TempId, tipo, true);
 
                 // Añadir marcadores draggables para editar los puntos
@@ -2493,7 +2452,7 @@
             }
         }
 
-        
+
         let reqAnimationFrameId = null;
         let currentMouseCoords = null;
         let typedDistanceStr = "";
@@ -2543,7 +2502,7 @@
                 }
             }
         });
-        
+
         function trackLiveMeasurement(e) {
             if (!viewer || (!isPoly360Mode && !isCalibrating360)) {
                 document.getElementById('live-measure-tooltip').style.display = 'none';
@@ -2555,20 +2514,20 @@
 
             const psvContainer = document.querySelector('.psv-container');
             if (!psvContainer) return;
-            
+
             const rect = psvContainer.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
-            
+
             if(!viewer.dataHelper || !viewer.dataHelper.viewerCoordsToSphericalCoords) return;
             const coords = viewer.dataHelper.viewerCoordsToSphericalCoords({x, y});
             if (!coords) return;
             currentMouseCoords = coords;
-            
+
             const tooltip = document.getElementById('live-measure-tooltip');
             tooltip.style.left = (e.clientX + 15) + 'px';
             tooltip.style.top = (e.clientY + 15) + 'px';
-            
+
             if (isCalibrating360) {
                 if (calibratingPoints.length === 1) {
                     tooltip.style.display = 'block';
@@ -2628,7 +2587,7 @@
                 if (markersPlugin.markers['poly360_live_line']) markersPlugin.removeMarker('poly360_live_line');
             }
         }
-        
+
         window.addEventListener('mousemove', (e) => {
             if (reqAnimationFrameId) {
                 cancelAnimationFrame(reqAnimationFrameId);
@@ -2662,14 +2621,8 @@
                 const colorRelleno = document.getElementById('poly-360-color-fill').value;
                 const colorBorde = document.getElementById('poly-360-color-border').value;
                 const tipo = document.getElementById('poly-360-tipo').value;
-                const strokeWidth = parseInt(document.getElementById('poly-360-stroke-width').value) || 2;
                 const idUnico = isEditingPoly360 && editingPoly360Id ? editingPoly360Id : 'poly360-' + Date.now();
-
-                const poligonoObj = {
-                    points: poly360Points,
-                    strokeWidth: strokeWidth
-                };
-                const poligonoStr = JSON.stringify(poligonoObj);
+                const poligonoStr = JSON.stringify(poly360Points);
 
                 window.mostrarProgreso(40);
 
@@ -2761,36 +2714,36 @@
             }
         }
 
-        
+
         window.renderPoly360 = function(p) {
             try {
                 if(markersPlugin.markers[p.id]) {
                     markersPlugin.removeMarker(p.id);
                 }
 
-                const polyData = parsePoligono(p.puntos);
-                if(polyData && polyData.points && polyData.points.length >= 2) {
+                const points = JSON.parse(p.puntos);
+                if(points && points.length >= 2) {
                     let fill = p.tipo === 'relleno' ? hexToRgbA(p.color_relleno, 0.4) : 'transparent';
 
                     let configMarker = {
                         id: p.id,
                         svgStyle: {
                             stroke: p.color_borde,
-                            strokeWidth: (polyData.strokeWidth || 2) + 'px',
-                            fill: (p.tipo !== 'linea_abierta' && polyData.points.length >= 3) ? fill : 'transparent',
+                            strokeWidth: '2px',
+                            fill: (p.tipo !== 'linea_abierta' && points.length >= 3) ? fill : 'transparent',
                             pointerEvents: 'none'
                         },
                         data: { isPoly360Db: true, nombre: p.nombre }
                     };
-                    
+
                     if (p.tipo === 'linea_abierta') {
-                        configMarker.polyline = polyData.points;
+                        configMarker.polyline = points;
                     } else {
-                        configMarker.polygon = polyData.points;
+                        configMarker.polygon = points;
                     }
 
                     markersPlugin.addMarker(configMarker);
-                    drawPolyDistances(polyData.points, p.id, p.tipo, false);
+                    drawPolyDistances(points, p.id, p.tipo, false);
                 }
             } catch(e) {
 
@@ -2841,13 +2794,8 @@
                 const cw = editorCanvas.width;
                 const ch = editorCanvas.height;
                 const esfericos = polygonPoints.map(p => convertPointToSphere(p.x, p.y, cw, ch));
-                const strokeWidth = parseInt(document.getElementById('poly-stroke-width').value) || 2;
 
-                const poligonoObj = {
-                    points: esfericos,
-                    strokeWidth: strokeWidth
-                };
-                const poligonoStr = JSON.stringify(poligonoObj);
+                const poligonoStr = JSON.stringify(esfericos);
 
                 window.mostrarProgreso(40);
                 // Guardar en Supabase
@@ -2910,7 +2858,7 @@
             const container = document.getElementById('preloader-preview-container');
             const imgPreview = document.getElementById('admin-preloader-img');
             const videoPreview = document.getElementById('admin-preloader-video');
-            
+
             if (!url) {
                 container.style.display = 'none';
                 return;
@@ -2918,7 +2866,7 @@
 
             container.style.display = 'block';
             const isVideo = url.match(/\.(mp4|webm|ogg)(?:\?.*)?$/i);
-            
+
             if (isVideo) {
                 imgPreview.style.display = 'none';
                 videoPreview.src = url;
@@ -3078,7 +3026,7 @@
                     const { error: updateError } = await supabaseClient.from('configuracion').update({ imagen_url: imageUrl }).eq('proyecto_id', currentProjectId);
                     if (updateError) throw updateError;
                 }
-                
+
                 globalPanoUrl = imageUrl;
                 window.mostrarProgreso(100);
                 viewer.setPanorama(imageUrl);
@@ -3145,7 +3093,7 @@
                             polyline: calibratingPoints,
                             svgStyle: { stroke: '#3498db', strokeWidth: '3px' }
                         });
-                        
+
                         setTimeout(() => {
                             const distanceInMetersStr = prompt("Ingresa la longitud real de esta línea en metros (ej. 5.5):");
                             if(distanceInMetersStr && !isNaN(parseFloat(distanceInMetersStr))) {
@@ -3180,7 +3128,7 @@
                     }
 
                     document.getElementById('poly-360-count').innerText = poly360Points.length;
-                    
+
                     if (poly360Points.length >= 3) {
                         document.getElementById('poly-360-save-panel').style.display = 'block';
                     } else {
@@ -3249,14 +3197,13 @@
                 let shortName = nombre.replace(/lote\s*/i, '').trim();
                 if(shortName.length > 4) shortName = shortName.substring(0, 4);
 
-                const fontSize = Math.max(9, Math.floor(globalLoteSize / 3)); // Aproximación para que el texto escale
-                const html = `<div class="lote-marker" style="background:${color}; box-shadow: 0 0 10px ${color}; width: ${globalLoteSize}px; height: ${globalLoteSize}px; font-size: ${fontSize}px;">${shortName}</div>`;
+                const html = `<div class="lote-marker" style="background:${color}; box-shadow: 0 0 10px ${color};">${shortName}</div>`;
 
                 let markerConfigHTML = {
                     id: id,
                     position: { yaw, pitch },
                     html: html,
-                    size: { width: globalLoteSize, height: globalLoteSize },
+                    size: { width: 34, height: 34 },
                     anchor: 'center center',
                     tooltip: { content: `<div style="text-align:center;"><strong style="color:var(--primary-color)">${nombre}</strong></div>`, position: 'top center' },
                             data: { nombre, area, precio, estado, yaw, pitch, poligono },
@@ -3310,23 +3257,6 @@
             }
         }
 
-        window.guardarTamanoPuntos = function() {
-            let val = document.getElementById('input-lote-size').value;
-            globalLoteSize = parseInt(val) || 34;
-            window.guardarConfiguracion();
-        };
-
-        window.actualizarTamanoLotesUI = function() {
-            let val = document.getElementById('input-lote-size').value;
-            globalLoteSize = parseInt(val) || 34;
-            for (let id in markersPlugin.markers) {
-                let marker = markersPlugin.markers[id];
-                if (marker.config.data && marker.config.data.estado) { // Es un lote
-                    window.renderLote(id, marker.config.data.nombre, marker.config.data.area, marker.config.data.precio, marker.config.data.estado, marker.config.data.yaw, marker.config.data.pitch, marker.config.data.poligono);
-                }
-            }
-        };
-
         window.actualizarEstado = async function(id, estado) {
             try {
                 window.mostrarProgreso(20);
@@ -3350,7 +3280,7 @@
             document.getElementById('poi-imagen-container').style.display = 'none';
             document.getElementById('poi-vista360-container').style.display = 'none';
             document.getElementById('poi-tarjeta-container').style.display = 'none';
-            
+
             if (tipo === 'imagen') {
                 document.getElementById('poi-imagen-container').style.display = 'block';
             } else if (tipo === 'vista360') {
@@ -3359,16 +3289,16 @@
                 document.getElementById('poi-tarjeta-container').style.display = 'block';
             }
         }
-        
+
         window.cargarVista360POI = async function(event) {
             const btn = document.getElementById('lbl-upload-poi-360');
             const originalText = btn.innerHTML;
             const file = event.target.files[0];
             if (!file) return;
-            
+
             window.mostrarProgreso(10);
             btn.innerHTML = "Subiendo 360... ⏳";
-            
+
             try {
                 const fileExt = file.name.split('.').pop();
                 const fileName = `poi_360_${Math.random()}.${fileExt}`;
@@ -3387,7 +3317,7 @@
                     .getPublicUrl(filePath);
 
                 document.getElementById('poi-360-url').value = publicUrlData.publicUrl;
-                
+
                 window.mostrarProgreso(100);
                 btn.innerHTML = "¡Imagen 360 Lista! ✅";
                 setTimeout(() => { btn.innerHTML = originalText; }, 3000);
@@ -3468,9 +3398,9 @@
                 const texto = document.getElementById('poi-texto').value || 'Punto';
                 const idUnico = 'poi-' + Date.now();
                 const tipo = document.getElementById('poi-tipo-visual').value;
-                
+
                 let newContent = texto;
-                
+
                 if (tipo === 'imagen') {
                     const imgData = document.getElementById('poi-img-data').value;
                     if (imgData) {
@@ -3497,7 +3427,7 @@
                     }
                     newContent = `TARJETA|${imgData}|ICON|${iconData}|TEXT|${texto}`;
                 }
-                
+
                 window.mostrarProgreso(50);
                 const { error } = await supabaseClient.from('pois').insert([{ id: idUnico, content: newContent, yaw: tempCoords.yaw, pitch: tempCoords.pitch, proyecto_id: currentProjectId }]);
                 if (error) throw error;
@@ -3602,14 +3532,14 @@
                         </div>`;
                     }
 
-                    markersPlugin.addMarker({ 
-                        id, 
-                        position: { yaw, pitch }, 
-                        html: htmlContent, 
+                    markersPlugin.addMarker({
+                        id,
+                        position: { yaw, pitch },
+                        html: htmlContent,
                         anchor: 'bottom center',
                         data: isLink360 ? { type: 'link360', url: link360Url, nombre: displayText } : null
                     });
-                    
+
                     const lista = document.getElementById('inventory-list');
                     if(lista.innerHTML.includes('vacío')) lista.innerHTML = '';
                     const iconList = isLink360 ? '👁️' : '★';

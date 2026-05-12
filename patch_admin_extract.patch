@@ -1,0 +1,11 @@
+--- admin.html
++++ admin.html
+@@ -1079,2 +1079,8 @@
+
++                            let loteSizeVal = extractValue(tempTitulo, "LOTE_SIZE");
++                            if (loteSizeVal) {
++                                globalLoteSize = parseInt(loteSizeVal) || 34;
++                            }
++                            tempTitulo = removeValue(tempTitulo, "LOTE_SIZE");
++
+                             let temaColor = extractValue(tempTitulo, "TEMA_COLOR");

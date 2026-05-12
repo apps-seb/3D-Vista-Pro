@@ -1,0 +1,29 @@
+--- admin.html
++++ admin.html
+@@ -1139,2 +1139,6 @@
+                 document.getElementById('input-tema-color').value = globalTemaColor;
++                let inputLoteSize = document.getElementById('input-lote-size');
++                if(inputLoteSize) inputLoteSize.value = globalLoteSize;
++                let loteSizeVal = document.getElementById('lote-size-val');
++                if(loteSizeVal) loteSizeVal.innerText = globalLoteSize + 'px';
+                 renderColoresFavoritos();
+@@ -3265,2 +3269,17 @@
+
++        window.guardarTamanoPuntos = function() {
++            let val = document.getElementById('input-lote-size').value;
++            globalLoteSize = parseInt(val) || 34;
++            window.guardarConfiguracion();
++        };
++
++        window.actualizarTamanoLotesUI = function() {
++            let val = document.getElementById('input-lote-size').value;
++            globalLoteSize = parseInt(val) || 34;
++            for (let id in markersPlugin.markers) {
++                let marker = markersPlugin.markers[id];
++                if (marker.config.data && marker.config.data.estado) { // Es un lote
++                    window.renderLote(id, marker.config.data.nombre, marker.config.data.area, marker.config.data.precio, marker.config.data.estado, marker.config.data.yaw, marker.config.data.pitch, marker.config.data.poligono);
++                }
++            }
++        };
++
+         window.actualizarEstado = async function(id, estado) {
