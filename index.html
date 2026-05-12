@@ -602,6 +602,12 @@
                             globalTituloColor = extractValue(tempTitulo, "COLOR");
                             tempTitulo = removeValue(tempTitulo, "COLOR");
                             
+                            let loteSizeVal = extractValue(tempTitulo, "LOTE_SIZE");
+                            if (loteSizeVal) {
+                                globalLoteSize = parseInt(loteSizeVal) || 34;
+                            }
+                            tempTitulo = removeValue(tempTitulo, "LOTE_SIZE");
+
                             let temaColor = extractValue(tempTitulo, "TEMA_COLOR");
                             if (temaColor) {
                                 globalTemaColor = temaColor;

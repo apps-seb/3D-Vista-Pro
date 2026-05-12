@@ -323,7 +323,7 @@
             <div style="background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; border: 1px solid #333; margin-bottom: 10px;">
                 <label class="control-label" style="display: block; margin-bottom: 5px;">Tamaño de los Puntos (Lotes)</label>
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <input type="range" id="input-lote-size" min="20" max="80" value="34" style="flex: 1; cursor: pointer;" oninput="document.getElementById('lote-size-val').innerText = this.value + 'px'; actualizarTamanoLotesUI();">
+                    <input type="range" id="input-lote-size" min="10" max="150" value="34" style="flex: 1; cursor: pointer;" oninput="document.getElementById('lote-size-val').innerText = this.value + 'px'; actualizarTamanoLotesUI();">
                     <span id="lote-size-val" style="color: #fff; font-size: 0.8rem; font-weight: bold; width: 40px; text-align: right;">34px</span>
                 </div>
                 <button class="btn btn-action" style="padding: 5px 10px; font-size: 0.75rem; margin-top: 5px; margin-bottom: 0;" onclick="guardarTamanoPuntos()">Guardar Tamaño</button>
@@ -3271,15 +3271,15 @@
                 let polyId = id + '_poly';
                 if (poligono) {
                     try {
-                        const polyPoints = JSON.parse(poligono);
-                        if (Array.isArray(polyPoints) && polyPoints.length >= 3) {
+                        const polyData = parsePoligono(poligono);
+                        if (polyData && polyData.points && polyData.points.length >= 3) {
                             let markerConfigPoly = {
                                 id: polyId,
-                                polygon: polyPoints,
+                                polygon: polyData.points,
                                 svgStyle: {
                                     fill: colorRGBA,
                                     stroke: color,
-                                    strokeWidth: '2px',
+                                    strokeWidth: (polyData.strokeWidth || 2) + 'px',
                                     pointerEvents: 'visiblePainted'
                                 },
                                 data: { type: 'lote_poly', parentId: id }
