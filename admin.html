@@ -335,7 +335,7 @@
         </div>
     </div>
 
-
+    
     <!-- TOOLTIP MEDICIÓN EN VIVO -->
     <div id="live-measure-tooltip" style="display: none; position: fixed; pointer-events: none; background: rgba(0,0,0,0.8); color: #fff; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 12px; border: 1px solid var(--primary-color); z-index: 10001; white-space: nowrap;">
         0.0m
@@ -384,7 +384,7 @@
             </div>
         </div>
 
-
+        
         <div style="background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; border: 1px dashed #3498db; margin-bottom: 15px;">
             <p style="font-size: 0.8rem; color: #3498db; font-weight: bold; margin-top: 0; margin-bottom: 5px;">Calibración de Medidas</p>
             <p style="font-size: 0.75rem; color: #aaa; margin-bottom: 8px;" id="calib-status-text">Sin calibrar. Las medidas no se mostrarán.</p>
@@ -695,11 +695,11 @@
         let supabaseClient, viewer, markersPlugin;
         let currentProjectId = null;
         let isAddMode = false; let currentMode = ''; let tempCoords = { yaw: 0, pitch: 0 };
-
+        
         let isPoly360Mode = false;
         let poly360Points = [];
         let poly360TempId = 'temp_poly_360';
-
+        
         // --- VARIABLES Y FUNCIONES DE CALIBRACION / MEDIDAS ---
         let isCalibrating360 = false;
         let calibratingPoints = [];
@@ -713,14 +713,14 @@
         function interpolateSpherical(yaw1, pitch1, yaw2, pitch2, fraction) {
             const phi1 = pitch1, theta1 = yaw1;
             const x1 = Math.cos(phi1)*Math.cos(theta1), y1 = Math.cos(phi1)*Math.sin(theta1), z1 = Math.sin(phi1);
-
+            
             const phi2 = pitch2, theta2 = yaw2;
             const x2 = Math.cos(phi2)*Math.cos(theta2), y2 = Math.cos(phi2)*Math.sin(theta2), z2 = Math.sin(phi2);
-
+            
             const x = x1 + fraction*(x2 - x1);
             const y = y1 + fraction*(y2 - y1);
             const z = z1 + fraction*(z2 - z1);
-
+            
             const r = Math.sqrt(x*x + y*y + z*z);
             const resPitch = Math.asin(z/r);
             const resYaw = Math.atan2(y, x);
@@ -1009,12 +1009,12 @@
                                 return str;
                             };
 
-
+                            
                             window.removeValue = (str, prefix) => {
                                 const regex = new RegExp(`(?:^|\\|)${prefix}:([^\\|]+)`, 'g');
                                 return str.replace(regex, '').replace(/^\|/, '').replace(/\|\|/g, '|');
                             };
-
+                            
                             let calibStr = extractValue(tempTitulo, "CALIB");
                             if(calibStr) {
                                 globalCalibFactor = parseFloat(calibStr);
@@ -1150,7 +1150,7 @@
                 });
 
                 markersPlugin.addEventListener('select-marker', (e) => {
-
+                    
                 if (isCalibrating360) {
                     calibratingPoints.push([e.data.yaw, e.data.pitch]);
                     if (calibratingPoints.length === 1) {
@@ -1168,7 +1168,7 @@
                             polyline: calibratingPoints,
                             svgStyle: { stroke: '#3498db', strokeWidth: '3px' }
                         });
-
+                        
                         setTimeout(() => {
                             const distanceInMetersStr = prompt("Ingresa la longitud real de esta línea en metros (ej. 5.5):");
                             if(distanceInMetersStr && !isNaN(parseFloat(distanceInMetersStr))) {
@@ -2198,7 +2198,7 @@
             document.getElementById('polygon-360-ui').style.display = 'none';
         }
 
-
+        
         window.iniciarCalibracion360 = function() {
             if(isPoly360Mode) cancelarDibujoPoly360();
             isCalibrating360 = true;
@@ -2206,10 +2206,10 @@
             document.getElementById('btn-start-calib-poly360').style.display = 'none';
             document.getElementById('btn-cancel-calib-poly360').style.display = 'block';
             document.getElementById('calib-status-text').innerText = "Haz clic en 2 puntos en el mapa para definir la línea base.";
-
+            
             const viewerContainer = document.querySelector('.psv-container');
             if (viewerContainer) {
-                viewerContainer.style.cursor = "url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%233498db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>') 12 12, crosshair";
+                viewerContainer.style.cursor = "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%233498db\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><line x1=\"12\" y1=\"8\" x2=\"12\" y2=\"16\"></line><line x1=\"8\" y1=\"12\" x2=\"16\" y2=\"12\"></line></svg>') 12 12, crosshair";
             }
         }
 
@@ -2221,13 +2221,13 @@
             }
             document.getElementById('btn-start-calib-poly360').style.display = 'block';
             document.getElementById('btn-cancel-calib-poly360').style.display = 'none';
-
+            
             if(globalCalibFactor) {
                 document.getElementById('calib-status-text').innerText = "Medida base guardada. Factor: " + globalCalibFactor.toFixed(2) + " m/rad.";
             } else {
                 document.getElementById('calib-status-text').innerText = "Sin calibrar. Las medidas no se mostrarán.";
             }
-
+            
             const viewerContainer = document.querySelector('.psv-container');
             if (viewerContainer) {
                 viewerContainer.style.cursor = '';
@@ -2345,7 +2345,7 @@
             return hex; // fallback
         }
 
-
+        
         function limpiarEtiquetasDistancia() {
             Object.keys(markersPlugin.markers).forEach(id => {
                 if (id.startsWith('poly-dist-') || id.startsWith('poly-live-dist-')) {
@@ -2353,24 +2353,24 @@
                 }
             });
         }
-
+        
         function drawPolyDistances(points, polyId, tipo, isLive = false) {
             if (!globalCalibFactor || !points || points.length < 2) return;
-
+            
             const totalPoints = tipo === 'linea_abierta' ? points.length - 1 : points.length;
             const prefix = isLive ? 'poly-live-dist-' : 'poly-dist-';
-
+            
             for (let i = 0; i < totalPoints; i++) {
                 const pt1 = points[i];
                 const pt2 = points[(i + 1) % points.length];
-
+                
                 const angDist = angularDistance(pt1[0], pt1[1], pt2[0], pt2[1]);
                 const meters = angDist * globalCalibFactor;
                 const mid = interpolateSpherical(pt1[0], pt1[1], pt2[0], pt2[1], 0.5);
                 const markerId = prefix + polyId + '-' + i;
-
+                
                 if (markersPlugin.markers[markerId]) markersPlugin.removeMarker(markerId);
-
+                
                 markersPlugin.addMarker({
                     id: markerId,
                     position: { yaw: mid[0], pitch: mid[1] },
@@ -2389,7 +2389,7 @@
             });
         }
 
-
+        
         function actualizarPoly360Visual() {
             if (markersPlugin.markers[poly360TempId]) {
                 markersPlugin.removeMarker(poly360TempId);
@@ -2414,16 +2414,16 @@
                             pointerEvents: 'none'
                         }
                     };
-
+                    
                     if (tipo === 'linea_abierta') {
                         configMarker.polyline = poly360Points;
                     } else {
                         configMarker.polygon = poly360Points;
                     }
-
+                    
                     markersPlugin.addMarker(configMarker);
                 }
-
+                
                 drawPolyDistances(poly360Points, poly360TempId, tipo, true);
 
                 // Añadir marcadores draggables para editar los puntos
@@ -2441,9 +2441,9 @@
             }
         }
 
-
+        
         let reqAnimationFrameId = null;
-
+        
         function trackLiveMeasurement(e) {
             if (!viewer || (!isPoly360Mode && !isCalibrating360)) {
                 document.getElementById('live-measure-tooltip').style.display = 'none';
@@ -2452,19 +2452,19 @@
 
             const psvContainer = document.querySelector('.psv-container');
             if (!psvContainer) return;
-
+            
             const rect = psvContainer.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
-
+            
             if(!viewer.dataHelper || !viewer.dataHelper.viewerCoordsToSphericalCoords) return;
             const coords = viewer.dataHelper.viewerCoordsToSphericalCoords({x, y});
             if (!coords) return;
-
+            
             const tooltip = document.getElementById('live-measure-tooltip');
             tooltip.style.left = (e.clientX + 15) + 'px';
             tooltip.style.top = (e.clientY + 15) + 'px';
-
+            
             if (isCalibrating360) {
                 if (calibratingPoints.length === 1) {
                     tooltip.style.display = 'block';
@@ -2477,7 +2477,7 @@
                     const lastPt = poly360Points[poly360Points.length - 1];
                     const dist = angularDistance(lastPt[0], lastPt[1], coords.yaw, coords.pitch);
                     const meters = dist * globalCalibFactor;
-
+                    
                     tooltip.style.display = 'block';
                     tooltip.innerText = formatDistance(meters);
                 } else {
@@ -2485,7 +2485,7 @@
                 }
             }
         }
-
+        
         window.addEventListener('mousemove', (e) => {
             if (reqAnimationFrameId) {
                 cancelAnimationFrame(reqAnimationFrameId);
@@ -2612,7 +2612,7 @@
             }
         }
 
-
+        
         window.renderPoly360 = function(p) {
             try {
                 if(markersPlugin.markers[p.id]) {
@@ -2633,7 +2633,7 @@
                         },
                         data: { isPoly360Db: true, nombre: p.nombre }
                     };
-
+                    
                     if (p.tipo === 'linea_abierta') {
                         configMarker.polyline = points;
                     } else {
@@ -2989,7 +2989,7 @@
                             polyline: calibratingPoints,
                             svgStyle: { stroke: '#3498db', strokeWidth: '3px' }
                         });
-
+                        
                         setTimeout(() => {
                             const distanceInMetersStr = prompt("Ingresa la longitud real de esta línea en metros (ej. 5.5):");
                             if(distanceInMetersStr && !isNaN(parseFloat(distanceInMetersStr))) {
