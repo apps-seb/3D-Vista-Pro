@@ -319,6 +319,16 @@
 
         <div class="control-group">
             <span class="control-label">2. Herramientas de Mapa</span>
+            
+            <div style="background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; border: 1px solid #333; margin-bottom: 10px;">
+                <label class="control-label" style="display: block; margin-bottom: 5px;">Tamaño de los Puntos (Lotes)</label>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <input type="range" id="input-lote-size" min="20" max="80" value="34" style="flex: 1; cursor: pointer;" oninput="document.getElementById('lote-size-val').innerText = this.value + 'px'; actualizarTamanoLotesUI();">
+                    <span id="lote-size-val" style="color: #fff; font-size: 0.8rem; font-weight: bold; width: 40px; text-align: right;">34px</span>
+                </div>
+                <button class="btn btn-action" style="padding: 5px 10px; font-size: 0.75rem; margin-top: 5px; margin-bottom: 0;" onclick="guardarTamanoPuntos()">Guardar Tamaño</button>
+            </div>
+
             <button id="btn-add-lote" class="btn btn-action" onclick="activarModo('lote')">+ Crear Lote (Punto)</button>
             <button id="btn-open-polygon-editor" class="btn btn-action" onclick="abrirEditorPoligonos()" style="background: var(--primary-color); color: #000; border: 1px solid var(--primary-color); font-weight: bold;">✏️ Dibujar Polígonos 2D (Guía)</button>
             <button id="btn-open-panoflatten" class="btn btn-action" onclick="abrirPanoFlattenEditor()" style="background: #e67e22; color: #fff; border: 1px solid #e67e22; font-weight: bold;">🗺️ PanoFlatten (Trazado Plano 360)</button>
@@ -370,13 +380,19 @@
                     </div>
                 </div>
 
-                <div style="margin-bottom: 10px;">
-                    <label style="font-size: 0.7rem; color: #aaa; display: block; margin-bottom: 2px;">Tipo de renderizado</label>
-                    <select id="poly-360-tipo" class="input-select" style="padding: 6px; font-size: 0.8rem;">
-                        <option value="relleno">Con Relleno (Translúcido)</option>
-                        <option value="trazado">Solo Trazado (Línea)</option>
-                        <option value="linea_abierta">Línea Abierta (Polyline)</option>
-                    </select>
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <div style="flex: 1;">
+                        <label style="font-size: 0.7rem; color: #aaa; display: block; margin-bottom: 2px;">Tipo de renderizado</label>
+                        <select id="poly-360-tipo" class="input-select" style="padding: 6px; font-size: 0.8rem; margin-bottom: 0;">
+                            <option value="relleno">Con Relleno (Translúcido)</option>
+                            <option value="trazado">Solo Trazado (Línea)</option>
+                            <option value="linea_abierta">Línea Abierta (Polyline)</option>
+                        </select>
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="font-size: 0.7rem; color: #aaa; display: block; margin-bottom: 2px;">Grosor Borde (px)</label>
+                        <input type="number" id="poly-360-stroke-width" class="input-text" value="2" min="1" max="10" style="padding: 6px; font-size: 0.8rem; margin-bottom: 0;">
+                    </div>
                 </div>
 
                 <button class="editor-btn" style="width: 100%; background: #2ecc71; color: #000; margin-bottom: 5px; font-size: 0.9rem;" onclick="guardarNuevoPoligono360()">✅ Guardar Polígono</button>
@@ -452,6 +468,11 @@
                 <div id="pf-save-panel" style="display: none; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; border: 1px dashed #e67e22; margin-bottom: 15px;">
                     <p style="font-size: 0.85rem; color: #e67e22; margin-top: 0;"><strong>Guardar Trazado</strong></p>
                     
+                    <div style="margin-bottom: 10px;">
+                        <label style="font-size: 0.8rem; color: #ddd; display: block; margin-bottom: 5px;">Grosor del trazado (px):</label>
+                        <input type="number" id="pf-poly-stroke-width" class="input-text" value="2" min="1" max="10" style="padding: 6px; font-size: 0.8rem;">
+                    </div>
+
                     <label style="font-size: 0.8rem; color: #ddd; display: block; margin-bottom: 5px;">Asignar a Lote existente:</label>
                     <select id="pf-lote-select" class="input-select" style="background: rgba(0,0,0,0.8); border: 1px solid #e67e22; margin-bottom: 10px;">
                         <option value="">-- Selecciona un Lote --</option>
@@ -535,6 +556,9 @@
 
                 <div id="panel-guardar-poligono" style="display: none; margin-top: 20px; border-top: 1px solid #444; padding-top: 15px;">
                     <h3 style="color:#2ecc71;">Polígono Listo</h3>
+                    <p style="font-size: 0.8rem; color: #ddd; margin-bottom: 5px;">Grosor del trazado (px):</p>
+                    <input type="number" id="poly-stroke-width" class="input-text" value="2" min="1" max="10" style="padding: 6px; font-size: 0.8rem; margin-bottom: 10px;">
+
                     <p style="font-size: 0.8rem; color: #ddd; margin-bottom: 10px;">Asigna el polígono dibujado a un Lote:</p>
                     <select id="poly-lote-select" class="input-select" style="background: rgba(0,0,0,0.8); border: 1px solid var(--primary-color);">
                         <option value="">-- Selecciona un Lote --</option>
@@ -738,6 +762,21 @@
         }
         // -----------------------------------------------------
 
+        // Helper para parsear poligonos (Retrocompatibilidad)
+        function parsePoligono(polyStr) {
+            if (!polyStr) return null;
+            try {
+                let parsed = JSON.parse(polyStr);
+                if (Array.isArray(parsed)) {
+                    return { points: parsed, strokeWidth: 2 }; // Default width si es formato antiguo
+                }
+                return parsed; // Asume que es el nuevo formato { points: [...], strokeWidth: X }
+            } catch (e) {
+                console.warn("Error parseando poligono", e);
+                return null;
+            }
+        }
+
         const fallbackImage = 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg';
         let globalPanoUrl = fallbackImage;
         let lotesDataEditor = []; // Para tener la lista de lotes en el editor 2D
@@ -747,6 +786,7 @@
         let globalTituloFont = 'Montserrat';
         let globalAsesorNombre = "";
         let globalAsesorTel = "";
+        let globalLoteSize = 34;
 
         // Helper to convert hex to rgb
         function hexToRgb(hex) {
@@ -1052,6 +1092,12 @@
                             globalTituloColor = extractValue(tempTitulo, "COLOR");
                             tempTitulo = removeValue(tempTitulo, "COLOR");
 
+                            let loteSizeVal = extractValue(tempTitulo, "LOTE_SIZE");
+                            if (loteSizeVal) {
+                                globalLoteSize = parseInt(loteSizeVal) || 34;
+                            }
+                            tempTitulo = removeValue(tempTitulo, "LOTE_SIZE");
+
                             let temaColor = extractValue(tempTitulo, "TEMA_COLOR");
                             if (temaColor) {
                                 globalTemaColor = temaColor;
@@ -1100,6 +1146,10 @@
                 document.getElementById('display-title').style.fontFamily = globalTituloFont;
 
                 document.getElementById('input-tema-color').value = globalTemaColor;
+                let inputLoteSize = document.getElementById('input-lote-size');
+                if(inputLoteSize) inputLoteSize.value = globalLoteSize;
+                let loteSizeVal = document.getElementById('lote-size-val');
+                if(loteSizeVal) loteSizeVal.innerText = globalLoteSize + 'px';
                 renderColoresFavoritos();
 
                 if (logoUrl) {
@@ -1651,16 +1701,16 @@
             // 1. Render existing poly360s
             if(document.getElementById('pf-toggle-poly360').checked) {
                 polys360Data.forEach(p => {
-                    const points = JSON.parse(p.puntos);
-                    if(points && points.length >= 3) {
-                        const pixelPoints = points.map(pt => pfSphereToPixel(pt[0], pt[1]));
+                    const polyData = parsePoligono(p.puntos);
+                    if(polyData && polyData.points && polyData.points.length >= 3) {
+                        const pixelPoints = polyData.points.map(pt => pfSphereToPixel(pt[0], pt[1]));
                         const pointsAttr = pixelPoints.map(pt => `${pt.x * pfScale},${pt.y * pfScale}`).join(' ');
                         
                         const poly = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
                         poly.setAttribute('points', pointsAttr);
                         poly.setAttribute('fill', p.tipo === 'relleno' ? hexToRgbA(p.color_relleno, 0.4) : 'transparent');
                         poly.setAttribute('stroke', p.color_borde);
-                        poly.setAttribute('stroke-width', '2');
+                        poly.setAttribute('stroke-width', polyData.strokeWidth || '2');
                         poly.classList.add('pf-svg-poly');
                         
                         const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
@@ -1677,9 +1727,9 @@
                 lotesDataEditor.forEach(l => {
                     if(l.poligono) {
                         try {
-                            const points = JSON.parse(l.poligono);
-                            if (Array.isArray(points) && points.length >= 3) {
-                                const pixelPoints = points.map(pt => pfSphereToPixel(pt[0], pt[1]));
+                            const polyData = parsePoligono(l.poligono);
+                            if (polyData && polyData.points && polyData.points.length >= 3) {
+                                const pixelPoints = polyData.points.map(pt => pfSphereToPixel(pt[0], pt[1]));
                                 const pointsAttr = pixelPoints.map(pt => `${pt.x * pfScale},${pt.y * pfScale}`).join(' ');
                                 
                                 let strokeColor = l.estado === 'Vendido' ? '#e74c3c' : (l.estado === 'Reservado' ? '#f39c12' : '#2ecc71');
@@ -1692,7 +1742,7 @@
                                 poly.setAttribute('points', pointsAttr);
                                 poly.setAttribute('fill', fillColor);
                                 poly.setAttribute('stroke', strokeColor);
-                                poly.setAttribute('stroke-width', '2');
+                                poly.setAttribute('stroke-width', polyData.strokeWidth || '2');
                                 poly.classList.add('pf-svg-poly');
                                 
                                 const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
@@ -1782,7 +1832,13 @@
             try {
                 // Convert to spherical
                 const sphericalPoints = pfDrawingPoints.map(pt => pfPixelToSphere(pt.x, pt.y));
-                const poligonoStr = JSON.stringify(sphericalPoints);
+                const strokeWidth = parseInt(document.getElementById('pf-poly-stroke-width').value) || 2;
+                
+                const poligonoObj = {
+                    points: sphericalPoints,
+                    strokeWidth: strokeWidth
+                };
+                const poligonoStr = JSON.stringify(poligonoObj);
 
                 const { error } = await supabaseClient.from('lotes')
                     .update({ poligono: poligonoStr })
@@ -1818,12 +1874,17 @@
             const colorRelleno = document.getElementById('pf-poly360-color').value;
             const colorBorde = colorRelleno;
             const tipo = document.getElementById('pf-poly360-tipo').value;
+            const strokeWidth = parseInt(document.getElementById('pf-poly-stroke-width').value) || 2;
             const idUnico = 'poly360-' + Date.now();
 
             window.mostrarProgreso(10);
             try {
                 const sphericalPoints = pfDrawingPoints.map(pt => pfPixelToSphere(pt.x, pt.y));
-                const poligonoStr = JSON.stringify(sphericalPoints);
+                const poligonoObj = {
+                    points: sphericalPoints,
+                    strokeWidth: strokeWidth
+                };
+                const poligonoStr = JSON.stringify(poligonoObj);
 
                 const { error } = await supabaseClient.from('poligonos_360').insert([{
                     id: idUnico, nombre: nombre, puntos: poligonoStr,
@@ -2247,7 +2308,9 @@
             isPoly360Mode = true;
             isEditingPoly360 = true;
             editingPoly360Id = id;
-            poly360Points = JSON.parse(poly.puntos);
+            
+            const polyData = parsePoligono(poly.puntos);
+            poly360Points = polyData ? polyData.points : [];
 
             document.getElementById('poly-360-draw-mode').style.display = 'block';
             document.getElementById('btn-start-draw-poly360').style.display = 'none';
@@ -2258,6 +2321,9 @@
             document.getElementById('poly-360-color-fill').value = poly.color_relleno;
             document.getElementById('poly-360-color-border').value = poly.color_borde;
             document.getElementById('poly-360-tipo').value = poly.tipo;
+            if (document.getElementById('poly-360-stroke-width')) {
+                document.getElementById('poly-360-stroke-width').value = polyData ? (polyData.strokeWidth || 2) : 2;
+            }
 
             const viewerContainer = document.querySelector('.psv-container');
             if (viewerContainer) {
@@ -2386,6 +2452,7 @@
                 let colorBorder = document.getElementById('poly-360-color-border').value || '#27ae60';
                 let colorFillHex = document.getElementById('poly-360-color-fill').value || '#2ecc71';
                 let tipo = document.getElementById('poly-360-tipo').value || 'relleno';
+                let strokeWidth = document.getElementById('poly-360-stroke-width') ? document.getElementById('poly-360-stroke-width').value : '2';
 
                 let fill = tipo === 'relleno' ? hexToRgbA(colorFillHex, 0.4) : 'transparent';
 
@@ -2394,7 +2461,7 @@
                         id: poly360TempId,
                         svgStyle: {
                             stroke: colorBorder,
-                            strokeWidth: '3px',
+                            strokeWidth: strokeWidth + 'px',
                             fill: (tipo !== 'linea_abierta' && poly360Points.length >= 3) ? fill : 'transparent',
                             pointerEvents: 'none'
                         }
@@ -2595,8 +2662,14 @@
                 const colorRelleno = document.getElementById('poly-360-color-fill').value;
                 const colorBorde = document.getElementById('poly-360-color-border').value;
                 const tipo = document.getElementById('poly-360-tipo').value;
+                const strokeWidth = parseInt(document.getElementById('poly-360-stroke-width').value) || 2;
                 const idUnico = isEditingPoly360 && editingPoly360Id ? editingPoly360Id : 'poly360-' + Date.now();
-                const poligonoStr = JSON.stringify(poly360Points);
+                
+                const poligonoObj = {
+                    points: poly360Points,
+                    strokeWidth: strokeWidth
+                };
+                const poligonoStr = JSON.stringify(poligonoObj);
 
                 window.mostrarProgreso(40);
 
@@ -2695,29 +2768,29 @@
                     markersPlugin.removeMarker(p.id);
                 }
 
-                const points = JSON.parse(p.puntos);
-                if(points && points.length >= 2) {
+                const polyData = parsePoligono(p.puntos);
+                if(polyData && polyData.points && polyData.points.length >= 2) {
                     let fill = p.tipo === 'relleno' ? hexToRgbA(p.color_relleno, 0.4) : 'transparent';
 
                     let configMarker = {
                         id: p.id,
                         svgStyle: {
                             stroke: p.color_borde,
-                            strokeWidth: '2px',
-                            fill: (p.tipo !== 'linea_abierta' && points.length >= 3) ? fill : 'transparent',
+                            strokeWidth: (polyData.strokeWidth || 2) + 'px',
+                            fill: (p.tipo !== 'linea_abierta' && polyData.points.length >= 3) ? fill : 'transparent',
                             pointerEvents: 'none'
                         },
                         data: { isPoly360Db: true, nombre: p.nombre }
                     };
                     
                     if (p.tipo === 'linea_abierta') {
-                        configMarker.polyline = points;
+                        configMarker.polyline = polyData.points;
                     } else {
-                        configMarker.polygon = points;
+                        configMarker.polygon = polyData.points;
                     }
 
                     markersPlugin.addMarker(configMarker);
-                    drawPolyDistances(points, p.id, p.tipo, false);
+                    drawPolyDistances(polyData.points, p.id, p.tipo, false);
                 }
             } catch(e) {
 
@@ -2768,8 +2841,13 @@
                 const cw = editorCanvas.width;
                 const ch = editorCanvas.height;
                 const esfericos = polygonPoints.map(p => convertPointToSphere(p.x, p.y, cw, ch));
+                const strokeWidth = parseInt(document.getElementById('poly-stroke-width').value) || 2;
 
-                const poligonoStr = JSON.stringify(esfericos);
+                const poligonoObj = {
+                    points: esfericos,
+                    strokeWidth: strokeWidth
+                };
+                const poligonoStr = JSON.stringify(poligonoObj);
 
                 window.mostrarProgreso(40);
                 // Guardar en Supabase
@@ -2919,6 +2997,7 @@
                 }
                 tituloAguardar += `|COLOR:${globalTituloColor}`;
                 tituloAguardar += `|FONT:${globalTituloFont}`;
+                tituloAguardar += `|LOTE_SIZE:${globalLoteSize}`;
                 tituloAguardar += `|TEMA_COLOR:${globalTemaColor}`;
                 if (globalColoresFavoritos.length > 0) {
                     tituloAguardar += `|FAV_COLORS:${globalColoresFavoritos.join(',')}`;
@@ -3170,13 +3249,14 @@
                 let shortName = nombre.replace(/lote\s*/i, '').trim();
                 if(shortName.length > 4) shortName = shortName.substring(0, 4);
 
-                const html = `<div class="lote-marker" style="background:${color}; box-shadow: 0 0 10px ${color};">${shortName}</div>`;
+                const fontSize = Math.max(9, Math.floor(globalLoteSize / 3)); // Aproximación para que el texto escale
+                const html = `<div class="lote-marker" style="background:${color}; box-shadow: 0 0 10px ${color}; width: ${globalLoteSize}px; height: ${globalLoteSize}px; font-size: ${fontSize}px;">${shortName}</div>`;
 
                 let markerConfigHTML = {
                     id: id,
                     position: { yaw, pitch },
                     html: html,
-                    size: { width: 34, height: 34 },
+                    size: { width: globalLoteSize, height: globalLoteSize },
                     anchor: 'center center',
                     tooltip: { content: `<div style="text-align:center;"><strong style="color:var(--primary-color)">${nombre}</strong></div>`, position: 'top center' },
                             data: { nombre, area, precio, estado, yaw, pitch, poligono },
@@ -3229,6 +3309,23 @@
                 window.mostrarError("renderLote", error);
             }
         }
+
+        window.guardarTamanoPuntos = function() {
+            let val = document.getElementById('input-lote-size').value;
+            globalLoteSize = parseInt(val) || 34;
+            window.guardarConfiguracion();
+        };
+
+        window.actualizarTamanoLotesUI = function() {
+            let val = document.getElementById('input-lote-size').value;
+            globalLoteSize = parseInt(val) || 34;
+            for (let id in markersPlugin.markers) {
+                let marker = markersPlugin.markers[id];
+                if (marker.config.data && marker.config.data.estado) { // Es un lote
+                    window.renderLote(id, marker.config.data.nombre, marker.config.data.area, marker.config.data.precio, marker.config.data.estado, marker.config.data.yaw, marker.config.data.pitch, marker.config.data.poligono);
+                }
+            }
+        };
 
         window.actualizarEstado = async function(id, estado) {
             try {
