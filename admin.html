@@ -2494,18 +2494,18 @@
                 if (!isNaN(targetMeters) && currentMouseCoords) {
                     const lastPt = poly360Points[poly360Points.length - 1];
                     const targetRadians = targetMeters / globalCalibFactor;
-                    
+
                     // Simple linear interpolation based on current mouse direction
                     // Find angle from last point to current mouse coords
                     const dy = currentMouseCoords.pitch - lastPt[1];
                     const dx = currentMouseCoords.yaw - lastPt[0];
                     const angle = Math.atan2(dy, dx);
-                    
+
                     const newYaw = lastPt[0] + Math.cos(angle) * targetRadians;
                     const newPitch = lastPt[1] + Math.sin(angle) * targetRadians;
 
                     poly360Points.push([newYaw, newPitch]);
-                    
+
                     document.getElementById('poly-360-count').innerText = poly360Points.length;
                     if (poly360Points.length >= 3) {
                         document.getElementById('poly-360-save-panel').style.display = 'block';
