@@ -14,6 +14,12 @@
             --primary-color: #f26522;
             --primary-color-rgb: 242, 101, 34;
         }
+        /* Estilos para selección múltiple de polígonos 360 */
+        .poly-360-selected { outline: 2px dashed #f1c40f !important; outline-offset: 2px; }
+        .poly-list-checkbox { accent-color: var(--primary-color); transform: scale(1.2); cursor: pointer; }
+        .poly-list-item-selected { background: rgba(242, 101, 34, 0.2) !important; border-color: var(--primary-color) !important; }
+        .drag-guide-line { stroke: #f1c40f; stroke-width: 2px; stroke-dasharray: 4,4; pointer-events: none; }
+        .drag-center-point { fill: #f1c40f; stroke: #fff; stroke-width: 2px; r: 6; pointer-events: none; }
         /* CSS Editor de Polígonos */
         #polygon-editor-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -415,9 +421,22 @@
         </div>
 
         <button id="btn-start-draw-poly360" class="editor-btn" style="width: 100%; background: var(--primary-color); color: #000; margin-bottom: 15px;" onclick="iniciarDibujoPoly360()">✏️ Crear Nuevo Polígono</button>
+        
+        <div id="poly-360-move-panel" style="display: none; margin-bottom: 15px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; border: 1px dashed #f1c40f;">
+            <p style="font-size: 0.8rem; color: #f1c40f; font-weight: bold; margin-top: 0; margin-bottom: 5px;">Mover Selección Múltiple</p>
+            <p style="font-size: 0.75rem; color: #aaa; margin-bottom: 10px;" id="poly-360-move-helper">Selecciona polígonos para moverlos.</p>
+            <button id="btn-define-guide-line" class="editor-btn" style="width: 100%; background: transparent; color: #f1c40f; border-color: #f1c40f; font-size: 0.8rem; margin-bottom: 10px;" onclick="iniciarDefinirLineaGuia()">📐 Definir Eje Guía</button>
+            <button class="editor-btn" style="width: 100%; background: #2ecc71; color: #000; margin-bottom: 5px; font-size: 0.8rem;" onclick="guardarMovimientoMultiplePoly360()">✅ Guardar Posiciones</button>
+            <button class="editor-btn danger" style="width: 100%; font-size: 0.8rem;" onclick="cancelarMovimientoMultiplePoly360()">Cancelar</button>
+        </div>
+
+        <button id="btn-toggle-move-poly360" class="editor-btn" style="width: 100%; background: #222; color: #f1c40f; border: 1px solid #f1c40f; margin-bottom: 15px;" onclick="toggleModoMovimientoMultiple()">✋ Seleccionar / Mover Varios</button>
 
         <div style="border-top: 1px solid #444; padding-top: 10px;">
-            <h4 style="margin: 0 0 10px 0; color: #fff; font-size: 0.9rem;">Inventario Polígonos 360 (<span id="count-polys-360">0</span>)</h4>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h4 style="margin: 0; color: #fff; font-size: 0.9rem;">Inventario Polígonos 360 (<span id="count-polys-360">0</span>)</h4>
+                <label id="lbl-select-all-poly360" style="display: none; font-size: 0.75rem; cursor: pointer; color: #aaa; align-items: center; gap: 5px;"><input type="checkbox" id="chk-select-all-poly360" onchange="toggleSelectAllPoly360()" class="poly-list-checkbox"> Todos</label>
+            </div>
             <div id="poly-360-list" style="max-height: 200px; overflow-y: auto;">
                 <p style="font-size: 0.8rem; color: #666; text-align: center;">Cargando...</p>
             </div>
@@ -627,6 +646,14 @@
             </select>
             <input type="text" id="poi-texto" class="input-text" placeholder="Texto (Ej: Zona Social)">
             
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 0.8rem; color: #ddd; display: block; margin-bottom: 5px;">Tamaño / Escala del Punto</label>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <input type="range" id="poi-escala" class="poly-slider" min="0.5" max="3" step="0.1" value="1" style="flex: 1; cursor: pointer;" oninput="document.getElementById('poi-escala-val').innerText = this.value + 'x'">
+                    <span id="poi-escala-val" style="color: #fff; font-size: 0.8rem; font-weight: bold; width: 40px; text-align: right;">1x</span>
+                </div>
+            </div>
+
             <div id="poi-imagen-container" style="display: none; margin-bottom: 10px;">
                 <label class="btn btn-upload" id="lbl-upload-poi-img">
                     Subir Imagen (PNG/JPG)
@@ -734,6 +761,65 @@
         let isCalibrating360 = false;
         let calibratingPoints = [];
         let globalCalibFactor = null;
+
+        // Math utilities for 3D rotation
+        function sphToCart(yaw, pitch) {
+            // spherical to cartesian
+            // using x right, y forward, z up
+            // pitch from equator (-PI/2 to PI/2).
+            const x = Math.cos(pitch) * Math.sin(yaw);
+            const y = Math.cos(pitch) * Math.cos(yaw);
+            const z = Math.sin(pitch);
+            return [x, y, z];
+        }
+
+        function cartToSph(x, y, z) {
+            const pitch = Math.asin(Math.max(-1, Math.min(1, z)));
+            const yaw = Math.atan2(x, y);
+            return [yaw, pitch];
+        }
+
+        function rotateVector(v, axis, angle) {
+            // Rodrigues' rotation formula
+            const [x, y, z] = v;
+            const [ux, uy, uz] = axis;
+            const cos = Math.cos(angle);
+            const sin = Math.sin(angle);
+            const dot = x*ux + y*uy + z*uz;
+            const crossX = uy*z - uz*y;
+            const crossY = uz*x - ux*z;
+            const crossZ = ux*y - uy*x;
+
+            return [
+                v[0]*cos + crossX*sin + ux*dot*(1-cos),
+                v[1]*cos + crossY*sin + uy*dot*(1-cos),
+                v[2]*cos + crossZ*sin + uz*dot*(1-cos)
+            ];
+        }
+
+        function getRotationAxisAngle(startYaw, startPitch, endYaw, endPitch) {
+            const v1 = sphToCart(startYaw, startPitch);
+            const v2 = sphToCart(endYaw, endPitch);
+            
+            // Cross product to find axis
+            let axis = [
+                v1[1]*v2[2] - v1[2]*v2[1],
+                v1[2]*v2[0] - v1[0]*v2[2],
+                v1[0]*v2[1] - v1[1]*v2[0]
+            ];
+            
+            const len = Math.sqrt(axis[0]*axis[0] + axis[1]*axis[1] + axis[2]*axis[2]);
+            if (len < 1e-8) {
+                return { axis: [0,0,1], angle: 0 };
+            }
+            axis = [axis[0]/len, axis[1]/len, axis[2]/len];
+            
+            // Dot product to find angle
+            const dot = v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2];
+            const angle = Math.acos(Math.max(-1, Math.min(1, dot)));
+            
+            return { axis, angle };
+        }
 
         function angularDistance(yaw1, pitch1, yaw2, pitch2) {
             const cos_d = Math.sin(pitch1)*Math.sin(pitch2) + Math.cos(pitch1)*Math.cos(pitch2)*Math.cos(yaw1-yaw2);
@@ -1191,17 +1277,73 @@
                 });
                 viewer.addEventListener('click', handleMapClick);
 
-                viewer.addEventListener('mousedown', (e) => {
-                    if(isPoly360Mode && e.data.rightclick === false) {
-                        // Check if we clicked on a poly point to drag it
-                        let clickedPointIndex = -1;
-                        for (let markerId in markersPlugin.markers) {
-                            let marker = markersPlugin.markers[markerId];
-                            if (marker.config.data && marker.config.data.isPolyPoint) {
-                                // Calculate distance in pixels approx to see if clicked
-                                // PhotoSphereViewer markers click event handles this better, but mousedown helps dragging
-                            }
+                const checkDragStart = (e) => {
+                    if (isPoly360MoveMultipleMode && selectedPoly360Ids.length > 0) {
+                        // Let's assume we clicked a polygon if the mode is on and we have selected ones.
+                        // Ideally we check if we clicked on the svg element, but a global block is safer for UX here.
+                        let isClickOnMarker = false;
+                        if(e.target && (e.target.tagName === 'polygon' || e.target.tagName === 'polyline' || e.target.closest('.psv-marker'))) {
+                            isClickOnMarker = true;
                         }
+
+                        // Also allow dragging anywhere if we just want to move them all together easily
+                        isDraggingMultiplePoly360 = true;
+                        
+                        // Need to get coordinates for the raw event
+                        const psvContainer = document.querySelector('.psv-container');
+                        const rect = psvContainer.getBoundingClientRect();
+                        const x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
+                        const y = (e.clientY || (e.touches && e.touches[0].clientY)) - rect.top;
+                        
+                        if(viewer.dataHelper && viewer.dataHelper.viewerCoordsToSphericalCoords) {
+                            dragMultipleStartCoords = viewer.dataHelper.viewerCoordsToSphericalCoords({x, y});
+                        }
+                        
+                        if(!dragMultipleStartCoords) return;
+
+                        poly360OriginalPointsMap = {};
+                        selectedPoly360Ids.forEach(id => {
+                            const marker = markersPlugin.markers[id];
+                            if (marker) {
+                                let pts = marker.config.polygon || marker.config.polyline;
+                                if (pts) {
+                                    poly360OriginalPointsMap[id] = JSON.parse(JSON.stringify(pts));
+                                }
+                            }
+                        });
+
+                        document.querySelector('.psv-container').style.cursor = 'grabbing';
+                        viewer.setOption('moveSpeed', 0); // Disable camera rotation
+                    }
+                };
+
+                const psvContainer = document.querySelector('.psv-container');
+                psvContainer.addEventListener('mousedown', (e) => {
+                    if (isPoly360MoveMultipleMode && selectedPoly360Ids.length > 0 && e.button === 0) {
+                        checkDragStart(e);
+                    }
+                }, true); // Capture phase
+
+                psvContainer.addEventListener('touchstart', (e) => {
+                    if (isPoly360MoveMultipleMode && selectedPoly360Ids.length > 0) {
+                        checkDragStart(e);
+                    }
+                }, { passive: true, capture: true }); // Capture phase
+
+                const stopDragging = () => {
+                    if (isDraggingMultiplePoly360) {
+                        isDraggingMultiplePoly360 = false;
+                        document.querySelector('.psv-container').style.cursor = '';
+                        viewer.setOption('moveSpeed', 1.5); // Re-enable camera rotation
+                    }
+                };
+
+                window.addEventListener('mouseup', stopDragging);
+                window.addEventListener('touchend', stopDragging);
+
+                viewer.addEventListener('mousedown', (e) => {
+                    if(isPoly360Mode && !isPoly360MoveMultipleMode && e.data.rightclick === false) {
+                        // ... existing poly logic ...
                     }
                 });
 
@@ -1216,6 +1358,20 @@
                             document.querySelector('.psv-container').style.cursor = 'grabbing';
                         }
                         return;
+                    }
+                    
+                    if (isPoly360MoveMultipleMode) {
+                        const marker = e.marker;
+                        if (marker.config.data && marker.config.data.isPoly360Db) {
+                            // Can toggle selection by clicking
+                            const id = marker.id;
+                            const chk = document.querySelector(`.poly360-chk[value="${id}"]`);
+                            if (chk) {
+                                chk.checked = !chk.checked;
+                                updatePoly360Selection();
+                            }
+                        }
+                        return; // Prevent normal link360 behavior
                     }
 
                     if (!isAddMode) {
@@ -2216,6 +2372,10 @@
         let draggedPointIndex = -1;
         let polys360Data = [];
 
+        let isDraggingMultiplePoly360 = false;
+        let dragMultipleStartCoords = null;
+        let poly360OriginalPointsMap = {}; // Maps id to original points before drag
+
         window.abrirEditorPoligonos360 = function() {
             document.getElementById('polygon-360-ui').style.display = 'block';
             cargarInventarioPolys360();
@@ -2545,6 +2705,68 @@
         });
         
         function trackLiveMeasurement(e) {
+            if (isDraggingMultiplePoly360 && dragMultipleStartCoords) {
+                const psvContainer = document.querySelector('.psv-container');
+                if (!psvContainer) return;
+                const rect = psvContainer.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                if(!viewer.dataHelper || !viewer.dataHelper.viewerCoordsToSphericalCoords) return;
+                const coords = viewer.dataHelper.viewerCoordsToSphericalCoords({x, y});
+                if (!coords) return;
+
+                let targetYaw = coords.yaw;
+                let targetPitch = coords.pitch;
+
+                if (guideLineAxis) {
+                    // Project the mouse drag vector onto the guide line axis.
+                    // This forces the movement to be strictly along the great circle.
+                    // 1. Convert current mouse pos to cartesian
+                    const mouseCart = sphToCart(coords.yaw, coords.pitch);
+                    
+                    // 2. Reject the component along the guideLineAxis to find the closest point on the great circle plane
+                    const dot = mouseCart[0]*guideLineAxis[0] + mouseCart[1]*guideLineAxis[1] + mouseCart[2]*guideLineAxis[2];
+                    const proj = [
+                        mouseCart[0] - dot * guideLineAxis[0],
+                        mouseCart[1] - dot * guideLineAxis[1],
+                        mouseCart[2] - dot * guideLineAxis[2]
+                    ];
+                    
+                    // 3. Normalize the projected point back to the sphere surface
+                    const len = Math.sqrt(proj[0]*proj[0] + proj[1]*proj[1] + proj[2]*proj[2]);
+                    if (len > 1e-8) {
+                        const closestPoint = [proj[0]/len, proj[1]/len, proj[2]/len];
+                        const closestSph = cartToSph(closestPoint[0], closestPoint[1], closestPoint[2]);
+                        targetYaw = closestSph[0];
+                        targetPitch = closestSph[1];
+                    }
+                }
+
+                // Get true spherical rotation from start to target
+                const rot = getRotationAxisAngle(dragMultipleStartCoords.yaw, dragMultipleStartCoords.pitch, targetYaw, targetPitch);
+
+                selectedPoly360Ids.forEach(id => {
+                    const marker = markersPlugin.markers[id];
+                    const originalPts = poly360OriginalPointsMap[id];
+                    if (marker && originalPts) {
+                        const newPts = originalPts.map(pt => {
+                            // Rotate each original point individually using 3D rotation to preserve exact shape/size
+                            const vOrig = sphToCart(pt[0], pt[1]);
+                            const vRotated = rotateVector(vOrig, rot.axis, rot.angle);
+                            return cartToSph(vRotated[0], vRotated[1], vRotated[2]);
+                        });
+                        if (marker.config.polygon) marker.config.polygon = newPts;
+                        if (marker.config.polyline) marker.config.polyline = newPts;
+                        markersPlugin.updateMarker(marker.config);
+                    }
+                });
+
+                // Update drag center
+                actualizarCentroSeleccion();
+                return;
+            }
+
             if (!viewer || (!isPoly360Mode && !isCalibrating360)) {
                 document.getElementById('live-measure-tooltip').style.display = 'none';
                 if (markersPlugin && markersPlugin.markers['poly360_live_line']) {
@@ -2643,6 +2865,103 @@
         if(window.PhotoSphereViewer && window.PhotoSphereViewer.MarkersPlugin) {
             // Este evento se captura en ready(), pero definimos la lógica de arrastre en Viewer Events
         }
+
+        window.guardarMovimientoMultiplePoly360 = async function() {
+            if (selectedPoly360Ids.length === 0) {
+                alert("No hay polígonos seleccionados para guardar.");
+                return;
+            }
+
+            if (!confirm("¿Guardar nuevas posiciones para los polígonos seleccionados?")) return;
+
+            window.mostrarProgreso(10);
+            try {
+                // Collect updates
+                const updates = [];
+                for (const id of selectedPoly360Ids) {
+                    const marker = markersPlugin.markers[id];
+                    if (marker) {
+                        const pts = marker.config.polygon || marker.config.polyline;
+                        if (pts) {
+                            // Find the original poly data to preserve strokeWidth and other metadata
+                            const originalData = polys360Data.find(p => p.id === id);
+                            let polyDataObj = { points: pts, strokeWidth: 2 };
+                            if (originalData) {
+                                const parsedOrig = parsePoligono(originalData.puntos);
+                                if (parsedOrig && parsedOrig.strokeWidth) {
+                                    polyDataObj.strokeWidth = parsedOrig.strokeWidth;
+                                }
+                            }
+                            
+                            updates.push({
+                                id: id,
+                                puntos: JSON.stringify(polyDataObj)
+                            });
+                        }
+                    }
+                }
+
+                if (updates.length > 0) {
+                    window.mostrarProgreso(40);
+                    // Supabase js client doesn't have a direct bulk update by ID helper that is simple,
+                    // we can do them sequentially or concurrently
+                    const promises = updates.map(updateObj => {
+                        return supabaseClient.from('poligonos_360')
+                               .update({ puntos: updateObj.puntos })
+                               .eq('id', updateObj.id);
+                    });
+
+                    const results = await Promise.all(promises);
+                    for (const result of results) {
+                        if (result.error) throw result.error;
+                    }
+                }
+
+                window.mostrarProgreso(80);
+                
+                // Clear selection and mode
+                const btn = document.getElementById('btn-toggle-move-poly360');
+                if (btn) btn.click(); // toggle out of mode
+
+                cargarInventarioPolys360(); // Reload to sync with db
+
+                window.mostrarProgreso(100);
+                alert("Nuevas posiciones guardadas exitosamente.");
+
+            } catch (error) {
+                window.mostrarError("guardarMovimientoMultiplePoly360", error);
+            }
+        };
+
+        window.cancelarMovimientoMultiplePoly360 = function() {
+            if (markersPlugin.markers['guide_temp_line']) {
+                markersPlugin.removeMarker('guide_temp_line');
+            }
+            guideLineAxis = null;
+            isDefiningGuideLine = false;
+
+            if (selectedPoly360Ids.length > 0) {
+                // Revert to original visually
+                selectedPoly360Ids.forEach(id => {
+                    const marker = markersPlugin.markers[id];
+                    const originalData = polys360Data.find(p => p.id === id);
+                    if (marker && originalData) {
+                        const parsedOrig = parsePoligono(originalData.puntos);
+                        if (parsedOrig && parsedOrig.points) {
+                            if (marker.config.polygon) marker.config.polygon = parsedOrig.points;
+                            if (marker.config.polyline) marker.config.polyline = parsedOrig.points;
+                            markersPlugin.updateMarker(marker.config);
+                        }
+                    }
+                });
+                actualizarCentroSeleccion();
+            }
+            
+            const btn = document.getElementById('btn-toggle-move-poly360');
+            if (btn && isPoly360MoveMultipleMode) {
+                toggleModoMovimientoMultiple();
+            }
+        };
 
         window.guardarNuevoPoligono360 = async function() {
             if(poly360Points.length < 3) {
@@ -2743,12 +3062,13 @@
 
                         let fillStyle = p.tipo === 'relleno' ? p.color_relleno : 'transparent';
                         lista.insertAdjacentHTML('beforeend', `
-                            <div class="list-poly-item" style="border-left: 4px solid ${p.color_borde};">
+                            <div class="list-poly-item" id="list-poly360-item-${p.id}" style="border-left: 4px solid ${p.color_borde};">
                                 <div style="display:flex; align-items:center; gap:8px;">
+                                    <input type="checkbox" class="poly-list-checkbox poly360-chk" value="${p.id}" style="display:none;" onchange="updatePoly360Selection()">
                                     <div style="width:12px; height:12px; background:${fillStyle}; border:1px solid ${p.color_borde};"></div>
                                     <span>${p.nombre}</span>
                                 </div>
-                                <div>
+                                <div class="poly360-actions">
                                     <button class="edit" onclick="editarPoly360('${p.id}')">✏️</button>
                                     <button onclick="borrarPoly360('${p.id}')">X</button>
                                 </div>
@@ -2758,6 +3078,186 @@
                 }
             } catch (error) {
                 console.warn("cargarInventarioPolys360 error:", error);
+            }
+        }
+
+        // Logic for toggling selection in UI
+        let isPoly360MoveMultipleMode = false;
+        let selectedPoly360Ids = [];
+        let isDefiningGuideLine = false;
+        let guideLinePoints = [];
+        let guideLineAxis = null; // Stored as 3D vector
+        
+        window.iniciarDefinirLineaGuia = function() {
+            isDefiningGuideLine = true;
+            guideLinePoints = [];
+            document.getElementById('poly-360-move-helper').innerText = "Haz clic en 2 puntos para definir el eje de movimiento.";
+            
+            const viewerContainer = document.querySelector('.psv-container');
+            if (viewerContainer) {
+                viewerContainer.style.cursor = "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"8\" height=\"8\" viewBox=\"0 0 8 8\"><circle cx=\"4\" cy=\"4\" r=\"4\" fill=\"#f1c40f\" stroke=\"white\" stroke-width=\"1\"/></svg>') 4 4, crosshair";
+            }
+        }
+
+        window.toggleModoMovimientoMultiple = function() {
+            isPoly360MoveMultipleMode = !isPoly360MoveMultipleMode;
+            const btn = document.getElementById('btn-toggle-move-poly360');
+            const checkboxes = document.querySelectorAll('.poly360-chk');
+            const actions = document.querySelectorAll('.poly360-actions');
+            const selectAllLbl = document.getElementById('lbl-select-all-poly360');
+
+            if (isPoly360MoveMultipleMode) {
+                btn.style.background = '#f1c40f';
+                btn.style.color = '#000';
+                btn.innerText = "❌ Salir del Modo Selección";
+                document.getElementById('poly-360-move-panel').style.display = 'block';
+                document.getElementById('btn-start-draw-poly360').style.display = 'none';
+                selectAllLbl.style.display = 'flex';
+                
+                checkboxes.forEach(chk => { chk.style.display = 'inline-block'; chk.checked = false; });
+                actions.forEach(act => act.style.display = 'none');
+                selectedPoly360Ids = [];
+                
+                // Enable pointer events on all poly360s
+                polys360Data.forEach(p => {
+                    const marker = markersPlugin.markers[p.id];
+                    if (marker && marker.config.svgStyle) {
+                        marker.config.svgStyle.pointerEvents = 'visiblePainted';
+                        marker.config.svgStyle.cursor = 'pointer';
+                        markersPlugin.updateMarker(marker.config);
+                    }
+                });
+            } else {
+                btn.style.background = '#222';
+                btn.style.color = '#f1c40f';
+                btn.innerText = "✋ Seleccionar / Mover Varios";
+                document.getElementById('poly-360-move-panel').style.display = 'none';
+                document.getElementById('btn-start-draw-poly360').style.display = 'block';
+                selectAllLbl.style.display = 'none';
+                
+                checkboxes.forEach(chk => chk.style.display = 'none');
+                actions.forEach(act => act.style.display = 'block');
+                
+                if (markersPlugin.markers['guide_temp_line']) {
+                    markersPlugin.removeMarker('guide_temp_line');
+                }
+                guideLineAxis = null;
+                isDefiningGuideLine = false;
+
+                // Clear selection visual styles
+                selectedPoly360Ids.forEach(id => {
+                    const item = document.getElementById(`list-poly360-item-${id}`);
+                    if(item) item.classList.remove('poly-list-item-selected');
+                    const marker = markersPlugin.markers[id];
+                    if (marker && marker.config.svgStyle) {
+                        marker.config.svgStyle.outline = '';
+                        marker.config.svgStyle.outlineOffset = '';
+                        markersPlugin.updateMarker(marker.config);
+                    }
+                });
+                selectedPoly360Ids = [];
+                if (markersPlugin.markers['poly360_drag_center']) {
+                    markersPlugin.removeMarker('poly360_drag_center');
+                }
+                
+                // Disable pointer events on all poly360s
+                polys360Data.forEach(p => {
+                    const marker = markersPlugin.markers[p.id];
+                    if (marker && marker.config.svgStyle) {
+                        marker.config.svgStyle.pointerEvents = 'none';
+                        marker.config.svgStyle.cursor = 'default';
+                        markersPlugin.updateMarker(marker.config);
+                    }
+                });
+            }
+        }
+
+        window.toggleSelectAllPoly360 = function() {
+            const selectAll = document.getElementById('chk-select-all-poly360').checked;
+            const checkboxes = document.querySelectorAll('.poly360-chk');
+            checkboxes.forEach(chk => {
+                chk.checked = selectAll;
+            });
+            updatePoly360Selection();
+        }
+
+        window.updatePoly360Selection = function() {
+            const checkboxes = document.querySelectorAll('.poly360-chk');
+            selectedPoly360Ids = [];
+            
+            checkboxes.forEach(chk => {
+                const id = chk.value;
+                const item = document.getElementById(`list-poly360-item-${id}`);
+                const marker = markersPlugin.markers[id];
+
+                if (chk.checked) {
+                    selectedPoly360Ids.push(id);
+                    if(item) item.classList.add('poly-list-item-selected');
+                    if (marker && marker.config.svgStyle) {
+                        // Apply CSS class or inline style
+                        marker.config.svgStyle.stroke = '#f1c40f'; // Highlight stroke
+                        marker.config.svgStyle.strokeDasharray = '5,5';
+                        marker.config.svgStyle.cursor = 'grab';
+                        markersPlugin.updateMarker(marker.config);
+                    }
+                } else {
+                    if(item) item.classList.remove('poly-list-item-selected');
+                    if (marker && marker.config.svgStyle) {
+                        // Restore original stroke
+                        const polyData = polys360Data.find(p => p.id === id);
+                        if (polyData) {
+                            marker.config.svgStyle.stroke = polyData.color_borde;
+                            marker.config.svgStyle.strokeDasharray = '';
+                            marker.config.svgStyle.cursor = '';
+                            markersPlugin.updateMarker(marker.config);
+                        }
+                    }
+                }
+            });
+
+            actualizarCentroSeleccion();
+        }
+
+        function actualizarCentroSeleccion() {
+            if (markersPlugin.markers['poly360_drag_center']) {
+                markersPlugin.removeMarker('poly360_drag_center');
+            }
+
+            if (selectedPoly360Ids.length === 0) return;
+
+            let minYaw = Infinity, maxYaw = -Infinity;
+            let minPitch = Infinity, maxPitch = -Infinity;
+            let pointsFound = false;
+
+            selectedPoly360Ids.forEach(id => {
+                const marker = markersPlugin.markers[id];
+                if (marker) {
+                    let pts = marker.config.polygon || marker.config.polyline;
+                    if (pts) {
+                        pts.forEach(pt => {
+                            let yaw = pt[0];
+                            // Normalize yaw for bounding box calc if crossing wrap-around
+                            minYaw = Math.min(minYaw, yaw);
+                            maxYaw = Math.max(maxYaw, yaw);
+                            minPitch = Math.min(minPitch, pt[1]);
+                            maxPitch = Math.max(maxPitch, pt[1]);
+                            pointsFound = true;
+                        });
+                    }
+                }
+            });
+
+            if (pointsFound) {
+                const centerYaw = (minYaw + maxYaw) / 2;
+                const centerPitch = (minPitch + maxPitch) / 2;
+
+                markersPlugin.addMarker({
+                    id: 'poly360_drag_center',
+                    position: { yaw: centerYaw, pitch: centerPitch },
+                    html: '<div style="width:20px;height:20px;background:rgba(241,196,15,0.7);border-radius:50%;border:2px solid #fff;box-shadow:0 0 10px #f1c40f;cursor:grab;display:flex;align-items:center;justify-content:center;"><span style="color:#000;font-size:10px;">🤚</span></div>',
+                    anchor: 'center center',
+                    data: { isPoly360DragCenter: true }
+                });
             }
         }
 
@@ -2772,15 +3272,20 @@
                 if(polyData && polyData.points && polyData.points.length >= 2) {
                     let fill = p.tipo === 'relleno' ? hexToRgbA(p.color_relleno, 0.4) : 'transparent';
 
+                    // check if currently selected
+                    const isSelected = selectedPoly360Ids.includes(p.id);
+
                     let configMarker = {
                         id: p.id,
                         svgStyle: {
-                            stroke: p.color_borde,
+                            stroke: isSelected ? '#f1c40f' : p.color_borde,
                             strokeWidth: (polyData.strokeWidth || 2) + 'px',
                             fill: (p.tipo !== 'linea_abierta' && polyData.points.length >= 3) ? fill : 'transparent',
-                            pointerEvents: 'none'
+                            pointerEvents: isPoly360MoveMultipleMode ? 'visiblePainted' : 'none',
+                            cursor: isSelected ? 'grab' : (isPoly360MoveMultipleMode ? 'pointer' : 'default'),
+                            strokeDasharray: isSelected ? '5,5' : ''
                         },
-                        data: { isPoly360Db: true, nombre: p.nombre }
+                        data: { isPoly360Db: true, nombre: p.nombre, id: p.id }
                     };
                     
                     if (p.tipo === 'linea_abierta') {
@@ -3127,6 +3632,59 @@
 
         window.handleMapClick = function(e) {
             try {
+                if (isDefiningGuideLine) {
+                    guideLinePoints.push([e.data.yaw, e.data.pitch]);
+                    if (guideLinePoints.length === 1) {
+                        markersPlugin.addMarker({
+                            id: 'guide_temp_line',
+                            position: { yaw: guideLinePoints[0][0], pitch: guideLinePoints[0][1] },
+                            html: '<div style="width:10px;height:10px;background:#f1c40f;border-radius:50%;border:2px solid #fff;"></div>',
+                            anchor: 'center center'
+                        });
+                    } else if (guideLinePoints.length === 2) {
+                        if (markersPlugin.markers['guide_temp_line']) {
+                            markersPlugin.removeMarker('guide_temp_line');
+                        }
+                        
+                        // Create a long line to represent the axis visually. We'll extrapolate points.
+                        const start = sphToCart(guideLinePoints[0][0], guideLinePoints[0][1]);
+                        const end = sphToCart(guideLinePoints[1][0], guideLinePoints[1][1]);
+                        
+                        // The axis of rotation for movement along this great circle
+                        const crossAxis = [
+                            start[1]*end[2] - start[2]*end[1],
+                            start[2]*end[0] - start[0]*end[2],
+                            start[0]*end[1] - start[1]*end[0]
+                        ];
+                        
+                        const len = Math.sqrt(crossAxis[0]*crossAxis[0] + crossAxis[1]*crossAxis[1] + crossAxis[2]*crossAxis[2]);
+                        
+                        if (len > 1e-8) {
+                            guideLineAxis = [crossAxis[0]/len, crossAxis[1]/len, crossAxis[2]/len];
+                            
+                            // Generate a full circle line for the guide
+                            const fullCirclePoints = [];
+                            for(let i=0; i<=64; i++) {
+                                const angle = (i/64) * Math.PI * 2;
+                                const rotPt = rotateVector(start, guideLineAxis, angle);
+                                const sph = cartToSph(rotPt[0], rotPt[1], rotPt[2]);
+                                fullCirclePoints.push(sph);
+                            }
+                            
+                            markersPlugin.addMarker({
+                                id: 'guide_temp_line',
+                                polyline: fullCirclePoints,
+                                svgStyle: { stroke: '#f1c40f', strokeWidth: '2px', strokeDasharray: '4,4', pointerEvents: 'none' }
+                            });
+                        }
+                        
+                        isDefiningGuideLine = false;
+                        document.getElementById('poly-360-move-helper').innerText = "Eje guía definido. Arrastra los polígonos.";
+                        document.querySelector('.psv-container').style.cursor = '';
+                    }
+                    return;
+                }
+
                 if (isCalibrating360) {
                     calibratingPoints.push([e.data.yaw, e.data.pitch]);
                     if (calibratingPoints.length === 1) {
@@ -3468,6 +4026,7 @@
                 const texto = document.getElementById('poi-texto').value || 'Punto';
                 const idUnico = 'poi-' + Date.now();
                 const tipo = document.getElementById('poi-tipo-visual').value;
+                const escala = document.getElementById('poi-escala').value || '1';
                 
                 let newContent = texto;
                 
@@ -3497,6 +4056,9 @@
                     }
                     newContent = `TARJETA|${imgData}|ICON|${iconData}|TEXT|${texto}`;
                 }
+
+                // Append SCALE at the end to be fully backward compatible with the split logic
+                newContent += `|SCALE|${escala}`;
                 
                 window.mostrarProgreso(50);
                 const { error } = await supabaseClient.from('pois').insert([{ id: idUnico, content: newContent, yaw: tempCoords.yaw, pitch: tempCoords.pitch, proyecto_id: currentProjectId }]);
@@ -3512,7 +4074,16 @@
 
         window.renderPOI = function(id, content, yaw, pitch) {
             try {
-                let displayText = content;
+                let parsedContent = content;
+                let poiScale = 1;
+
+                if (content && content.includes('|SCALE|')) {
+                    const scaleParts = content.split('|SCALE|');
+                    parsedContent = scaleParts[0];
+                    poiScale = parseFloat(scaleParts[1]) || 1;
+                }
+
+                let displayText = parsedContent;
                 let displayVisualType = null;
                 let isLink360 = false;
                 let link360Url = null;
@@ -3521,27 +4092,27 @@
                 let tarjetaImg = null;
                 let tarjetaIcon = null;
 
-                if (content && content.startsWith('IMG|')) {
-                    const parts = content.split('|TEXT|');
+                if (parsedContent && parsedContent.startsWith('IMG|')) {
+                    const parts = parsedContent.split('|TEXT|');
                     displayVisualType = parts[0];
                     displayText = parts[1] || 'Punto';
-                } else if (content && content.startsWith('TARJETA|')) {
+                } else if (parsedContent && parsedContent.startsWith('TARJETA|')) {
                     isTarjeta = true;
-                    const parts = content.split('|ICON|');
+                    const parts = parsedContent.split('|ICON|');
                     tarjetaImg = parts[0].substring(8); // quita 'TARJETA|'
                     const parts2 = parts[1].split('|TEXT|');
                     tarjetaIcon = parts2[0];
                     displayText = parts2[1] || 'Punto';
-                } else if (content && content.startsWith('LINK360|')) {
+                } else if (parsedContent && parsedContent.startsWith('LINK360|')) {
                     isLink360 = true;
-                    if (content.includes('|ICON|')) {
-                        const parts1 = content.split('|ICON|');
+                    if (parsedContent.includes('|ICON|')) {
+                        const parts1 = parsedContent.split('|ICON|');
                         link360Url = parts1[0].substring(8);
                         const parts2 = parts1[1].split('|TEXT|');
                         link360Icon = parts2[0];
                         displayText = parts2[1] || 'Vista 360';
                     } else {
-                        const parts = content.split('|TEXT|');
+                        const parts = parsedContent.split('|TEXT|');
                         link360Url = parts[0].substring(8); // quita 'LINK360|'
                         displayText = parts[1] || 'Vista 360';
                     }
@@ -3550,7 +4121,7 @@
                 if (!markersPlugin.markers[id]) {
                     let htmlContent = '';
                     if (isTarjeta) {
-                        htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;">
+                        htmlContent = `<div style="display:flex;flex-direction:column;align-items:center; transform: scale(${poiScale}); transform-origin: bottom center;">
                             <div style="background:#fff; border-radius:12px; overflow:hidden; width:220px; box-shadow:0 8px 20px rgba(0,0,0,0.4); display:flex; flex-direction:column; border: 2px solid #fff;">
                                 <div style="height:140px; background:url('${tarjetaImg}') center/cover no-repeat;"></div>
                                 <div style="background:#116B5D; display:flex; align-items:center; padding:10px;">
@@ -3566,7 +4137,7 @@
                         </div>`;
                     } else if (isLink360) {
                         if (link360Icon) {
-                            htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;cursor:pointer;">
+                            htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;cursor:pointer; transform: scale(${poiScale}); transform-origin: bottom center;">
                                 <div style="background:rgba(255,255,255,0.9); border-radius:50%; width:40px; height:40px; display:flex; justify-content:center; align-items:center; box-shadow: 0 0 20px rgba(255,255,255,0.8); animation: pulse-white 2s infinite; border: 2px solid #fff;">
                                     <img src="${link360Icon}" style="max-width:30px; max-height:30px; object-fit:contain; border-radius:50%;">
                                 </div>
@@ -3577,7 +4148,7 @@
                                 <div style="width:12px;height:12px;background:var(--primary-color);border-radius:50%;"></div>
                             </div>`;
                         } else {
-                            htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;cursor:pointer;">
+                            htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;cursor:pointer; transform: scale(${poiScale}); transform-origin: bottom center;">
                                 <div style="background:rgba(17,17,17,0.85);backdrop-filter:blur(5px);color:var(--primary-color);padding:6px 15px;border:1px solid var(--primary-color);border-radius:20px;font-weight:bold;font-size:0.85rem;text-transform:uppercase;box-shadow:0 0 10px rgba(212,175,55,0.5);display:flex;align-items:center;gap:5px;">
                                     <span>👁️</span> ${displayText}
                                 </div>
@@ -3587,7 +4158,7 @@
                         }
                     } else if (displayVisualType && displayVisualType.startsWith('IMG|')) {
                         let imgData = displayVisualType.substring(4);
-                        htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;">
+                        htmlContent = `<div style="display:flex;flex-direction:column;align-items:center; transform: scale(${poiScale}); transform-origin: bottom center;">
                             <div style="background:rgba(0,0,0,0.8); padding:5px; border-radius:8px; border:1px solid var(--primary-color);">
                                 <img src="${imgData}" style="max-width: 80px; max-height: 80px; object-fit: contain;">
                             </div>
@@ -3595,7 +4166,7 @@
                             <div style="width:12px;height:12px;background:var(--primary-color);border-radius:50%;"></div>
                         </div>`;
                     } else {
-                        htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;">
+                        htmlContent = `<div style="display:flex;flex-direction:column;align-items:center; transform: scale(${poiScale}); transform-origin: bottom center;">
                             <div style="background:rgba(0,0,0,0.8);color:#fff;padding:4px 10px;border:1px solid var(--primary-color);border-radius:4px;font-size:0.8rem;">${displayText}</div>
                             <div style="width:2px;height:30px;background:#fff;margin-top:5px;"></div>
                             <div style="width:12px;height:12px;background:var(--primary-color);border-radius:50%;"></div>
