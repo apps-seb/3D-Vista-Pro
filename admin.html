@@ -14,6 +14,12 @@
             --primary-color: #f26522;
             --primary-color-rgb: 242, 101, 34;
         }
+        /* Estilos para selección múltiple de polígonos 360 */
+        .poly-360-selected { outline: 2px dashed #f1c40f !important; outline-offset: 2px; }
+        .poly-list-checkbox { accent-color: var(--primary-color); transform: scale(1.2); cursor: pointer; }
+        .poly-list-item-selected { background: rgba(242, 101, 34, 0.2) !important; border-color: var(--primary-color) !important; }
+        .drag-guide-line { stroke: #f1c40f; stroke-width: 2px; stroke-dasharray: 4,4; pointer-events: none; }
+        .drag-center-point { fill: #f1c40f; stroke: #fff; stroke-width: 2px; r: 6; pointer-events: none; }
         /* CSS Editor de Polígonos */
         #polygon-editor-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -416,8 +422,20 @@
 
         <button id="btn-start-draw-poly360" class="editor-btn" style="width: 100%; background: var(--primary-color); color: #000; margin-bottom: 15px;" onclick="iniciarDibujoPoly360()">✏️ Crear Nuevo Polígono</button>
 
+        <div id="poly-360-move-panel" style="display: none; margin-bottom: 15px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; border: 1px dashed #f1c40f;">
+            <p style="font-size: 0.8rem; color: #f1c40f; font-weight: bold; margin-top: 0; margin-bottom: 5px;">Mover Selección Múltiple</p>
+            <p style="font-size: 0.75rem; color: #aaa; margin-bottom: 10px;">Arrastra los polígonos seleccionados en el mapa. Presiona Guardar al finalizar.</p>
+            <button class="editor-btn" style="width: 100%; background: #2ecc71; color: #000; margin-bottom: 5px; font-size: 0.8rem;" onclick="guardarMovimientoMultiplePoly360()">✅ Guardar Posiciones</button>
+            <button class="editor-btn danger" style="width: 100%; font-size: 0.8rem;" onclick="cancelarMovimientoMultiplePoly360()">Cancelar</button>
+        </div>
+
+        <button id="btn-toggle-move-poly360" class="editor-btn" style="width: 100%; background: #222; color: #f1c40f; border: 1px solid #f1c40f; margin-bottom: 15px;" onclick="toggleModoMovimientoMultiple()">✋ Seleccionar / Mover Varios</button>
+
         <div style="border-top: 1px solid #444; padding-top: 10px;">
-            <h4 style="margin: 0 0 10px 0; color: #fff; font-size: 0.9rem;">Inventario Polígonos 360 (<span id="count-polys-360">0</span>)</h4>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h4 style="margin: 0; color: #fff; font-size: 0.9rem;">Inventario Polígonos 360 (<span id="count-polys-360">0</span>)</h4>
+                <label id="lbl-select-all-poly360" style="display: none; font-size: 0.75rem; cursor: pointer; color: #aaa; align-items: center; gap: 5px;"><input type="checkbox" id="chk-select-all-poly360" onchange="toggleSelectAllPoly360()" class="poly-list-checkbox"> Todos</label>
+            </div>
             <div id="poly-360-list" style="max-height: 200px; overflow-y: auto;">
                 <p style="font-size: 0.8rem; color: #666; text-align: center;">Cargando...</p>
             </div>
@@ -1192,16 +1210,35 @@
                 viewer.addEventListener('click', handleMapClick);
 
                 viewer.addEventListener('mousedown', (e) => {
-                    if(isPoly360Mode && e.data.rightclick === false) {
-                        // Check if we clicked on a poly point to drag it
-                        let clickedPointIndex = -1;
-                        for (let markerId in markersPlugin.markers) {
-                            let marker = markersPlugin.markers[markerId];
-                            if (marker.config.data && marker.config.data.isPolyPoint) {
-                                // Calculate distance in pixels approx to see if clicked
-                                // PhotoSphereViewer markers click event handles this better, but mousedown helps dragging
+                    // Check if we are starting a drag for multiple polygons
+                    if (isPoly360MoveMultipleMode && selectedPoly360Ids.length > 0 && e.data.rightclick === false) {
+                        // Need to check if we clicked on one of the selected polygons or the drag center
+                        // Let's rely on the global mousemove and flag
+                        isDraggingMultiplePoly360 = true;
+                        dragMultipleStartCoords = { yaw: e.data.yaw, pitch: e.data.pitch };
+
+                        // Store original points to calculate relative offset
+                        poly360OriginalPointsMap = {};
+                        selectedPoly360Ids.forEach(id => {
+                            const marker = markersPlugin.markers[id];
+                            if (marker) {
+                                let pts = marker.config.polygon || marker.config.polyline;
+                                if (pts) {
+                                    poly360OriginalPointsMap[id] = JSON.parse(JSON.stringify(pts));
+                                }
                             }
-                        }
+                        });
+                        document.querySelector('.psv-container').style.cursor = 'grabbing';
+                        viewer.navbar.setCtrl(false); // disable rotation while dragging (won't work fully but helps)
+                    } else if(isPoly360Mode && e.data.rightclick === false) {
+                        // ... existing poly logic ...
+                    }
+                });
+
+                window.addEventListener('mouseup', () => {
+                    if (isDraggingMultiplePoly360) {
+                        isDraggingMultiplePoly360 = false;
+                        document.querySelector('.psv-container').style.cursor = '';
                     }
                 });
 
@@ -1216,6 +1253,20 @@
                             document.querySelector('.psv-container').style.cursor = 'grabbing';
                         }
                         return;
+                    }
+
+                    if (isPoly360MoveMultipleMode) {
+                        const marker = e.marker;
+                        if (marker.config.data && marker.config.data.isPoly360Db) {
+                            // Can toggle selection by clicking
+                            const id = marker.id;
+                            const chk = document.querySelector(`.poly360-chk[value="${id}"]`);
+                            if (chk) {
+                                chk.checked = !chk.checked;
+                                updatePoly360Selection();
+                            }
+                        }
+                        return; // Prevent normal link360 behavior
                     }
 
                     if (!isAddMode) {
@@ -2216,6 +2267,10 @@
         let draggedPointIndex = -1;
         let polys360Data = [];
 
+        let isDraggingMultiplePoly360 = false;
+        let dragMultipleStartCoords = null;
+        let poly360OriginalPointsMap = {}; // Maps id to original points before drag
+
         window.abrirEditorPoligonos360 = function() {
             document.getElementById('polygon-360-ui').style.display = 'block';
             cargarInventarioPolys360();
@@ -2545,6 +2600,36 @@
         });
         
         function trackLiveMeasurement(e) {
+            if (isDraggingMultiplePoly360 && dragMultipleStartCoords) {
+                const psvContainer = document.querySelector('.psv-container');
+                if (!psvContainer) return;
+                const rect = psvContainer.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                if(!viewer.dataHelper || !viewer.dataHelper.viewerCoordsToSphericalCoords) return;
+                const coords = viewer.dataHelper.viewerCoordsToSphericalCoords({x, y});
+                if (!coords) return;
+
+                const dyaw = coords.yaw - dragMultipleStartCoords.yaw;
+                const dpitch = coords.pitch - dragMultipleStartCoords.pitch;
+
+                selectedPoly360Ids.forEach(id => {
+                    const marker = markersPlugin.markers[id];
+                    const originalPts = poly360OriginalPointsMap[id];
+                    if (marker && originalPts) {
+                        const newPts = originalPts.map(pt => [pt[0] + dyaw, pt[1] + dpitch]);
+                        if (marker.config.polygon) marker.config.polygon = newPts;
+                        if (marker.config.polyline) marker.config.polyline = newPts;
+                        markersPlugin.updateMarker(marker.config);
+                    }
+                });
+
+                // Update drag center
+                actualizarCentroSeleccion();
+                return;
+            }
+
             if (!viewer || (!isPoly360Mode && !isCalibrating360)) {
                 document.getElementById('live-measure-tooltip').style.display = 'none';
                 if (markersPlugin && markersPlugin.markers['poly360_live_line']) {
@@ -2643,6 +2728,97 @@
         if(window.PhotoSphereViewer && window.PhotoSphereViewer.MarkersPlugin) {
             // Este evento se captura en ready(), pero definimos la lógica de arrastre en Viewer Events
         }
+
+        window.guardarMovimientoMultiplePoly360 = async function() {
+            if (selectedPoly360Ids.length === 0) {
+                alert("No hay polígonos seleccionados para guardar.");
+                return;
+            }
+
+            if (!confirm("¿Guardar nuevas posiciones para los polígonos seleccionados?")) return;
+
+            window.mostrarProgreso(10);
+            try {
+                // Collect updates
+                const updates = [];
+                for (const id of selectedPoly360Ids) {
+                    const marker = markersPlugin.markers[id];
+                    if (marker) {
+                        const pts = marker.config.polygon || marker.config.polyline;
+                        if (pts) {
+                            // Find the original poly data to preserve strokeWidth and other metadata
+                            const originalData = polys360Data.find(p => p.id === id);
+                            let polyDataObj = { points: pts, strokeWidth: 2 };
+                            if (originalData) {
+                                const parsedOrig = parsePoligono(originalData.puntos);
+                                if (parsedOrig && parsedOrig.strokeWidth) {
+                                    polyDataObj.strokeWidth = parsedOrig.strokeWidth;
+                                }
+                            }
+
+                            updates.push({
+                                id: id,
+                                puntos: JSON.stringify(polyDataObj)
+                            });
+                        }
+                    }
+                }
+
+                if (updates.length > 0) {
+                    window.mostrarProgreso(40);
+                    // Supabase js client doesn't have a direct bulk update by ID helper that is simple,
+                    // we can do them sequentially or concurrently
+                    const promises = updates.map(updateObj => {
+                        return supabaseClient.from('poligonos_360')
+                               .update({ puntos: updateObj.puntos })
+                               .eq('id', updateObj.id);
+                    });
+
+                    const results = await Promise.all(promises);
+                    for (const result of results) {
+                        if (result.error) throw result.error;
+                    }
+                }
+
+                window.mostrarProgreso(80);
+
+                // Clear selection and mode
+                const btn = document.getElementById('btn-toggle-move-poly360');
+                if (btn) btn.click(); // toggle out of mode
+
+                cargarInventarioPolys360(); // Reload to sync with db
+
+                window.mostrarProgreso(100);
+                alert("Nuevas posiciones guardadas exitosamente.");
+
+            } catch (error) {
+                window.mostrarError("guardarMovimientoMultiplePoly360", error);
+            }
+        };
+
+        window.cancelarMovimientoMultiplePoly360 = function() {
+            if (selectedPoly360Ids.length > 0) {
+                // Revert to original visually
+                selectedPoly360Ids.forEach(id => {
+                    const marker = markersPlugin.markers[id];
+                    const originalData = polys360Data.find(p => p.id === id);
+                    if (marker && originalData) {
+                        const parsedOrig = parsePoligono(originalData.puntos);
+                        if (parsedOrig && parsedOrig.points) {
+                            if (marker.config.polygon) marker.config.polygon = parsedOrig.points;
+                            if (marker.config.polyline) marker.config.polyline = parsedOrig.points;
+                            markersPlugin.updateMarker(marker.config);
+                        }
+                    }
+                });
+                actualizarCentroSeleccion();
+            }
+
+            const btn = document.getElementById('btn-toggle-move-poly360');
+            if (btn && isPoly360MoveMultipleMode) {
+                toggleModoMovimientoMultiple();
+            }
+        };
 
         window.guardarNuevoPoligono360 = async function() {
             if(poly360Points.length < 3) {
@@ -2743,12 +2919,13 @@
 
                         let fillStyle = p.tipo === 'relleno' ? p.color_relleno : 'transparent';
                         lista.insertAdjacentHTML('beforeend', `
-                            <div class="list-poly-item" style="border-left: 4px solid ${p.color_borde};">
+                            <div class="list-poly-item" id="list-poly360-item-${p.id}" style="border-left: 4px solid ${p.color_borde};">
                                 <div style="display:flex; align-items:center; gap:8px;">
+                                    <input type="checkbox" class="poly-list-checkbox poly360-chk" value="${p.id}" style="display:none;" onchange="updatePoly360Selection()">
                                     <div style="width:12px; height:12px; background:${fillStyle}; border:1px solid ${p.color_borde};"></div>
                                     <span>${p.nombre}</span>
                                 </div>
-                                <div>
+                                <div class="poly360-actions">
                                     <button class="edit" onclick="editarPoly360('${p.id}')">✏️</button>
                                     <button onclick="borrarPoly360('${p.id}')">X</button>
                                 </div>
@@ -2758,6 +2935,146 @@
                 }
             } catch (error) {
                 console.warn("cargarInventarioPolys360 error:", error);
+            }
+        }
+
+        // Logic for toggling selection in UI
+        let isPoly360MoveMultipleMode = false;
+        let selectedPoly360Ids = [];
+
+        window.toggleModoMovimientoMultiple = function() {
+            isPoly360MoveMultipleMode = !isPoly360MoveMultipleMode;
+            const btn = document.getElementById('btn-toggle-move-poly360');
+            const checkboxes = document.querySelectorAll('.poly360-chk');
+            const actions = document.querySelectorAll('.poly360-actions');
+            const selectAllLbl = document.getElementById('lbl-select-all-poly360');
+
+            if (isPoly360MoveMultipleMode) {
+                btn.style.background = '#f1c40f';
+                btn.style.color = '#000';
+                btn.innerText = "❌ Salir del Modo Selección";
+                document.getElementById('poly-360-move-panel').style.display = 'block';
+                document.getElementById('btn-start-draw-poly360').style.display = 'none';
+                selectAllLbl.style.display = 'flex';
+
+                checkboxes.forEach(chk => { chk.style.display = 'inline-block'; chk.checked = false; });
+                actions.forEach(act => act.style.display = 'none');
+                selectedPoly360Ids = [];
+            } else {
+                btn.style.background = '#222';
+                btn.style.color = '#f1c40f';
+                btn.innerText = "✋ Seleccionar / Mover Varios";
+                document.getElementById('poly-360-move-panel').style.display = 'none';
+                document.getElementById('btn-start-draw-poly360').style.display = 'block';
+                selectAllLbl.style.display = 'none';
+
+                checkboxes.forEach(chk => chk.style.display = 'none');
+                actions.forEach(act => act.style.display = 'block');
+
+                // Clear selection visual styles
+                selectedPoly360Ids.forEach(id => {
+                    const item = document.getElementById(`list-poly360-item-${id}`);
+                    if(item) item.classList.remove('poly-list-item-selected');
+                    const marker = markersPlugin.markers[id];
+                    if (marker && marker.config.svgStyle) {
+                        marker.config.svgStyle.outline = '';
+                        marker.config.svgStyle.outlineOffset = '';
+                        markersPlugin.updateMarker(marker.config);
+                    }
+                });
+                selectedPoly360Ids = [];
+                if (markersPlugin.markers['poly360_drag_center']) {
+                    markersPlugin.removeMarker('poly360_drag_center');
+                }
+            }
+        }
+
+        window.toggleSelectAllPoly360 = function() {
+            const selectAll = document.getElementById('chk-select-all-poly360').checked;
+            const checkboxes = document.querySelectorAll('.poly360-chk');
+            checkboxes.forEach(chk => {
+                chk.checked = selectAll;
+            });
+            updatePoly360Selection();
+        }
+
+        window.updatePoly360Selection = function() {
+            const checkboxes = document.querySelectorAll('.poly360-chk');
+            selectedPoly360Ids = [];
+
+            checkboxes.forEach(chk => {
+                const id = chk.value;
+                const item = document.getElementById(`list-poly360-item-${id}`);
+                const marker = markersPlugin.markers[id];
+
+                if (chk.checked) {
+                    selectedPoly360Ids.push(id);
+                    if(item) item.classList.add('poly-list-item-selected');
+                    if (marker && marker.config.svgStyle) {
+                        // Apply CSS class or inline style
+                        marker.config.svgStyle.stroke = '#f1c40f'; // Highlight stroke
+                        marker.config.svgStyle.strokeDasharray = '5,5';
+                        marker.config.svgStyle.cursor = 'grab';
+                        markersPlugin.updateMarker(marker.config);
+                    }
+                } else {
+                    if(item) item.classList.remove('poly-list-item-selected');
+                    if (marker && marker.config.svgStyle) {
+                        // Restore original stroke
+                        const polyData = polys360Data.find(p => p.id === id);
+                        if (polyData) {
+                            marker.config.svgStyle.stroke = polyData.color_borde;
+                            marker.config.svgStyle.strokeDasharray = '';
+                            marker.config.svgStyle.cursor = '';
+                            markersPlugin.updateMarker(marker.config);
+                        }
+                    }
+                }
+            });
+
+            actualizarCentroSeleccion();
+        }
+
+        function actualizarCentroSeleccion() {
+            if (markersPlugin.markers['poly360_drag_center']) {
+                markersPlugin.removeMarker('poly360_drag_center');
+            }
+
+            if (selectedPoly360Ids.length === 0) return;
+
+            let minYaw = Infinity, maxYaw = -Infinity;
+            let minPitch = Infinity, maxPitch = -Infinity;
+            let pointsFound = false;
+
+            selectedPoly360Ids.forEach(id => {
+                const marker = markersPlugin.markers[id];
+                if (marker) {
+                    let pts = marker.config.polygon || marker.config.polyline;
+                    if (pts) {
+                        pts.forEach(pt => {
+                            let yaw = pt[0];
+                            // Normalize yaw for bounding box calc if crossing wrap-around
+                            minYaw = Math.min(minYaw, yaw);
+                            maxYaw = Math.max(maxYaw, yaw);
+                            minPitch = Math.min(minPitch, pt[1]);
+                            maxPitch = Math.max(maxPitch, pt[1]);
+                            pointsFound = true;
+                        });
+                    }
+                }
+            });
+
+            if (pointsFound) {
+                const centerYaw = (minYaw + maxYaw) / 2;
+                const centerPitch = (minPitch + maxPitch) / 2;
+
+                markersPlugin.addMarker({
+                    id: 'poly360_drag_center',
+                    position: { yaw: centerYaw, pitch: centerPitch },
+                    html: '<div style="width:20px;height:20px;background:rgba(241,196,15,0.7);border-radius:50%;border:2px solid #fff;box-shadow:0 0 10px #f1c40f;cursor:grab;display:flex;align-items:center;justify-content:center;"><span style="color:#000;font-size:10px;">🤚</span></div>',
+                    anchor: 'center center',
+                    data: { isPoly360DragCenter: true }
+                });
             }
         }
 
@@ -2772,15 +3089,20 @@
                 if(polyData && polyData.points && polyData.points.length >= 2) {
                     let fill = p.tipo === 'relleno' ? hexToRgbA(p.color_relleno, 0.4) : 'transparent';
 
+                    // check if currently selected
+                    const isSelected = selectedPoly360Ids.includes(p.id);
+
                     let configMarker = {
                         id: p.id,
                         svgStyle: {
-                            stroke: p.color_borde,
+                            stroke: isSelected ? '#f1c40f' : p.color_borde,
                             strokeWidth: (polyData.strokeWidth || 2) + 'px',
                             fill: (p.tipo !== 'linea_abierta' && polyData.points.length >= 3) ? fill : 'transparent',
-                            pointerEvents: 'none'
+                            pointerEvents: 'visiblePainted', // changed to allow clicking/dragging
+                            cursor: isSelected ? 'grab' : 'pointer',
+                            strokeDasharray: isSelected ? '5,5' : ''
                         },
-                        data: { isPoly360Db: true, nombre: p.nombre }
+                        data: { isPoly360Db: true, nombre: p.nombre, id: p.id }
                     };
                     
                     if (p.tipo === 'linea_abierta') {
