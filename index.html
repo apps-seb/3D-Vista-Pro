@@ -1051,9 +1051,9 @@
                 // Auto-rotación inicial
                 if (viewer) {
                     viewer.animate({
-                        zoom: 50,
-                        yaw: viewer.getPosition().yaw + 0.5,
-                        pitch: viewer.getPosition().pitch,
+                        zoom: 25,
+                        yaw: viewer.getPosition().yaw,
+                        pitch: viewer.getPosition().pitch + 0.4,
                         speed: "1rpm"
                     }).then(() => {
                         // Se detiene al llegar o si el usuario interactúa
