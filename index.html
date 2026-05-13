@@ -971,9 +971,12 @@
                                     svgStyle: {
                                         stroke: p.color_borde,
                                         strokeWidth: (polyData.strokeWidth || 2) + 'px',
-                                        fill: (p.tipo !== 'linea_abierta' && polyData.points.length >= 3) ? fill : 'transparent'
+                                        fill: (p.tipo !== 'linea_abierta' && polyData.points.length >= 3) ? fill : 'transparent',
+                                        pointerEvents: 'none',
+                                        "pointer-events": "none"
                                     },
-                                    data: { isPoly360Db: true, nombre: p.nombre }
+                                    data: { isPoly360Db: true, nombre: p.nombre },
+                                    style: { pointerEvents: 'none' }
                                 };
 
                                 if (p.tipo === 'linea_abierta') {
@@ -1048,6 +1051,7 @@
                 // Auto-rotación inicial
                 if (viewer) {
                     viewer.animate({
+                        zoom: 50,
                         yaw: viewer.getPosition().yaw + 0.5,
                         pitch: viewer.getPosition().pitch,
                         speed: "1rpm"
