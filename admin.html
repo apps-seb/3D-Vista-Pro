@@ -421,7 +421,7 @@
         </div>
 
         <button id="btn-start-draw-poly360" class="editor-btn" style="width: 100%; background: var(--primary-color); color: #000; margin-bottom: 15px;" onclick="iniciarDibujoPoly360()">✏️ Crear Nuevo Polígono</button>
-
+        
         <div id="poly-360-move-panel" style="display: none; margin-bottom: 15px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; border: 1px dashed #f1c40f;">
             <p style="font-size: 0.8rem; color: #f1c40f; font-weight: bold; margin-top: 0; margin-bottom: 5px;">Mover Selección Múltiple</p>
             <p style="font-size: 0.75rem; color: #aaa; margin-bottom: 10px;">Arrastra los polígonos seleccionados en el mapa. Presiona Guardar al finalizar.</p>
@@ -645,6 +645,14 @@
             </select>
             <input type="text" id="poi-texto" class="input-text" placeholder="Texto (Ej: Zona Social)">
             
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 0.8rem; color: #ddd; display: block; margin-bottom: 5px;">Tamaño / Escala del Punto</label>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <input type="range" id="poi-escala" class="poly-slider" min="0.5" max="3" step="0.1" value="1" style="flex: 1; cursor: pointer;" oninput="document.getElementById('poi-escala-val').innerText = this.value + 'x'">
+                    <span id="poi-escala-val" style="color: #fff; font-size: 0.8rem; font-weight: bold; width: 40px; text-align: right;">1x</span>
+                </div>
+            </div>
+
             <div id="poi-imagen-container" style="display: none; margin-bottom: 10px;">
                 <label class="btn btn-upload" id="lbl-upload-poi-img">
                     Subir Imagen (PNG/JPG)
@@ -1209,15 +1217,30 @@
                 });
                 viewer.addEventListener('click', handleMapClick);
 
-                viewer.addEventListener('mousedown', (e) => {
-                    // Check if we are starting a drag for multiple polygons
-                    if (isPoly360MoveMultipleMode && selectedPoly360Ids.length > 0 && e.data.rightclick === false) {
-                        // Need to check if we clicked on one of the selected polygons or the drag center
-                        // Let's rely on the global mousemove and flag
-                        isDraggingMultiplePoly360 = true;
-                        dragMultipleStartCoords = { yaw: e.data.yaw, pitch: e.data.pitch };
+                const checkDragStart = (e) => {
+                    if (isPoly360MoveMultipleMode && selectedPoly360Ids.length > 0) {
+                        // Let's assume we clicked a polygon if the mode is on and we have selected ones.
+                        // Ideally we check if we clicked on the svg element, but a global block is safer for UX here.
+                        let isClickOnMarker = false;
+                        if(e.target && (e.target.tagName === 'polygon' || e.target.tagName === 'polyline' || e.target.closest('.psv-marker'))) {
+                            isClickOnMarker = true;
+                        }
 
-                        // Store original points to calculate relative offset
+                        // Also allow dragging anywhere if we just want to move them all together easily
+                        isDraggingMultiplePoly360 = true;
+                        
+                        // Need to get coordinates for the raw event
+                        const psvContainer = document.querySelector('.psv-container');
+                        const rect = psvContainer.getBoundingClientRect();
+                        const x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
+                        const y = (e.clientY || (e.touches && e.touches[0].clientY)) - rect.top;
+                        
+                        if(viewer.dataHelper && viewer.dataHelper.viewerCoordsToSphericalCoords) {
+                            dragMultipleStartCoords = viewer.dataHelper.viewerCoordsToSphericalCoords({x, y});
+                        }
+                        
+                        if(!dragMultipleStartCoords) return;
+
                         poly360OriginalPointsMap = {};
                         selectedPoly360Ids.forEach(id => {
                             const marker = markersPlugin.markers[id];
@@ -1228,17 +1251,39 @@
                                 }
                             }
                         });
-                        document.querySelector('.psv-container').style.cursor = 'grabbing';
-                        viewer.navbar.setCtrl(false); // disable rotation while dragging (won't work fully but helps)
-                    } else if(isPoly360Mode && e.data.rightclick === false) {
-                        // ... existing poly logic ...
-                    }
-                });
 
-                window.addEventListener('mouseup', () => {
+                        document.querySelector('.psv-container').style.cursor = 'grabbing';
+                        viewer.setOption('moveSpeed', 0); // Disable camera rotation
+                    }
+                };
+
+                const psvContainer = document.querySelector('.psv-container');
+                psvContainer.addEventListener('mousedown', (e) => {
+                    if (isPoly360MoveMultipleMode && selectedPoly360Ids.length > 0 && e.button === 0) {
+                        checkDragStart(e);
+                    }
+                }, true); // Capture phase
+
+                psvContainer.addEventListener('touchstart', (e) => {
+                    if (isPoly360MoveMultipleMode && selectedPoly360Ids.length > 0) {
+                        checkDragStart(e);
+                    }
+                }, { passive: true, capture: true }); // Capture phase
+
+                const stopDragging = () => {
                     if (isDraggingMultiplePoly360) {
                         isDraggingMultiplePoly360 = false;
                         document.querySelector('.psv-container').style.cursor = '';
+                        viewer.setOption('moveSpeed', 1.5); // Re-enable camera rotation
+                    }
+                };
+
+                window.addEventListener('mouseup', stopDragging);
+                window.addEventListener('touchend', stopDragging);
+
+                viewer.addEventListener('mousedown', (e) => {
+                    if(isPoly360Mode && !isPoly360MoveMultipleMode && e.data.rightclick === false) {
+                        // ... existing poly logic ...
                     }
                 });
 
@@ -1254,7 +1299,7 @@
                         }
                         return;
                     }
-
+                    
                     if (isPoly360MoveMultipleMode) {
                         const marker = e.marker;
                         if (marker.config.data && marker.config.data.isPoly360Db) {
@@ -2606,19 +2651,28 @@
                 const rect = psvContainer.getBoundingClientRect();
                 const x = e.clientX - rect.left;
                 const y = e.clientY - rect.top;
-
+                
                 if(!viewer.dataHelper || !viewer.dataHelper.viewerCoordsToSphericalCoords) return;
                 const coords = viewer.dataHelper.viewerCoordsToSphericalCoords({x, y});
                 if (!coords) return;
 
-                const dyaw = coords.yaw - dragMultipleStartCoords.yaw;
+                let dyaw = coords.yaw - dragMultipleStartCoords.yaw;
                 const dpitch = coords.pitch - dragMultipleStartCoords.pitch;
+                
+                // Handle wrap-around for yaw
+                if (dyaw > Math.PI) dyaw -= 2 * Math.PI;
+                if (dyaw < -Math.PI) dyaw += 2 * Math.PI;
 
                 selectedPoly360Ids.forEach(id => {
                     const marker = markersPlugin.markers[id];
                     const originalPts = poly360OriginalPointsMap[id];
                     if (marker && originalPts) {
-                        const newPts = originalPts.map(pt => [pt[0] + dyaw, pt[1] + dpitch]);
+                        const newPts = originalPts.map(pt => {
+                            let newY = pt[0] + dyaw;
+                            if (newY > Math.PI) newY -= 2 * Math.PI;
+                            if (newY < -Math.PI) newY += 2 * Math.PI;
+                            return [newY, pt[1] + dpitch];
+                        });
                         if (marker.config.polygon) marker.config.polygon = newPts;
                         if (marker.config.polyline) marker.config.polyline = newPts;
                         markersPlugin.updateMarker(marker.config);
@@ -2755,7 +2809,7 @@
                                     polyDataObj.strokeWidth = parsedOrig.strokeWidth;
                                 }
                             }
-
+                            
                             updates.push({
                                 id: id,
                                 puntos: JSON.stringify(polyDataObj)
@@ -2781,7 +2835,7 @@
                 }
 
                 window.mostrarProgreso(80);
-
+                
                 // Clear selection and mode
                 const btn = document.getElementById('btn-toggle-move-poly360');
                 if (btn) btn.click(); // toggle out of mode
@@ -2813,7 +2867,7 @@
                 });
                 actualizarCentroSeleccion();
             }
-
+            
             const btn = document.getElementById('btn-toggle-move-poly360');
             if (btn && isPoly360MoveMultipleMode) {
                 toggleModoMovimientoMultiple();
@@ -2956,7 +3010,7 @@
                 document.getElementById('poly-360-move-panel').style.display = 'block';
                 document.getElementById('btn-start-draw-poly360').style.display = 'none';
                 selectAllLbl.style.display = 'flex';
-
+                
                 checkboxes.forEach(chk => { chk.style.display = 'inline-block'; chk.checked = false; });
                 actions.forEach(act => act.style.display = 'none');
                 selectedPoly360Ids = [];
@@ -2967,10 +3021,10 @@
                 document.getElementById('poly-360-move-panel').style.display = 'none';
                 document.getElementById('btn-start-draw-poly360').style.display = 'block';
                 selectAllLbl.style.display = 'none';
-
+                
                 checkboxes.forEach(chk => chk.style.display = 'none');
                 actions.forEach(act => act.style.display = 'block');
-
+                
                 // Clear selection visual styles
                 selectedPoly360Ids.forEach(id => {
                     const item = document.getElementById(`list-poly360-item-${id}`);
@@ -3001,7 +3055,7 @@
         window.updatePoly360Selection = function() {
             const checkboxes = document.querySelectorAll('.poly360-chk');
             selectedPoly360Ids = [];
-
+            
             checkboxes.forEach(chk => {
                 const id = chk.value;
                 const item = document.getElementById(`list-poly360-item-${id}`);
@@ -3790,6 +3844,7 @@
                 const texto = document.getElementById('poi-texto').value || 'Punto';
                 const idUnico = 'poi-' + Date.now();
                 const tipo = document.getElementById('poi-tipo-visual').value;
+                const escala = document.getElementById('poi-escala').value || '1';
                 
                 let newContent = texto;
                 
@@ -3819,6 +3874,9 @@
                     }
                     newContent = `TARJETA|${imgData}|ICON|${iconData}|TEXT|${texto}`;
                 }
+
+                // Append SCALE at the end to be fully backward compatible with the split logic
+                newContent += `|SCALE|${escala}`;
                 
                 window.mostrarProgreso(50);
                 const { error } = await supabaseClient.from('pois').insert([{ id: idUnico, content: newContent, yaw: tempCoords.yaw, pitch: tempCoords.pitch, proyecto_id: currentProjectId }]);
@@ -3834,7 +3892,16 @@
 
         window.renderPOI = function(id, content, yaw, pitch) {
             try {
-                let displayText = content;
+                let parsedContent = content;
+                let poiScale = 1;
+
+                if (content && content.includes('|SCALE|')) {
+                    const scaleParts = content.split('|SCALE|');
+                    parsedContent = scaleParts[0];
+                    poiScale = parseFloat(scaleParts[1]) || 1;
+                }
+
+                let displayText = parsedContent;
                 let displayVisualType = null;
                 let isLink360 = false;
                 let link360Url = null;
@@ -3843,27 +3910,27 @@
                 let tarjetaImg = null;
                 let tarjetaIcon = null;
 
-                if (content && content.startsWith('IMG|')) {
-                    const parts = content.split('|TEXT|');
+                if (parsedContent && parsedContent.startsWith('IMG|')) {
+                    const parts = parsedContent.split('|TEXT|');
                     displayVisualType = parts[0];
                     displayText = parts[1] || 'Punto';
-                } else if (content && content.startsWith('TARJETA|')) {
+                } else if (parsedContent && parsedContent.startsWith('TARJETA|')) {
                     isTarjeta = true;
-                    const parts = content.split('|ICON|');
+                    const parts = parsedContent.split('|ICON|');
                     tarjetaImg = parts[0].substring(8); // quita 'TARJETA|'
                     const parts2 = parts[1].split('|TEXT|');
                     tarjetaIcon = parts2[0];
                     displayText = parts2[1] || 'Punto';
-                } else if (content && content.startsWith('LINK360|')) {
+                } else if (parsedContent && parsedContent.startsWith('LINK360|')) {
                     isLink360 = true;
-                    if (content.includes('|ICON|')) {
-                        const parts1 = content.split('|ICON|');
+                    if (parsedContent.includes('|ICON|')) {
+                        const parts1 = parsedContent.split('|ICON|');
                         link360Url = parts1[0].substring(8);
                         const parts2 = parts1[1].split('|TEXT|');
                         link360Icon = parts2[0];
                         displayText = parts2[1] || 'Vista 360';
                     } else {
-                        const parts = content.split('|TEXT|');
+                        const parts = parsedContent.split('|TEXT|');
                         link360Url = parts[0].substring(8); // quita 'LINK360|'
                         displayText = parts[1] || 'Vista 360';
                     }
@@ -3872,7 +3939,7 @@
                 if (!markersPlugin.markers[id]) {
                     let htmlContent = '';
                     if (isTarjeta) {
-                        htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;">
+                        htmlContent = `<div style="display:flex;flex-direction:column;align-items:center; transform: scale(${poiScale}); transform-origin: bottom center;">
                             <div style="background:#fff; border-radius:12px; overflow:hidden; width:220px; box-shadow:0 8px 20px rgba(0,0,0,0.4); display:flex; flex-direction:column; border: 2px solid #fff;">
                                 <div style="height:140px; background:url('${tarjetaImg}') center/cover no-repeat;"></div>
                                 <div style="background:#116B5D; display:flex; align-items:center; padding:10px;">
@@ -3888,7 +3955,7 @@
                         </div>`;
                     } else if (isLink360) {
                         if (link360Icon) {
-                            htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;cursor:pointer;">
+                            htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;cursor:pointer; transform: scale(${poiScale}); transform-origin: bottom center;">
                                 <div style="background:rgba(255,255,255,0.9); border-radius:50%; width:40px; height:40px; display:flex; justify-content:center; align-items:center; box-shadow: 0 0 20px rgba(255,255,255,0.8); animation: pulse-white 2s infinite; border: 2px solid #fff;">
                                     <img src="${link360Icon}" style="max-width:30px; max-height:30px; object-fit:contain; border-radius:50%;">
                                 </div>
@@ -3899,7 +3966,7 @@
                                 <div style="width:12px;height:12px;background:var(--primary-color);border-radius:50%;"></div>
                             </div>`;
                         } else {
-                            htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;cursor:pointer;">
+                            htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;cursor:pointer; transform: scale(${poiScale}); transform-origin: bottom center;">
                                 <div style="background:rgba(17,17,17,0.85);backdrop-filter:blur(5px);color:var(--primary-color);padding:6px 15px;border:1px solid var(--primary-color);border-radius:20px;font-weight:bold;font-size:0.85rem;text-transform:uppercase;box-shadow:0 0 10px rgba(212,175,55,0.5);display:flex;align-items:center;gap:5px;">
                                     <span>👁️</span> ${displayText}
                                 </div>
@@ -3909,7 +3976,7 @@
                         }
                     } else if (displayVisualType && displayVisualType.startsWith('IMG|')) {
                         let imgData = displayVisualType.substring(4);
-                        htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;">
+                        htmlContent = `<div style="display:flex;flex-direction:column;align-items:center; transform: scale(${poiScale}); transform-origin: bottom center;">
                             <div style="background:rgba(0,0,0,0.8); padding:5px; border-radius:8px; border:1px solid var(--primary-color);">
                                 <img src="${imgData}" style="max-width: 80px; max-height: 80px; object-fit: contain;">
                             </div>
@@ -3917,7 +3984,7 @@
                             <div style="width:12px;height:12px;background:var(--primary-color);border-radius:50%;"></div>
                         </div>`;
                     } else {
-                        htmlContent = `<div style="display:flex;flex-direction:column;align-items:center;">
+                        htmlContent = `<div style="display:flex;flex-direction:column;align-items:center; transform: scale(${poiScale}); transform-origin: bottom center;">
                             <div style="background:rgba(0,0,0,0.8);color:#fff;padding:4px 10px;border:1px solid var(--primary-color);border-radius:4px;font-size:0.8rem;">${displayText}</div>
                             <div style="width:2px;height:30px;background:#fff;margin-top:5px;"></div>
                             <div style="width:12px;height:12px;background:var(--primary-color);border-radius:50%;"></div>
