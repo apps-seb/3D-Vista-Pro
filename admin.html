@@ -424,7 +424,8 @@
         
         <div id="poly-360-move-panel" style="display: none; margin-bottom: 15px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; border: 1px dashed #f1c40f;">
             <p style="font-size: 0.8rem; color: #f1c40f; font-weight: bold; margin-top: 0; margin-bottom: 5px;">Mover Selección Múltiple</p>
-            <p style="font-size: 0.75rem; color: #aaa; margin-bottom: 10px;">Arrastra los polígonos seleccionados en el mapa. Presiona Guardar al finalizar.</p>
+            <p style="font-size: 0.75rem; color: #aaa; margin-bottom: 10px;" id="poly-360-move-helper">Selecciona polígonos para moverlos.</p>
+            <button id="btn-define-guide-line" class="editor-btn" style="width: 100%; background: transparent; color: #f1c40f; border-color: #f1c40f; font-size: 0.8rem; margin-bottom: 10px;" onclick="iniciarDefinirLineaGuia()">📐 Definir Eje Guía</button>
             <button class="editor-btn" style="width: 100%; background: #2ecc71; color: #000; margin-bottom: 5px; font-size: 0.8rem;" onclick="guardarMovimientoMultiplePoly360()">✅ Guardar Posiciones</button>
             <button class="editor-btn danger" style="width: 100%; font-size: 0.8rem;" onclick="cancelarMovimientoMultiplePoly360()">Cancelar</button>
         </div>
@@ -760,6 +761,65 @@
         let isCalibrating360 = false;
         let calibratingPoints = [];
         let globalCalibFactor = null;
+
+        // Math utilities for 3D rotation
+        function sphToCart(yaw, pitch) {
+            // spherical to cartesian
+            // using x right, y forward, z up
+            // pitch from equator (-PI/2 to PI/2).
+            const x = Math.cos(pitch) * Math.sin(yaw);
+            const y = Math.cos(pitch) * Math.cos(yaw);
+            const z = Math.sin(pitch);
+            return [x, y, z];
+        }
+
+        function cartToSph(x, y, z) {
+            const pitch = Math.asin(Math.max(-1, Math.min(1, z)));
+            const yaw = Math.atan2(x, y);
+            return [yaw, pitch];
+        }
+
+        function rotateVector(v, axis, angle) {
+            // Rodrigues' rotation formula
+            const [x, y, z] = v;
+            const [ux, uy, uz] = axis;
+            const cos = Math.cos(angle);
+            const sin = Math.sin(angle);
+            const dot = x*ux + y*uy + z*uz;
+            const crossX = uy*z - uz*y;
+            const crossY = uz*x - ux*z;
+            const crossZ = ux*y - uy*x;
+
+            return [
+                v[0]*cos + crossX*sin + ux*dot*(1-cos),
+                v[1]*cos + crossY*sin + uy*dot*(1-cos),
+                v[2]*cos + crossZ*sin + uz*dot*(1-cos)
+            ];
+        }
+
+        function getRotationAxisAngle(startYaw, startPitch, endYaw, endPitch) {
+            const v1 = sphToCart(startYaw, startPitch);
+            const v2 = sphToCart(endYaw, endPitch);
+
+            // Cross product to find axis
+            let axis = [
+                v1[1]*v2[2] - v1[2]*v2[1],
+                v1[2]*v2[0] - v1[0]*v2[2],
+                v1[0]*v2[1] - v1[1]*v2[0]
+            ];
+
+            const len = Math.sqrt(axis[0]*axis[0] + axis[1]*axis[1] + axis[2]*axis[2]);
+            if (len < 1e-8) {
+                return { axis: [0,0,1], angle: 0 };
+            }
+            axis = [axis[0]/len, axis[1]/len, axis[2]/len];
+
+            // Dot product to find angle
+            const dot = v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2];
+            const angle = Math.acos(Math.max(-1, Math.min(1, dot)));
+
+            return { axis, angle };
+        }
 
         function angularDistance(yaw1, pitch1, yaw2, pitch2) {
             const cos_d = Math.sin(pitch1)*Math.sin(pitch2) + Math.cos(pitch1)*Math.cos(pitch2)*Math.cos(yaw1-yaw2);
@@ -2656,22 +2716,45 @@
                 const coords = viewer.dataHelper.viewerCoordsToSphericalCoords({x, y});
                 if (!coords) return;
 
-                let dyaw = coords.yaw - dragMultipleStartCoords.yaw;
-                const dpitch = coords.pitch - dragMultipleStartCoords.pitch;
-                
-                // Handle wrap-around for yaw
-                if (dyaw > Math.PI) dyaw -= 2 * Math.PI;
-                if (dyaw < -Math.PI) dyaw += 2 * Math.PI;
+                let targetYaw = coords.yaw;
+                let targetPitch = coords.pitch;
+
+                if (guideLineAxis) {
+                    // Project the mouse drag vector onto the guide line axis.
+                    // This forces the movement to be strictly along the great circle.
+                    // 1. Convert current mouse pos to cartesian
+                    const mouseCart = sphToCart(coords.yaw, coords.pitch);
+
+                    // 2. Reject the component along the guideLineAxis to find the closest point on the great circle plane
+                    const dot = mouseCart[0]*guideLineAxis[0] + mouseCart[1]*guideLineAxis[1] + mouseCart[2]*guideLineAxis[2];
+                    const proj = [
+                        mouseCart[0] - dot * guideLineAxis[0],
+                        mouseCart[1] - dot * guideLineAxis[1],
+                        mouseCart[2] - dot * guideLineAxis[2]
+                    ];
+
+                    // 3. Normalize the projected point back to the sphere surface
+                    const len = Math.sqrt(proj[0]*proj[0] + proj[1]*proj[1] + proj[2]*proj[2]);
+                    if (len > 1e-8) {
+                        const closestPoint = [proj[0]/len, proj[1]/len, proj[2]/len];
+                        const closestSph = cartToSph(closestPoint[0], closestPoint[1], closestPoint[2]);
+                        targetYaw = closestSph[0];
+                        targetPitch = closestSph[1];
+                    }
+                }
+
+                // Get true spherical rotation from start to target
+                const rot = getRotationAxisAngle(dragMultipleStartCoords.yaw, dragMultipleStartCoords.pitch, targetYaw, targetPitch);
 
                 selectedPoly360Ids.forEach(id => {
                     const marker = markersPlugin.markers[id];
                     const originalPts = poly360OriginalPointsMap[id];
                     if (marker && originalPts) {
                         const newPts = originalPts.map(pt => {
-                            let newY = pt[0] + dyaw;
-                            if (newY > Math.PI) newY -= 2 * Math.PI;
-                            if (newY < -Math.PI) newY += 2 * Math.PI;
-                            return [newY, pt[1] + dpitch];
+                            // Rotate each original point individually using 3D rotation to preserve exact shape/size
+                            const vOrig = sphToCart(pt[0], pt[1]);
+                            const vRotated = rotateVector(vOrig, rot.axis, rot.angle);
+                            return cartToSph(vRotated[0], vRotated[1], vRotated[2]);
                         });
                         if (marker.config.polygon) marker.config.polygon = newPts;
                         if (marker.config.polyline) marker.config.polyline = newPts;
@@ -2851,6 +2934,12 @@
         };
 
         window.cancelarMovimientoMultiplePoly360 = function() {
+            if (markersPlugin.markers['guide_temp_line']) {
+                markersPlugin.removeMarker('guide_temp_line');
+            }
+            guideLineAxis = null;
+            isDefiningGuideLine = false;
+
             if (selectedPoly360Ids.length > 0) {
                 // Revert to original visually
                 selectedPoly360Ids.forEach(id => {
@@ -2995,6 +3084,20 @@
         // Logic for toggling selection in UI
         let isPoly360MoveMultipleMode = false;
         let selectedPoly360Ids = [];
+        let isDefiningGuideLine = false;
+        let guideLinePoints = [];
+        let guideLineAxis = null; // Stored as 3D vector
+
+        window.iniciarDefinirLineaGuia = function() {
+            isDefiningGuideLine = true;
+            guideLinePoints = [];
+            document.getElementById('poly-360-move-helper').innerText = "Haz clic en 2 puntos para definir el eje de movimiento.";
+
+            const viewerContainer = document.querySelector('.psv-container');
+            if (viewerContainer) {
+                viewerContainer.style.cursor = "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"8\" height=\"8\" viewBox=\"0 0 8 8\"><circle cx=\"4\" cy=\"4\" r=\"4\" fill=\"#f1c40f\" stroke=\"white\" stroke-width=\"1\"/></svg>') 4 4, crosshair";
+            }
+        }
 
         window.toggleModoMovimientoMultiple = function() {
             isPoly360MoveMultipleMode = !isPoly360MoveMultipleMode;
@@ -3014,6 +3117,16 @@
                 checkboxes.forEach(chk => { chk.style.display = 'inline-block'; chk.checked = false; });
                 actions.forEach(act => act.style.display = 'none');
                 selectedPoly360Ids = [];
+
+                // Enable pointer events on all poly360s
+                polys360Data.forEach(p => {
+                    const marker = markersPlugin.markers[p.id];
+                    if (marker && marker.config.svgStyle) {
+                        marker.config.svgStyle.pointerEvents = 'visiblePainted';
+                        marker.config.svgStyle.cursor = 'pointer';
+                        markersPlugin.updateMarker(marker.config);
+                    }
+                });
             } else {
                 btn.style.background = '#222';
                 btn.style.color = '#f1c40f';
@@ -3025,6 +3138,12 @@
                 checkboxes.forEach(chk => chk.style.display = 'none');
                 actions.forEach(act => act.style.display = 'block');
                 
+                if (markersPlugin.markers['guide_temp_line']) {
+                    markersPlugin.removeMarker('guide_temp_line');
+                }
+                guideLineAxis = null;
+                isDefiningGuideLine = false;
+
                 // Clear selection visual styles
                 selectedPoly360Ids.forEach(id => {
                     const item = document.getElementById(`list-poly360-item-${id}`);
@@ -3040,6 +3159,16 @@
                 if (markersPlugin.markers['poly360_drag_center']) {
                     markersPlugin.removeMarker('poly360_drag_center');
                 }
+
+                // Disable pointer events on all poly360s
+                polys360Data.forEach(p => {
+                    const marker = markersPlugin.markers[p.id];
+                    if (marker && marker.config.svgStyle) {
+                        marker.config.svgStyle.pointerEvents = 'none';
+                        marker.config.svgStyle.cursor = 'default';
+                        markersPlugin.updateMarker(marker.config);
+                    }
+                });
             }
         }
 
@@ -3152,8 +3281,8 @@
                             stroke: isSelected ? '#f1c40f' : p.color_borde,
                             strokeWidth: (polyData.strokeWidth || 2) + 'px',
                             fill: (p.tipo !== 'linea_abierta' && polyData.points.length >= 3) ? fill : 'transparent',
-                            pointerEvents: 'visiblePainted', // changed to allow clicking/dragging
-                            cursor: isSelected ? 'grab' : 'pointer',
+                            pointerEvents: isPoly360MoveMultipleMode ? 'visiblePainted' : 'none',
+                            cursor: isSelected ? 'grab' : (isPoly360MoveMultipleMode ? 'pointer' : 'default'),
                             strokeDasharray: isSelected ? '5,5' : ''
                         },
                         data: { isPoly360Db: true, nombre: p.nombre, id: p.id }
@@ -3503,6 +3632,59 @@
 
         window.handleMapClick = function(e) {
             try {
+                if (isDefiningGuideLine) {
+                    guideLinePoints.push([e.data.yaw, e.data.pitch]);
+                    if (guideLinePoints.length === 1) {
+                        markersPlugin.addMarker({
+                            id: 'guide_temp_line',
+                            position: { yaw: guideLinePoints[0][0], pitch: guideLinePoints[0][1] },
+                            html: '<div style="width:10px;height:10px;background:#f1c40f;border-radius:50%;border:2px solid #fff;"></div>',
+                            anchor: 'center center'
+                        });
+                    } else if (guideLinePoints.length === 2) {
+                        if (markersPlugin.markers['guide_temp_line']) {
+                            markersPlugin.removeMarker('guide_temp_line');
+                        }
+
+                        // Create a long line to represent the axis visually. We'll extrapolate points.
+                        const start = sphToCart(guideLinePoints[0][0], guideLinePoints[0][1]);
+                        const end = sphToCart(guideLinePoints[1][0], guideLinePoints[1][1]);
+
+                        // The axis of rotation for movement along this great circle
+                        const crossAxis = [
+                            start[1]*end[2] - start[2]*end[1],
+                            start[2]*end[0] - start[0]*end[2],
+                            start[0]*end[1] - start[1]*end[0]
+                        ];
+
+                        const len = Math.sqrt(crossAxis[0]*crossAxis[0] + crossAxis[1]*crossAxis[1] + crossAxis[2]*crossAxis[2]);
+
+                        if (len > 1e-8) {
+                            guideLineAxis = [crossAxis[0]/len, crossAxis[1]/len, crossAxis[2]/len];
+
+                            // Generate a full circle line for the guide
+                            const fullCirclePoints = [];
+                            for(let i=0; i<=64; i++) {
+                                const angle = (i/64) * Math.PI * 2;
+                                const rotPt = rotateVector(start, guideLineAxis, angle);
+                                const sph = cartToSph(rotPt[0], rotPt[1], rotPt[2]);
+                                fullCirclePoints.push(sph);
+                            }
+
+                            markersPlugin.addMarker({
+                                id: 'guide_temp_line',
+                                polyline: fullCirclePoints,
+                                svgStyle: { stroke: '#f1c40f', strokeWidth: '2px', strokeDasharray: '4,4', pointerEvents: 'none' }
+                            });
+                        }
+
+                        isDefiningGuideLine = false;
+                        document.getElementById('poly-360-move-helper').innerText = "Eje guía definido. Arrastra los polígonos.";
+                        document.querySelector('.psv-container').style.cursor = '';
+                    }
+                    return;
+                }
+
                 if (isCalibrating360) {
                     calibratingPoints.push([e.data.yaw, e.data.pitch]);
                     if (calibratingPoints.length === 1) {
