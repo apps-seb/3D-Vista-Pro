@@ -41,8 +41,7 @@
         .inv-count { background: rgba(255,255,255,0.15); padding: 2px 8px; border-radius: 12px; }
 
         .lote-marker-container { width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; pointer-events: auto !important; cursor: pointer; background: rgba(255,255,255,0.01); border-radius: 50%; }
-        .lote-marker-visual { width: 34px; height: 34px; border: 2px solid #fff; border-radius: 50%; animation: pulse-visual 2s infinite; display: flex; justify-content: center; align-items: center; font-size: 11px; font-weight: bold; color: white; text-shadow: 1px 1px 2px black; text-align: center; pointer-events: none; }
-        @keyframes pulse-visual { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
+        .lote-marker-visual { width: 34px; height: 34px; border: 1px solid #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 11px; font-weight: bold; color: white;  text-align: center; pointer-events: none; }
         @keyframes pulse-white { 0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(255, 255, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); } }
 
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 50; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
@@ -791,7 +790,7 @@
                         const fontSize = Math.max(9, Math.floor(globalLoteSize / 3));
                         const htmlContent = `
                             <div class="lote-marker-container" onclick="window.abrirLoteModal('${l.id}')" style="width: ${globalLoteSize + 16}px; height: ${globalLoteSize + 16}px;">
-                                <div class="lote-marker-visual" style="background:${bg}; box-shadow: 0 0 15px ${shadow}; width: ${globalLoteSize}px; height: ${globalLoteSize}px; font-size: ${fontSize}px;">${shortName}</div>
+                                <div class="lote-marker-visual" style="background:${bg}; box-shadow: 0 0 4px ${shadow}; width: ${globalLoteSize}px; height: ${globalLoteSize}px; font-size: ${fontSize}px;">${shortName}</div>
                             </div>
                         `;
 
