@@ -99,7 +99,7 @@
         .inventory-list { overflow-y: auto; flex: 1; max-height: 150px; }
         .lot-item { background: #000; border: 1px solid #333; padding: 10px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; }
         .btn-delete { background: #e74c3c; color: white; border: none; border-radius: 4px; padding: 5px 8px; cursor: pointer; font-size: 0.7rem; }
-        .lote-marker { width: 34px; height: 34px; border: 2px solid #fff; border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 11px; font-weight: bold; color: white; text-shadow: 1px 1px 2px black; text-align: center; pointer-events: all; }
+        .lote-marker { width: 34px; height: 34px; border: 1px solid #fff; border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 11px; font-weight: bold; color: white;  text-align: center; pointer-events: all; }
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; display: none; justify-content: center; align-items: center; }
         .modal-overlay.active { display: flex; }
         .modal-content {
@@ -3808,7 +3808,7 @@
                 if(shortName.length > 4) shortName = shortName.substring(0, 4);
 
                 const fontSize = Math.max(9, Math.floor(globalLoteSize / 3)); // Aproximación para que el texto escale
-                const html = `<div class="lote-marker" style="background:${color}; box-shadow: 0 0 10px ${color}; width: ${globalLoteSize}px; height: ${globalLoteSize}px; font-size: ${fontSize}px;">${shortName}</div>`;
+                const html = `<div class="lote-marker" style="background:${color}; box-shadow: 0 0 4px ${color}; width: ${globalLoteSize}px; height: ${globalLoteSize}px; font-size: ${fontSize}px;">${shortName}</div>`;
 
                 let markerConfigHTML = {
                     id: id,
