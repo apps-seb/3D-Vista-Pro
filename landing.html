@@ -17,16 +17,19 @@
 
         :root {
             --primary-bg: #ffffff;
-            --secondary-bg: #f8f9fa;
-            --primary-accent: #f26522; /* Naranja profesional */
-            --primary-accent-dark: #d9531e;
-            --primary-gradient: linear-gradient(135deg, #f26522 0%, #ff8c00 100%);
-            --text-dark: #1a1a1a;
-            --text-muted: #666666;
-            --glass-bg: rgba(255, 255, 255, 0.85);
-            --glass-border: rgba(242, 101, 34, 0.15);
-            --shadow-soft: 0 10px 40px rgba(0, 0, 0, 0.05);
-            --shadow-hover: 0 15px 50px rgba(242, 101, 34, 0.15);
+            --secondary-bg: #f3f6f5;
+            --primary-accent: #C5A059; /* Dorado de lujo */
+            --primary-accent-dark: #A48039;
+            --primary-green: #093A2F; /* Verde esmeralda profundo */
+            --primary-green-light: #15614F;
+            --primary-gradient: linear-gradient(135deg, #093A2F 0%, #15614F 100%); /* Degradado verde */
+            --gold-gradient: linear-gradient(135deg, #E0B463 0%, #C5A059 50%, #A48039 100%); /* Degradado dorado premium */
+            --text-dark: #0F201B;
+            --text-muted: #4A5D58;
+            --glass-bg: rgba(255, 255, 255, 0.88);
+            --glass-border: rgba(197, 160, 89, 0.25);
+            --shadow-soft: 0 10px 40px rgba(9, 58, 47, 0.05);
+            --shadow-hover: 0 15px 50px rgba(197, 160, 89, 0.2);
             --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
@@ -94,7 +97,7 @@
             align-items: center;
             justify-content: center;
             gap: 10px;
-            background: var(--primary-gradient);
+            background: var(--gold-gradient);
             color: #ffffff !important;
             padding: 14px 32px;
             border-radius: 50px;
@@ -105,13 +108,13 @@
             transition: var(--transition);
             border: none;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(242, 101, 34, 0.3);
+            box-shadow: 0 4px 15px rgba(197, 160, 89, 0.3);
             font-family: 'Montserrat', sans-serif;
         }
 
         .btn-cta:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(242, 101, 34, 0.4);
+            box-shadow: 0 8px 25px rgba(197, 160, 89, 0.4);
         }
 
         .btn-cta.outline {
@@ -122,8 +125,8 @@
         }
 
         .btn-cta.outline:hover {
-            background: rgba(242, 101, 34, 0.05);
-            box-shadow: 0 4px 15px rgba(242, 101, 34, 0.1);
+            background: rgba(197, 160, 89, 0.05);
+            box-shadow: 0 4px 15px rgba(197, 160, 89, 0.1);
         }
 
         /* Encabezado Fijo */
@@ -177,7 +180,7 @@
 
         .header-logo-container:hover .header-logo-img {
             transform: scale(1.05) rotateY(10deg);
-            filter: drop-shadow(0 8px 12px rgba(242, 101, 34, 0.4));
+            filter: drop-shadow(0 8px 12px rgba(197, 160, 89, 0.4));
         }
 
         /* Estilo para el botón de icono del Tour 360 en el Header */
@@ -187,8 +190,8 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            background: var(--primary-gradient);
-            box-shadow: 0 4px 15px rgba(242, 101, 34, 0.3);
+            background: var(--gold-gradient);
+            box-shadow: 0 4px 15px rgba(197, 160, 89, 0.3);
             transition: all 0.3s ease;
             text-decoration: none;
         }
@@ -210,7 +213,7 @@
 
         .btn-tour-header:hover {
             transform: scale(1.05) translateY(-2px);
-            box-shadow: 0 8px 25px rgba(242, 101, 34, 0.5);
+            box-shadow: 0 8px 25px rgba(197, 160, 89, 0.5);
         }
         
         .btn-tour-header:hover img {
@@ -364,7 +367,7 @@
             border-radius: 2px;
         }
 
-        /* Tarjetas de Características (90 lotes, etc) */
+        /* Tarjetas de Características (79 viviendas, etc) */
         .features-wrapper {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -1657,6 +1660,127 @@
             .fs-prev-btn { left: 10px; }
             .fs-next-btn { right: 10px; }
         }
+
+        /* Estilos Tabla de Financiación de Lujo */
+        .finance-section {
+            padding: 80px 20px;
+            background: linear-gradient(180deg, #ffffff 0%, #f3f6f5 100%);
+        }
+        .finance-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .finance-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 40px;
+            margin-top: 40px;
+        }
+        @media (min-width: 992px) {
+            .finance-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        .finance-table-wrapper {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 40px rgba(9, 58, 47, 0.06);
+            border: 1px solid var(--glass-border);
+            overflow-x: auto;
+        }
+        .finance-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 500px;
+        }
+        .finance-table th {
+            background: var(--primary-gradient);
+            color: #ffffff;
+            font-family: 'ITC Blair', 'Montserrat', sans-serif;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 16px;
+            text-align: left;
+        }
+        .finance-table th:first-child {
+            border-top-left-radius: 12px;
+            border-bottom-left-radius: 12px;
+        }
+        .finance-table th:last-child {
+            border-top-right-radius: 12px;
+            border-bottom-right-radius: 12px;
+            text-align: right;
+        }
+        .finance-table td {
+            padding: 16px;
+            border-bottom: 1px solid rgba(197, 160, 89, 0.15);
+            font-size: 0.95rem;
+            color: var(--text-dark);
+            font-weight: 500;
+        }
+        .finance-table tr:hover td {
+            background: rgba(197, 160, 89, 0.04);
+        }
+        .finance-table tr:last-child td {
+            border-bottom: none;
+        }
+        .finance-highlight {
+            color: var(--primary-accent);
+            font-weight: 700;
+        }
+        .finance-total-row td {
+            background: rgba(9, 58, 47, 0.05);
+            font-weight: 700;
+            border-top: 2px solid var(--primary-accent);
+        }
+        .stage-box {
+            background: var(--primary-gradient);
+            color: #ffffff;
+            border-radius: 16px;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(9, 58, 47, 0.2);
+        }
+        .stage-box::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, rgba(197, 160, 89, 0.2) 0%, rgba(0,0,0,0) 70%);
+            border-radius: 50%;
+        }
+        .stage-title {
+            font-family: 'ITC Blair', 'Montserrat', sans-serif;
+            color: var(--primary-accent);
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+        .stage-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .stage-item:last-child {
+            border-bottom: none;
+        }
+        .stage-label {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        .stage-value {
+            font-family: 'ITC Blair', 'Montserrat', sans-serif;
+            font-weight: 700;
+            color: var(--primary-accent);
+        }
     </style>
 </head>
 <body>
@@ -1700,24 +1824,24 @@
         <div class="features-wrapper fade-up">
             <div class="feature-box glass-card" style="background: var(--glass-bg);">
                 <div class="feature-icon">
-                    <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
                 </div>
-                <div class="feature-value"><span class="counter" data-target="90">1</span></div>
-                <div class="feature-label">Lotes Exclusivos</div>
+                <div class="feature-value"><span class="counter" data-target="79">1</span></div>
+                <div class="feature-label">Casas de 2 Pisos</div>
             </div>
             <div class="feature-box glass-card" style="background: var(--glass-bg);">
                 <div class="feature-icon">
                     <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
                 </div>
-                <div class="feature-value"><span class="counter" data-target="66">1</span> m²</div>
-                <div class="feature-label">Área por Lote</div>
+                <div class="feature-value"><span class="counter" data-target="88">1</span> m²</div>
+                <div class="feature-label">Área Construida</div>
             </div>
             <div class="feature-box glass-card" style="background: var(--glass-bg);">
                 <div class="feature-icon">
                     <svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
                 </div>
-                <div class="feature-value">$<span class="counter" data-target="80">1</span>M</div>
-                <div class="feature-label">Desde</div>
+                <div class="feature-value">$<span class="counter" data-target="255">1</span>M+</div>
+                <div class="feature-label">Precio Exclusivo</div>
             </div>
         </div>
     </section>
@@ -1755,7 +1879,7 @@
                         </div>
                         <div class="mini-card-text">
                             <h4>Privacidad Absoluta</h4>
-                            <p>Solo 90 lotes exclusivos</p>
+                            <p>Solo 79 casas de lujo</p>
                         </div>
                     </div>
                     <div class="about-mini-card">
@@ -1763,8 +1887,8 @@
                             <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
                         </div>
                         <div class="mini-card-text">
-                            <h4>Diseño Inteligente</h4>
-                            <p>Lotes desde 66 m²</p>
+                            <h4>Distribución Excepcional</h4>
+                            <p>Dos niveles con 88.6 m²</p>
                         </div>
                     </div>
                     <div class="about-mini-card">
@@ -1862,10 +1986,114 @@
             <a href="#contacto" class="btn-cta">Solicitar Planos</a>
         </div>
     </section>
+
+    <!-- Sección de Financiación de Lujo -->
+    <section class="finance-section fade-up" id="financiacion">
+        <div class="finance-container">
+            <h2 class="section-title">Plan de Inversión y Pagos</h2>
+            <p class="section-subtitle">Adquiere tu vivienda exclusiva de 2 niveles bajo un plan diseñado para tu tranquilidad, con cuotas flexibles y plazos amplios sin intereses.</p>
+
+            <div class="finance-grid">
+                <!-- Tabla del Plan de Pagos -->
+                <div class="finance-table-wrapper">
+                    <h3 style="font-family: 'ITC Blair', 'Montserrat', sans-serif; color: var(--primary-green); margin-bottom: 20px; font-size: 1.2rem; border-bottom: 2px solid var(--primary-accent); padding-bottom: 10px;">
+                        Distribución de Pagos Estructurada
+                    </h3>
+                    <table class="finance-table">
+                        <thead>
+                            <tr>
+                                <th>Concepto / Etapa</th>
+                                <th style="text-align: right;">Porcentaje</th>
+                                <th style="text-align: right;">Valor (COP)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Separación y Cuota Inicial (Mes 0)</td>
+                                <td style="text-align: right;" class="finance-highlight">10%</td>
+                                <td style="text-align: right;" class="finance-highlight">$25.550.000</td>
+                            </tr>
+                            <tr>
+                                <td>Pago en el Mes 1</td>
+                                <td style="text-align: right;">5%</td>
+                                <td style="text-align: right;">$12.775.000</td>
+                            </tr>
+                            <tr>
+                                <td>Pago en el Mes 2</td>
+                                <td style="text-align: right;">5%</td>
+                                <td style="text-align: right;">$12.775.000</td>
+                            </tr>
+                            <tr>
+                                <td>Saldo Diferido (24 cuotas sin interés de $2.129.200)</td>
+                                <td style="text-align: right;" class="finance-highlight">20%</td>
+                                <td style="text-align: right;" class="finance-highlight">$51.100.800</td>
+                            </tr>
+                            <tr>
+                                <td>Saldo final contra entrega (Crédito o recursos propios)</td>
+                                <td style="text-align: right;">60%</td>
+                                <td style="text-align: right;">$153.300.000</td>
+                            </tr>
+                            <tr class="finance-total-row">
+                                <td>VALOR TOTAL DE LA VIVIENDA</td>
+                                <td style="text-align: right;" class="finance-highlight">100%</td>
+                                <td style="text-align: right;" class="finance-highlight">$255.500.000</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Detalles de Etapas del Proyecto -->
+                <div style="display: flex; flex-direction: column; gap: 20px;">
+                    <div class="stage-box">
+                        <h3 class="stage-title" style="color: #ffffff; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 10px;">Etapas de Desarrollo</h3>
+                        <p style="font-size: 0.9rem; margin-bottom: 20px; line-height: 1.6; opacity: 0.9;">El condominio Rincón de Baviera se desarrollará de forma planificada en tres fases exclusivas, garantizando la valorización constante y el cumplimiento de los estándares de construcción:</p>
+
+                        <div class="stage-item">
+                            <span class="stage-label">Primera Etapa</span>
+                            <span class="stage-value" style="color: #E0B463;">23 Viviendas</span>
+                        </div>
+                        <div class="stage-item">
+                            <span class="stage-label">Segunda Etapa</span>
+                            <span class="stage-value" style="color: #E0B463;">33 Viviendas</span>
+                        </div>
+                        <div class="stage-item">
+                            <span class="stage-label">Tercera Etapa</span>
+                            <span class="stage-value" style="color: #E0B463;">23 Viviendas</span>
+                        </div>
+                        <div class="stage-item" style="border-top: 2px solid var(--primary-accent); margin-top: 10px; padding-top: 15px;">
+                            <span class="stage-label" style="font-size: 1.1rem; color: #E0B463;">Total Proyecto</span>
+                            <span class="stage-value" style="font-size: 1.1rem; color: #E0B463;">79 Viviendas</span>
+                        </div>
+                    </div>
+
+                    <!-- Cuadro informativo del área -->
+                    <div style="background: rgba(9, 58, 47, 0.05); border: 1px solid var(--glass-border); border-radius: 16px; padding: 25px;">
+                        <h4 style="font-family: 'ITC Blair', 'Montserrat', sans-serif; color: var(--primary-green); margin-bottom: 15px; font-size: 1rem;">Detalle de Áreas</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-dark); margin-bottom: 15px; line-height: 1.6;">Nuestras viviendas cuentan con una distribución arquitectónica óptima y generosa repartida en dos niveles:</p>
+                        <div style="display: flex; gap: 15px; justify-content: space-between;">
+                            <div style="flex: 1; background: #ffffff; padding: 15px; border-radius: 12px; text-align: center; border: 1px solid rgba(9, 58, 47, 0.05);">
+                                <span style="display: block; font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; margin-bottom: 5px;">Piso 1</span>
+                                <strong style="font-size: 1.1rem; color: var(--primary-green-light); font-family: 'ITC Blair', 'Montserrat', sans-serif;">42.7 m²</strong>
+                            </div>
+                            <div style="flex: 1; background: #ffffff; padding: 15px; border-radius: 12px; text-align: center; border: 1px solid rgba(9, 58, 47, 0.05);">
+                                <span style="display: block; font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; margin-bottom: 5px;">Piso 2</span>
+                                <strong style="font-size: 1.1rem; color: var(--primary-green-light); font-family: 'ITC Blair', 'Montserrat', sans-serif;">45.9 m²</strong>
+                            </div>
+                            <div style="flex: 1; background: var(--primary-gradient); color: #ffffff; padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 5px 15px rgba(9,58,47,0.15);">
+                                <span style="display: block; font-size: 0.8rem; text-transform: uppercase; color: rgba(255,255,255,0.8); font-weight: 600; margin-bottom: 5px;">Total</span>
+                                <strong style="font-size: 1.1rem; color: var(--primary-accent); font-family: 'ITC Blair', 'Montserrat', sans-serif;">88.6 m²</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Tour 360 Embebido -->
     <section class="section" id="tour" style="max-width: 100%; padding-left: 0; padding-right: 0;">
         <h2 class="section-title fade-up">Tour Virtual 360°</h2>
-        <p class="section-subtitle fade-up">Explora cada rincón de nuestro proyecto, camina por las zonas comunes y escoge el lote perfecto para tu futura casa, todo desde la comodidad de tu pantalla.</p>
+        <p class="section-subtitle fade-up">Explora cada rincón de nuestro proyecto, camina por las zonas comunes y escoge la vivienda perfecta para ti y tu familia, todo desde la comodidad de tu pantalla.</p>
 
         <div class="tour-section fade-up">
 
@@ -1876,7 +2104,7 @@
                     <div class="step-icon" id="dynamic-step-icon" style="transition: opacity 0.5s ease;">
                         <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
                     </div>
-                    <h3 id="dynamic-step-title" style="transition: opacity 0.5s ease;">Busca el lote ideal</h3>
+                    <h3 id="dynamic-step-title" style="transition: opacity 0.5s ease;">Busca la casa ideal</h3>
                     <p id="dynamic-step-desc" style="transition: opacity 0.5s ease;">Explora todo el proyecto sin salir de casa.</p>
 
                     <div class="step-indicators" style="display: flex; gap: 8px; margin-top: 20px;">
@@ -1896,7 +2124,7 @@
             </div>
             <div id="continuar-explorando" style="text-align: center; margin-top: 20px;">
                 <h3 style="margin-bottom: 15px; font-size: 1.2rem; color: var(--text-dark);">¿Encontraste tu lugar ideal?</h3>
-                <a href="#contacto" class="btn-cta">Escoge tu lote ahora</a>
+                <a href="#contacto" class="btn-cta">Escoge tu casa ahora</a>
             </div>
         </div>
     </section>
@@ -1943,7 +2171,7 @@
                 </div>
                 <div class="benefit-content">
                     <h3>Servicios Completos</h3>
-                    <p>Todos los lotes se entregan con disponibilidad de servicios públicos básicos y vías pavimentadas.</p>
+                    <p>Todas las viviendas se entregan con acabados de primera calidad, servicios públicos y vías pavimentadas.</p>
                 </div>
             </div>
 
@@ -1967,10 +2195,10 @@
             <div class="carousel-3d-item" data-title="Urbanismo Completo" data-cta="Infraestructura de primer nivel para tu inversión.">
                 <img src="https://mercacol.com.co/wp-content/uploads/2026/04/RENDER-4.webp" alt="Render Urbanismo">
             </div>
-            <div class="carousel-3d-item" data-title="Distribución de Lotes" data-cta="Encuentra el espacio perfecto para construir tus sueños.">
+            <div class="carousel-3d-item" data-title="Distribución de Viviendas" data-cta="Encuentra el espacio perfecto para vivir tus sueños.">
                 <img src="https://mercacol.com.co/wp-content/uploads/2026/04/RENDER-8.webp" alt="Plano General">
             </div>
-            <div class="carousel-3d-item" data-title="Lote Tipo (66 m²)" data-cta="Optimización de espacios diseñados para ti.">
+            <div class="carousel-3d-item" data-title="Vivienda Tipo (88.6 m²)" data-cta="Distribución de 2 niveles optimizada para ti.">
                 <img src="https://mercacol.com.co/wp-content/uploads/2026/04/RENDER-3.webp" alt="Plano Tipo">
             </div>
         </div>
@@ -1978,7 +2206,7 @@
         <div class="carousel-text-container fade-up">
             <h3 class="carousel-title" id="carousel-title">Cargando...</h3>
             <p class="carousel-cta" id="carousel-cta">Cargando...</p>
-            <a href="#tour" class="btn-cta">Escoge tu lote</a>
+            <a href="#tour" class="btn-cta">Escoge tu casa</a>
         </div>
     </section>
 
@@ -2179,14 +2407,14 @@
             {
                 number: "01",
                 icon: '<svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>',
-                title: "Busca el lote ideal",
+                title: "Busca la casa ideal",
                 desc: "Explora todo el proyecto sin salir de casa."
             },
             {
                 number: "02",
                 icon: '<svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>',
                 title: "Selecciona ubicación",
-                desc: "Encuentra la posición que más te guste en el lote real."
+                desc: "Encuentra la posición que más te guste en el plano real."
             },
             {
                 number: "03",
