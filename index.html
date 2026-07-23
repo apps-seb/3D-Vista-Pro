@@ -265,6 +265,7 @@
         </svg>
     </div>
 
+    <!-- EL CONTENEDOR RESTAURADO (REQUERIDO POR EL VISOR) -->
     <div id="viewer"></div>
 
     <div id="transition-overlay" style="position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); z-index: 9999; display: none; opacity: 0; transition: opacity 0.5s ease; justify-content: center; align-items: center;">
@@ -409,7 +410,6 @@
     <!-- CARGA DE LIBRERÍAS Y POLYFILL PARA VR -->
     <script src="https://cdn.jsdelivr.net/npm/webxr-polyfill@2.0.3/build/webxr-polyfill.min.js"></script>
     <script>
-        // Engañar al navegador inyectando soporte VR por software
         var polyfill = new WebXRPolyfill();
     </script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.159.0/build/three.min.js"></script>
@@ -417,12 +417,11 @@
     <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin@5.7.4/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/gyroscope-plugin@5.7.4/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/autorotate-plugin@5.7.4/index.min.js"></script>
-    <!-- SCRIPT DEL STEREO PLUGIN -->
     <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/stereo-plugin@5.7.4/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-    </div> <!-- Fin visor-container -->
+    </div>
 
     <script>
         window.mostrarProgreso = function(porcentaje) {
@@ -449,10 +448,11 @@
                 titleElement.innerText = "Error en " + contexto + ": " + msg;
                 titleElement.style.color = "#ff4444";
             }
-            alert("Error en " + contexto + ":\n" + msg);
+            if (!msg.includes("VR")) {
+                alert("Error en " + contexto + ":\n" + msg);
+            }
         }
 
-        // CAZADOR DE ERRORES GLOBALES
         window.onerror = function(msg, url, line) {
             window.mostrarError("Global", "Línea " + line + " - " + msg);
             return false;
@@ -472,7 +472,6 @@
         // --- VARIABLE GLOBAL PARA CONTROL DE VR ---
         let vrActivado = false; 
 
-        // Helper para parsear poligonos
         function parsePoligono(polyStr) {
             if (!polyStr) return null;
             try {
@@ -725,7 +724,7 @@
                 // CONTROL DE UI AL ENTRAR/SALIR DE VR
                 stereoPlugin.addEventListener('stereo-updated', (e) => {
                     const isVR = e.active;
-                    vrActivado = isVR; // Sincroniza la variable global
+                    vrActivado = isVR; 
                     
                     const elementsToHide = [
                         document.querySelector('.header-premium'),
@@ -1138,7 +1137,6 @@
             }
         }
         
-        // --- FUNCIÓN VR CON POLYFILL ---
         window.toggleVR = function() {
             if (!stereoPlugin) {
                 alert("El sistema VR no está inicializado.");
@@ -1149,11 +1147,17 @@
                 stereoPlugin.stop();
                 vrActivado = false;
             } else {
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                
                 stereoPlugin.start().then(() => {
                     vrActivado = true;
                 }).catch(err => {
                     console.warn("No se pudo iniciar VR:", err);
-                    alert("Tu dispositivo o navegador bloqueó el acceso a la Realidad Virtual.");
+                    if (!isMobile) {
+                        alert("Estás en una PC sin visor VR conectado. Para ver la pantalla dividida y usar realidad virtual, por favor abre este enlace en tu teléfono móvil.");
+                    } else {
+                        alert("Para iniciar la Realidad Virtual, por favor permite el acceso a los sensores de movimiento de tu teléfono.");
+                    }
                 });
             }
         }
