@@ -137,6 +137,33 @@
             fill: white;
         }
 
+        /* --- BOTON VR --- */
+        .btn-flotante-vr {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background-color: rgba(17,17,17,0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            z-index: 1000;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        .btn-flotante-vr:hover {
+            transform: scale(1.1);
+        }
+        @media (max-width: 600px) { 
+            .btn-flotante-vr { bottom: 80px; left: 20px; }
+        }
+
         #preloader { position: fixed; inset: 0; background: #050505; z-index: 10000; display: flex; justify-content: center; align-items: center; transition: opacity 0.8s ease; }
         .preloader-content { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 20px; }
         #preloader-logo { max-height: 120px; max-width: 80vw; object-fit: contain; animation: logo-pulse 2s infinite; border-radius: 8px; }
@@ -147,19 +174,16 @@
     </style>
 </head>
 <body>
-    <!-- Lobby de Proyectos (Se muestra si no hay ID en la URL) -->
     <div id="lobby-proyectos" style="display: none; padding: 40px 20px; min-height: 100vh; background: #111;">
         <div style="max-width: 1200px; margin: 0 auto;">
             <h1 style="color: var(--primary-color); font-family: 'Montserrat', sans-serif; font-size: 2.5rem; margin-bottom: 10px; text-align: center;">Explora Nuestros Proyectos 360</h1>
             <p style="color: #bbb; text-align: center; margin-bottom: 40px;">Selecciona un proyecto para iniciar el recorrido virtual.</p>
 
             <div id="lista-proyectos-publicos" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px;">
-                <!-- Aquí se inyectarán las cards -->
             </div>
         </div>
     </div>
 
-    <!-- Contenedor del Visor (Se muestra si hay ID) -->
     <div id="visor-container" style="display: none; width: 100%; height: 100vh; position: absolute; top: 0; left: 0;">
 
     <div id="preloader">
@@ -192,6 +216,16 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Volver a Vista Principal
     </div>
 
+    <!-- BOTON VR -->
+    <div id="btn-vr" class="btn-flotante-vr" title="Entrar a Realidad Virtual" onclick="toggleVR()">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v4z"></path>
+            <path d="M7 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"></path>
+            <path d="M17 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"></path>
+            <path d="M12 10v2"></path>
+        </svg>
+    </div>
+
     <a id="btn-conoce-mas" onclick="abrirConoceMasModal()" class="btn-flotante-conoce-mas" title="Conoce más del proyecto" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -221,7 +255,7 @@
         }
         @media (max-width: 600px) {
             .btn-flotante-conoce-mas { bottom: 150px; }
-            .btn-flotante-whatsapp { bottom: 80px; } /* Evita tapar barra de inventario */
+            .btn-flotante-whatsapp { bottom: 80px; }
         }
     </style>
 
@@ -233,7 +267,6 @@
 
     <div id="viewer"></div>
 
-    <!-- Full-screen blur overlay for transitions -->
     <div id="transition-overlay" style="position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); z-index: 9999; display: none; opacity: 0; transition: opacity 0.5s ease; justify-content: center; align-items: center;">
         <div class="spinner"></div>
     </div>
@@ -297,7 +330,6 @@
         </div>
     </div>
 
-    <!-- Modal Simulador -->
     <!-- Modal de Bienvenida (Giroscopio) -->
     <div id="welcome-modal" class="modal-overlay">
         <div class="modal-content" style="max-width: 350px;">
@@ -323,6 +355,7 @@
         </div>
     </div>
 
+    <!-- Modal Simulador -->
     <div id="simulador-modal" class="modal-overlay">
         <div class="modal-content" style="max-width: 400px; max-height: 90vh; overflow-y: auto;">
             <button class="btn-close" onclick="cerrarSimulador()">&times;</button>
@@ -373,12 +406,19 @@
         </div>
     </div>
 
-
+    <!-- CARGA DE LIBRERÍAS Y POLYFILL PARA VR -->
+    <script src="https://cdn.jsdelivr.net/npm/webxr-polyfill@2.0.3/build/webxr-polyfill.min.js"></script>
+    <script>
+        // Engañar al navegador inyectando soporte VR por software
+        var polyfill = new WebXRPolyfill();
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.159.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core@5.7.4/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin@5.7.4/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/gyroscope-plugin@5.7.4/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/autorotate-plugin@5.7.4/index.min.js"></script>
+    <!-- SCRIPT DEL STEREO PLUGIN -->
+    <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/stereo-plugin@5.7.4/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
@@ -427,17 +467,20 @@
         
         let supabaseClient;
         let currentProjectId = null;
-        let viewer, markersPlugin, gyroscopePlugin;
+        let viewer, markersPlugin, gyroscopePlugin, stereoPlugin;
+        
+        // --- VARIABLE GLOBAL PARA CONTROL DE VR ---
+        let vrActivado = false; 
 
-        // Helper para parsear poligonos (Retrocompatibilidad)
+        // Helper para parsear poligonos
         function parsePoligono(polyStr) {
             if (!polyStr) return null;
             try {
                 let parsed = JSON.parse(polyStr);
                 if (Array.isArray(parsed)) {
-                    return { points: parsed, strokeWidth: 2 }; // Default width si es formato antiguo
+                    return { points: parsed, strokeWidth: 2 }; 
                 }
-                return parsed; // Asume que es el nuevo formato { points: [...], strokeWidth: X }
+                return parsed; 
             } catch (e) {
                 console.warn("Error parseando poligono", e);
                 return null;
@@ -446,7 +489,7 @@
 
         const fallbackImage = 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg';
         let globalPanoUrl = fallbackImage;
-        let configuracionCuotaInicial = 30; // Valor por defecto
+        let configuracionCuotaInicial = 30;
         let globalLoteSize = 34;
         let globalTituloColor = 'var(--primary-color)';
         let globalTemaColor = '#f26522';
@@ -454,11 +497,9 @@
         let globalAsesorNombre = "";
         let globalAsesorTel = "";
         
-        // URL de tu archivo PHP para envío de correos.
-        // Cámbiala por la URL real donde subas el archivo en tu Hostinger.
         const urlPhpCorreo = "https://proyectaconstructora.com/enviar_correo.php";
 
-        window.lotesDataMap = {}; // Para acceso directo desde onclick
+        window.lotesDataMap = {}; 
 
         function hexToRgb(hex) {
             let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -570,7 +611,6 @@
                                 return str;
                             };
 
-
                             window.removeValue = (str, prefix) => {
                                 const regex = new RegExp(`(?:^|\\|)${prefix}:([^\\|]+)`, 'g');
                                 return str.replace(regex, '').replace(/^\|/, '').replace(/\|\|/g, '|');
@@ -616,11 +656,9 @@
                             }
                             tempTitulo = removeValue(tempTitulo, "TEMA_COLOR");
 
-                            // Ignore fav colors on public client
                             tempTitulo = removeValue(tempTitulo, "FAV_COLORS");
 
                             titulo = tempTitulo;
-                            
                         }
                     }
                 } catch (dbError) {
@@ -672,15 +710,47 @@
                     navbar: false,
                     plugins: [
                         [PhotoSphereViewer.MarkersPlugin, { markers: [] }],
-                        [PhotoSphereViewer.GyroscopePlugin]
-                        ,[PhotoSphereViewer.AutorotatePlugin, { autostartDelay: 2000, autorotateSpeed: "1rpm", autorotatePitch: "-90deg" }]
+                        [PhotoSphereViewer.GyroscopePlugin],
+                        [PhotoSphereViewer.AutorotatePlugin, { autostartDelay: 2000, autorotateSpeed: "1rpm", autorotatePitch: "-90deg" }],
+                        [PhotoSphereViewer.StereoPlugin]
                     ]
                 });
 
                 markersPlugin = viewer.getPlugin(PhotoSphereViewer.MarkersPlugin);
                 gyroscopePlugin = viewer.getPlugin(PhotoSphereViewer.GyroscopePlugin);
+                stereoPlugin = viewer.getPlugin(PhotoSphereViewer.StereoPlugin);
 
                 attachModalEvents();
+
+                // CONTROL DE UI AL ENTRAR/SALIR DE VR
+                stereoPlugin.addEventListener('stereo-updated', (e) => {
+                    const isVR = e.active;
+                    vrActivado = isVR; // Sincroniza la variable global
+                    
+                    const elementsToHide = [
+                        document.querySelector('.header-premium'),
+                        document.querySelector('.inventory-bar'),
+                        document.getElementById('btn-conoce-mas'),
+                        document.querySelector('.btn-flotante-whatsapp'),
+                        document.getElementById('btn-back-main'),
+                        document.getElementById('btn-vr')
+                    ];
+                    
+                    elementsToHide.forEach(el => {
+                        if (el) {
+                            if (isVR) {
+                                el.dataset.oldDisplay = el.style.display;
+                                el.style.display = 'none';
+                            } else {
+                                if (el.dataset.oldDisplay !== undefined) {
+                                    el.style.display = el.dataset.oldDisplay;
+                                } else {
+                                    el.style.display = '';
+                                }
+                            }
+                        }
+                    });
+                });
 
                 viewer.addEventListener('ready', async () => {
                     await cargarDatosPublicos();
@@ -689,7 +759,6 @@
                         preloader.style.opacity = '0';
                         setTimeout(() => {
                             preloader.style.display = 'none';
-                            // Mostrar el modal de bienvenida al terminar de cargar
                             document.getElementById('welcome-modal').classList.add('active');
                         }, 800);
                     }
@@ -798,9 +867,9 @@
                             id: l.id,
                             position: { yaw: l.yaw, pitch: l.pitch },
                             html: htmlContent,
-                            size: { width: globalLoteSize + 16, height: globalLoteSize + 16 }, // Tamaño del hitbox (container)
+                            size: { width: globalLoteSize + 16, height: globalLoteSize + 16 }, 
                             anchor: 'center center',
-                            data: loteData // Mantenemos la data por si el plugin de PhotoSphere captura el evento
+                            data: loteData 
                         };
 
                         if (markersPlugin.markers[l.id]) {
@@ -817,7 +886,7 @@
                                         id: polyId,
                                         polygon: polyData.points,
                                         svgStyle: {
-                                            fill: bg.replace('0.9', '0.4'), // Más transparente
+                                            fill: bg.replace('0.9', '0.4'),
                                             stroke: shadow,
                                             strokeWidth: (polyData.strokeWidth || 2) + 'px',
                                             pointerEvents: 'none',
@@ -872,7 +941,6 @@
                                 poiScale = parseFloat(scaleParts[1]) || 1;
                             }
 
-                            // Extraer base64 y texto de p.content porque p.visualtype no existe en admin.html inserción
                             if (parsedContent && parsedContent.startsWith('IMG|')) {
                                 const parts = parsedContent.split('|TEXT|');
                                 displayVisualType = parts[0];
@@ -880,7 +948,7 @@
                             } else if (parsedContent && parsedContent.startsWith('TARJETA|')) {
                                 isTarjeta = true;
                                 const parts = parsedContent.split('|ICON|');
-                                tarjetaImg = parts[0].substring(8); // quita 'TARJETA|'
+                                tarjetaImg = parts[0].substring(8); 
                                 const parts2 = parts[1].split('|TEXT|');
                                 tarjetaIcon = parts2[0];
                                 displayText = parts2[1] || 'Punto';
@@ -962,7 +1030,7 @@
                         }
                     });
                 }
-                // Cargar también polígonos 360
+
                 try {
                     const { data: polys360, error: polyError } = await supabaseClient.from('poligonos_360').select('*').eq('proyecto_id', currentProjectId);
                     if (!polyError && polys360 && polys360.length > 0) {
@@ -1006,7 +1074,6 @@
                 }
 
                 window.mostrarProgreso(100);
-
 
                 limpiarEtiquetasDistancia();
                 Object.keys(markersPlugin.markers).forEach(markerId => {
@@ -1058,19 +1125,36 @@
                     });
                 }
 
-                // Auto-rotación inicial
                 if (viewer) {
                     viewer.animate({
                         zoom: 25,
                         yaw: viewer.getPosition().yaw,
                         pitch: viewer.getPosition().pitch + 0.4,
                         speed: "1rpm"
-                    }).then(() => {
-                        // Se detiene al llegar o si el usuario interactúa
-                    });
+                    }).then(() => {});
                 }
             } catch (error) {
                 console.warn("Error en entrarYActivarGiroscopio:", error);
+            }
+        }
+        
+        // --- FUNCIÓN VR CON POLYFILL ---
+        window.toggleVR = function() {
+            if (!stereoPlugin) {
+                alert("El sistema VR no está inicializado.");
+                return;
+            }
+            
+            if (vrActivado) {
+                stereoPlugin.stop();
+                vrActivado = false;
+            } else {
+                stereoPlugin.start().then(() => {
+                    vrActivado = true;
+                }).catch(err => {
+                    console.warn("No se pudo iniciar VR:", err);
+                    alert("Tu dispositivo o navegador bloqueó el acceso a la Realidad Virtual.");
+                });
             }
         }
 
@@ -1135,7 +1219,6 @@
                 markersPlugin.addEventListener('select-marker', (e) => {
                     const marker = e.marker;
                     if (marker.config.data && marker.config.data.type === 'link360') {
-                        // Navegar a la sub-vista
                         window.mostrarProgreso(10);
 
                         marcadoresOcultos = Object.keys(markersPlugin.markers);
@@ -1145,7 +1228,6 @@
 
                         const transitionOverlay = document.getElementById('transition-overlay');
                         transitionOverlay.style.display = 'flex';
-                        // Pequeño delay para permitir que el display:flex se aplique antes del opacity
                         setTimeout(() => {
                             transitionOverlay.style.opacity = '1';
                         }, 10);
@@ -1159,7 +1241,7 @@
                                     transitionOverlay.style.display = 'none';
                                 }, 500);
                             });
-                        }, 500); // Esperar a que el fade-in termine
+                        }, 500);
                     } else if (marker.config.data && marker.config.data.type === 'lote') {
                         window.abrirLoteModal(marker.id);
                     }
@@ -1169,26 +1251,21 @@
             }
         }
 
-        // --- SISTEMA DE WHATSAPP PREGUNTAS ---
         let loteContextoWhatsapp = false;
 
         function abrirModalWhatsapp(desdeLote = false) {
             loteContextoWhatsapp = desdeLote;
 
-            // Si viene desde el modal del lote, cerrar el modal del lote primero
             if(desdeLote) {
                 cerrarModal();
             }
 
-            // Mostrar el modal de preguntas
             document.getElementById('whatsapp-preguntas-modal').classList.add('active');
 
-            // Limpiar textarea y resetear radios
             document.getElementById('wa-texto-extra').value = '';
             document.getElementById('wa-texto-extra').style.display = 'none';
             document.querySelector('input[name="wa_pregunta"][value="Quiero agendar una visita al proyecto."]').checked = true;
 
-            // Escuchar cambios en los radios
             const radios = document.querySelectorAll('input[name="wa_pregunta"]');
             radios.forEach(radio => {
                 radio.onchange = (e) => {
@@ -1217,19 +1294,16 @@
                 mensaje = `Hola, respecto al proyecto ${tituloProyecto}: ${opcionSeleccionada}`;
             }
 
-            // Si se abrió desde la información de un lote específico, añadimos esa referencia
             if (loteContextoWhatsapp && simuladorLoteActual) {
                 mensaje += `\n\nEstoy interesado específicamente en el lote: ${simuladorLoteActual.nombre} (Precio: ${formatearDinero(parsearDinero(simuladorLoteActual.precio))}).`;
             }
 
-            // Siempre enviar al número especificado por el usuario
             let numeroAsesor = "573217399818";
 
             window.open(`https://wa.me/${numeroAsesor}?text=${encodeURIComponent(mensaje)}`, '_blank');
             cerrarModalWhatsapp();
         }
 
-        // --- SISTEMA DE SIMULADOR ---
         let simuladorLoteActual = null;
 
         function abrirSimulador(loteData) {
@@ -1239,14 +1313,13 @@
             document.getElementById('sim-lote-nombre').innerText = loteData.nombre;
             document.getElementById('sim-valor-total').innerText = formatearDinero(parsearDinero(loteData.precio));
 
-            // Inicializar sliders e inputs con valores por defecto basados en configuración
             const valorTotal = parsearDinero(loteData.precio);
 
             document.getElementById('sim-rango-cuota').max = valorTotal;
             document.getElementById('sim-cuota-inicial').max = valorTotal;
 
             let cuotaSugerida = Math.round(valorTotal * (configuracionCuotaInicial / 100));
-            cuotaSugerida = Math.round(cuotaSugerida / 500000) * 500000; // Round to nearest 500k
+            cuotaSugerida = Math.round(cuotaSugerida / 500000) * 500000; 
             
             document.getElementById('sim-rango-cuota').value = cuotaSugerida;
             document.getElementById('sim-cuota-inicial').value = cuotaSugerida;
@@ -1398,7 +1471,6 @@
                 const titleText = document.getElementById('display-title').innerText;
                 const refText = simuladorLoteActual.id ? (simuladorLoteActual.id.split('-')[1] || simuladorLoteActual.id) : Date.now();
 
-                // Preparar datos para enviar por correo si el cliente ingresó email
                 if (cEmail && cEmail !== 'N/A' && cEmail.includes('@')) {
                     const datosCorreo = {
                         cliente_nombre: cNombre,
@@ -1422,11 +1494,9 @@
                         project_url: window.location.href
                     };
 
-                    // Se lanza en background (no esperamos a que termine para no bloquear al usuario)
                     enviarCorreoSimulacion(datosCorreo);
                 }
 
-                // Plantilla HTML para el PDF (Diseño Elegante y Profesional)
                 const htmlTemplate = `
                     <div style="font-family: 'Montserrat', sans-serif; color: #222; padding: 50px; background: #fff; width: 800px; box-sizing: border-box; margin: 0; line-height: 1.6; position: relative; min-height: 1040px; display: flex; flex-direction: column;">
 
@@ -1529,8 +1599,6 @@
                 printContainer.innerHTML = htmlTemplate;
                 document.body.appendChild(printContainer);
 
-                // Generate exact content height to avoid blank pages/crops
-                // Extra padding buffer added to ensure footer isn't cut off
                 const contentHeight = (printContainer.offsetHeight || 1040) + 20;
                 document.body.removeChild(printContainer);
 
@@ -1545,9 +1613,7 @@
                 window.mostrarProgreso(50);
                 
                 pdfFilenameGlobal = opt.filename;
-                // Generar Blob en lugar de descargar directamente
 
-                // Re-create the element to pass to html2pdf to ensure width is respected
                 const renderElement = document.createElement('div');
                 renderElement.innerHTML = htmlTemplate;
                 const pdfContainer = renderElement.firstElementChild;
@@ -1569,7 +1635,6 @@
                         document.body.removeChild(wrapper);
                     }
 
-                    // Guardar lead en la tabla 'interesados'
                     try {
                         if (supabaseClient) {
                             const { error: insertError } = await supabaseClient.from('interesados').insert([
@@ -1586,8 +1651,6 @@
                             ]);
                             if (insertError) {
                                 console.warn("Error al guardar el interesado en Supabase:", insertError);
-                            } else {
-                                console.log("Interesado guardado exitosamente en Supabase");
                             }
                         }
                     } catch (dbErr) {
@@ -1603,7 +1666,6 @@
 
                     document.getElementById('pdf-send-nombre').innerText = cNombre;
 
-                    // Mostrar modal de envío de PDF
                     cerrarSimulador();
                     document.getElementById('pdf-send-modal').classList.add('active');
 
@@ -1646,14 +1708,12 @@
                     cerrarPdfSendModal();
                 } catch (error) {
                     console.error('Error al compartir el PDF:', error);
-                    // Fallback to simple download if share is canceled or fails
                     if (error.name !== 'AbortError') {
                         alert('No se pudo compartir el archivo automáticamente. El archivo se descargará ahora.');
                         descargarPdfLocal();
                     }
                 }
             } else {
-                // Fallback for browsers that don't support file sharing
                 alert("Tu navegador no soporta compartir archivos directamente. El documento se descargará para que lo envíes manualmente.");
                 descargarPdfLocal();
             }
